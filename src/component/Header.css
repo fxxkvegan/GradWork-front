@@ -1,7 +1,31 @@
 .glass {
-    background-color: rgba(215, 218, 255, 0.25);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     border-radius: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+}
+
+/* スクロールアニメーションの設定 */
+.MuiSlide-root {
+    transition: transform 0.4s ease !important;
+}
+
+/* ヘッダーに影をつける - スクロール時により目立たせる */
+.MuiAppBar-root {
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* スクロール時のヘッダー背景色 - より不透明に */
+.scrolled {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ツールバーの高さを調整 - スクロール時のスペース確保 */
+.MuiToolbar-dense {
+    min-height: 56px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
 }
