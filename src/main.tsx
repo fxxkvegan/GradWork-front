@@ -1,22 +1,20 @@
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import HomePage from './pages/HomePage.tsx'
 import Register from './pages/Register.tsx'
 import Login from './pages/Login.tsx'
-import Welcome from './pages/welcome.tsx'
 import Legal from './pages/Legal.tsx'
+import GitHubCallback from './pages/GitHubCallback.tsx'
+import TestLogin from './pages/TestLogin.tsx'
+import React from 'react'
+import { AuthProvider } from './context/AuthContext'
+
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
-  },
-  {
-    path: "/home",
     element: <HomePage />,
   },
-
   {
     path: "/register",
     element: <Register />
@@ -24,18 +22,24 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />
+  }, {
+    path: "/login/github-callback",
+    element: <GitHubCallback />
   },
   {
-    path: "/welcome",
-    element: <Welcome />
+    path: "/testlogin",
+    element: <TestLogin />
   },
   {
     path: "/Legal",
     element: <Legal />
   }
-
 ]);
 
 createRoot(document.getElementById('root')!).render(
-  <RouterProvider router={router} />
+  <React.StrictMode>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  </React.StrictMode>
 )

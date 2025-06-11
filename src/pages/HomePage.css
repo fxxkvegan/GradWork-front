@@ -18,8 +18,12 @@
 .hero-section {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 80px 0;
+    padding-top: 0;
+    /* 上部パディングを完全に削除 */
+    padding-bottom: 60px;
     text-align: center;
+    margin-top: 48px;
+    /* ヘッダーの高さ分だけ確保 */
 }
 
 .hero-content {
@@ -96,50 +100,55 @@
     font-size: 1.1rem;
 }
 
-/* プロジェクトカルーセル - 注意: Splideの設定と連携する重要な部分 */
-.project-carousel {
+/* プロジェクトグリッド */
+.projects-grid {
     margin-top: 32px;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-    /* はみ出た要素を隠す - 重要: カルーセルの横揺れ防止 */
-    padding-bottom: 60px;
-    /* ページネーションのための余白追加 */
+    padding-bottom: 40px;
 }
 
-.splide__track {
-    overflow: visible;
-    width: 100%;
-    transition: all 0.5s ease;
-    /* スライド切り替え時の動きを滑らかに */
-}
-
-.splide__list {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-/* プロジェクトカード - 注意: サイズ変更時はレスポンシブ設定も確認すること */
+/* プロジェクトカード */
 .project-card {
-    min-width: 280px !important;
-    /* 重要: 小さすぎるとコンテンツが崩れる */
-    max-width: 320px !important;
-    /* 重要: 大きすぎるとレイアウトが崩れる */
-    width: 100% !important;
     border-radius: 16px !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
-    transition: all 0.3s ease !important;
     overflow: hidden !important;
-    margin: 0 auto;
-    /* カードを中央揃え - レイアウト調整時に重要 */
+    height: 100%;
     border: none !important;
-    /* Material UIのデフォルトボーダーを削除 */
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    will-change: transform;
+    transform-origin: center center;
 }
 
 .project-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* カード画像の3D効果 */
+.card-image-container {
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+
+.card-image-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.05) 0%,
+            rgba(0, 0, 0, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.project-card:hover .card-image-container::after {
+    opacity: 1;
 }
 
 /* カード画像コンテナ - 画像表示の重要な設定 */
@@ -157,11 +166,11 @@
     width: 100% !important;
     object-fit: cover !important;
     /* 重要: 画像比率を維持しつつ領域を埋める */
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease-out;
 }
 
 .project-card:hover .card-image {
-    transform: scale(1.05);
+    transform: scale(1.03);
 }
 
 .card-overlay {
@@ -191,8 +200,11 @@
 
 .favorite-button:hover {
     background-color: white !important;
-    color: #e91e63 !important;
     transform: scale(1.1);
+}
+
+.favorite-button:hover svg {
+    stroke: #e91e63 !important;
 }
 
 .card-content {
@@ -290,172 +302,121 @@
     transform: translateY(-1px);
 }
 
-/* カテゴリセクション - トップページのカテゴリ表示部分 */
+/* カテゴリセクション - モダンでレスポンシブな表示 */
 .category-section {
-    background-color: #f8f9fa;
-    padding: 80px 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
+    padding: 40px 0;
     width: 100%;
     overflow: hidden;
-    /* 横揺れ防止のための重要な設定 */
 }
 
-/* カテゴリ要素 - レスポンシブ対応の重要な要素 */
+/* カテゴリグリッド - 均一なサイズ配置 */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 0 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* カテゴリ要素 - 統一されたサイズ */
 .category-item {
-    padding: 10px;
+    height: 100%;
     width: 100%;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* カテゴリコンテンツ - デザイン変更時に注意が必要 */
+/* カテゴリコンテンツ - モダンなデザイン */
 .category-content {
-    padding: 20px !important;
-    text-align: center;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    height: 100%;
-    /* 高さを揃えるための重要な設定 */
+    border-radius: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-}
-
-.category-icon {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    transition: transform 0.3s ease;
-}
-
-.category-card:hover .category-icon {
-    transform: scale(1.1);
-}
-
-.category-icon svg {
-    font-size: 28px;
-}
-
-.category-name {
-    margin-bottom: 8px !important;
-    font-weight: 600 !important;
-}
-
-.category-count {
-    color: #666 !important;
-}
-
-/* 統計セクション - サイト利用状況の表示部分 */
-.stats-section {
-    padding: 60px 0;
-    background-color: #f8f9fa;
-    width: 100%;
-    overflow: hidden;
-}
-
-/* 統計項目 - 数値と説明のコンテナ */
-.stat-item {
+    gap: 12px;
     text-align: center;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    padding: 24px !important;
+    min-height: 160px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
-.stat-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+.category-content:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.stat-value {
-    font-weight: 700 !important;
+.category-content img {
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.category-content:hover img {
+    opacity: 1;
+}
+
+.category-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f0f5ff 0%, #e6e9ff 100%);
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.category-icon svg,
+.category-icon img {
+    width: 24px;
+    height: 24px;
     color: #667eea;
-    margin-bottom: 8px !important;
-    font-size: clamp(2rem, 4vw, 3rem) !important;
 }
 
-.stat-label {
-    color: #666;
+.category-name {
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    color: #2d3748;
+    line-height: 1.3;
+    margin: 0 !important;
+}
+
+.category-count {
+    color: #718096 !important;
+    font-size: 0.95rem !important;
     font-weight: 500 !important;
+    background: #f7fafc;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
 }
 
-/* Splideカルーセルのカスタムスタイル - カルーセル動作の重要な設定 */
-.splide__pagination {
-    bottom: -50px !important;
-    /* ページネーションの位置 - UIデザインに影響 */
-}
-
-.splide__pagination__page {
-    background-color: #ddd !important;
-    opacity: 1 !important;
-    width: 12px !important;
-    height: 12px !important;
-    margin: 0 6px !important;
-    transition: all 0.3s ease !important;
-}
-
-.splide__pagination__page.is-active {
-    background-color: #1976d2 !important;
-    /* アクティブなページのカラー - テーマカラーに合わせる */
-    transform: scale(1.2);
-}
-
-/* カルーセルの矢印ボタン - ナビゲーション用UI */
-.splide__arrow {
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    border: 1px solid #ddd !important;
-    opacity: 1 !important;
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 50% !important;
-    transition: all 0.3s ease !important;
-}
-
-.splide__arrow:hover {
-    background-color: white !important;
-    transform: scale(1.1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.splide__arrow svg {
-    fill: #333 !important;
-}
-
-.splide__arrow--prev {
-    left: -60px !important;
-}
-
-.splide__arrow--next {
-    right: -60px !important;
-}
-
-/* レスポンシブデザイン - 画面サイズに応じた調整 */
 @media (max-width: 768px) {
 
     /* タブレットサイズの調整 */
     .hero-section {
         padding: 60px 20px;
-        /* 左右のパディングを追加 - 横揺れ防止に重要 */
     }
 
     .featured-section,
     .category-section,
     .stats-section {
-        padding: 60px 20px !important;
-        /* 左右のパディングを追加 - 横揺れ防止に重要 */
+        padding: 40px 20px !important;
     }
 
-    .project-card {
-        min-width: 240px !important;
-        /* 重要: タブレット向けカードサイズ */
-        max-width: 280px !important;
+    /* カテゴリーセクションのタブレット調整 */
+    .category-content {
+        padding: 20px 12px !important;
+    }
+
+    .category-name {
+        font-size: 1rem !important;
+    }
+
+    .category-count {
+        font-size: 0.85rem !important;
+        padding: 3px 10px;
     }
 
     .hero-buttons {
@@ -463,60 +424,109 @@
         align-items: center;
     }
 
-    .splide__arrow {
-        display: none !important;
-        /* 小さい画面では矢印を非表示 */
-    }
-
     /* カードコンテンツを小さく */
     .card-content {
         padding: 15px !important;
-        /* 余白調整 - コンテンツ量に応じて調整が必要 */
     }
 
     /* フォントサイズを調整 */
     .project-title {
         font-size: 16px !important;
-        /* タブレットでの適切なサイズ */
     }
 
     .project-description {
         font-size: 14px !important;
-        /* タブレットでの適切なサイズ */
+    }
+
+    /* カテゴリグリッド - レスポンシブ調整 */
+    .category-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        padding: 0 20px;
+    }
+
+    .category-content {
+        padding: 20px !important;
+        min-height: 100px;
+        gap: 16px;
+    }
+
+    .category-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .category-icon svg,
+    .category-icon img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .category-name {
+        font-size: 1.1rem !important;
     }
 }
 
 @media (max-width: 480px) {
 
-    /* スマートフォンサイズの調整 - UI崩れを防ぐ重要な設定 */
-    .project-card {
-        min-width: 220px !important;
-        /* 重要: モバイル向けカードサイズ */
-        max-width: 260px !important;
-    }
-
+    /* スマートフォンサイズの調整 - UI崩れ防止と最適化 */
     .card-content {
         padding: 12px !important;
-        /* モバイル向け余白 - 狭すぎると見づらい */
+    }
+
+    /* カテゴリーのモバイル最適化 - コンパクト表示 */
+    .category-section {
+        padding: 20px 12px !important;
+    }
+
+    .category-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 0 16px;
+    }
+
+    .category-content {
+        padding: 16px !important;
+        min-height: 90px;
+        gap: 14px;
+    }
+
+    .category-icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .category-icon svg,
+    .category-icon img {
+        width: 24px;
+        height: 24px;
+    }
+
+    .category-name {
+        font-size: 1rem !important;
+        margin-bottom: 4px !important;
+    }
+
+    .category-count {
+        font-size: 0.85rem !important;
+        padding: 3px 10px;
     }
 
     .hero-title {
         font-size: 1.8rem !important;
-        /* モバイル向けタイトルサイズ */
     }
 
     .hero-subtitle {
         font-size: 1rem !important;
-        /* モバイル向けサブタイトルサイズ */
     }
 
-    /* タグのサイズを調整 - モバイル表示で重要 */
+    /* タグのサイズを調整 */
     .tag-chip {
         font-size: 0.65rem !important;
         height: 18px !important;
     }
 
-    /* 料金表示を調整 - モバイル表示で重要なレイアウト変更 */
+    /* 料金表示を調整 */
     .card-footer {
         flex-direction: column;
         align-items: flex-start;
@@ -541,49 +551,37 @@
     width: 100%;
 }
 
-/* カルーセルの矢印ボタンをモバイルでより目立たせる - 小画面でのナビゲーション改善 */
-@media (max-width: 600px) {
-    .splide__arrow {
-        background-color: rgba(255, 255, 255, 0.95) !important;
-        width: 44px !important;
-        height: 44px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    /* スマホ向けのカード幅調整 - 小画面での表示最適化 */
-    .project-card {
-        min-width: 260px !important;
-        max-width: 90% !important;
-        margin: 0 auto;
-    }
-}
-
-/* アニメーション */
+/* アニメーション - パフォーマンス最適化版 */
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(20px) translateZ(0);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) translateZ(0);
     }
 }
 
 .section-title,
 .section-subtitle {
-    animation: fadeInUp 0.6s ease-out;
+    animation: fadeInUp 0.5s cubic-bezier(0.2, 0, 0.2, 1);
+    will-change: transform, opacity;
 }
 
-/* ホバーエフェクト */
+/* ホバーエフェクト - 高速レスポンス化 */
 .project-card,
-.category-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+.category-content {
+    transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1),
+        box-shadow 0.25s cubic-bezier(0.2, 0, 0.2, 1) !important;
+    will-change: transform, box-shadow;
 }
 
 .primary-button,
 .secondary-button,
 .view-button {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1),
+        background-color 0.25s cubic-bezier(0.2, 0, 0.2, 1),
+        box-shadow 0.25s cubic-bezier(0.2, 0, 0.2, 1) !important;
 }

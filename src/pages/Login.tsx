@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Header } from '../component/Header';
-
+import AppHeaderWithAuth from '../component/AppHeaderWithAuth';
 import {
     Container,
     Card,
@@ -13,80 +12,135 @@ import {
     Divider,
     Checkbox,
     FormControlLabel,
-    Link,
+    Link as MuiLink,
     Box,
+    CircularProgress,
 } from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
+// GitHub OAuth設定 - 環境変数から取得（.env.localから優先的に読み込む）
+const CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+const REDIRECT_URI = `${window.location.origin}/login/github-callback`;
+
+/**
+ * ログインページコンポーネント
+ * 通常のログインフォームとGitHub OAuth認証機能を提供
+ */
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
     const [error, setError] = useState('');
-    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
+    const { login, isLoggedIn } = useAuth();
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    /**
+     * 通常のログインフォーム送信処理
+     * @param e フォーム送信イベント
+     */
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setIsLoading(true);
+        setError('');
 
-        // 👇 ここに認証ロジックを入れる（例: API 呼び出し）
-        if (email === 'test@example.com' && password === 'password') {
-            console.log('ログイン成功！');
-            navigate('/home'); // ホームへ遷移
-        } else {
-            setError('メールアドレスまたはパスワードが間違っています');
+        try {
+            // ここに実際のAPIリクエスト
+            const response = await axios.post('/api/auth/login', { email, password });            // ユーザー情報をAuthContextに保存
+            login(response.data.user, remember);
+        } catch (error: any) {
+            console.error('ログインエラー:', error);
+            setError(
+                error.response?.data?.message ||
+                'ログイン中にエラーが発生しました。もう一度お試しください。'
+            );
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleOAuthSignIn = () => {
-        console.log('GitHub でサインイン（ここにOAuth処理）');
-    };
-    console.log('Login component rendered');
+    /**
+     * GitHubでサインイン処理
+     * GitHub OAuth認証ページにリダイレクト
+     */
+    const handleGitHubSignIn = () => {
+        try {
+            // エラーをリセット
+            setError('');
+            setIsLoading(true);            // OAuth認証ページのURLを生成
+            const scope = 'user:email'; // 必要な権限スコープ
+            const githubAuthUrl = `https://github.com/login/oauth/authorize?` +
+                `client_id=${CLIENT_ID}` +
+                `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+                `&scope=${scope}`;
 
-    return (
+            // GitHub OAuth認証ページにリダイレクト
+            window.location.href = githubAuthUrl;
+        } catch (error) {
+            console.error('GitHub認証リダイレクトエラー:', error);
+            setError('GitHub認証ページへのリダイレクトに失敗しました。');
+            setIsLoading(false);
+        }
+    }; return (
         <>
-            <Header />
+            <AppHeaderWithAuth activePath="/login" />
             <Container maxWidth="xs" sx={{ mt: 8 }}>
                 <Card elevation={3}>
-                    <CardContent>
-                        <Typography variant="h6" align="center" gutterBottom>
-
-                        </Typography>
+                    <CardContent><Typography variant="h5" align="center" gutterBottom>
+                        ログイン
+                    </Typography>
                         <Typography variant="body2" align="center" color="text.secondary" gutterBottom>
-                            Welcome, please sign in to continue
+                            ログインして開発コミュニティに参加しましょう
                         </Typography>
 
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            startIcon={<GitHubIcon />}
-                            sx={{ mt: 2, mb: 2 }}
-                            onClick={handleOAuthSignIn}
-                        >
-                            Sign In With GitHub
-                        </Button>
+                        {isLoggedIn ? (
+                            <Button
+                                fullWidth
+                                variant="outlined"
+                                startIcon={<GitHubIcon />}
+                                sx={{ mt: 2, mb: 2 }}
+                                disabled
+                            >
+                                すでにログインしています
+                            </Button>
+                        ) : (
+                            <Button
+                                fullWidth
+                                variant="outlined"
+                                startIcon={<GitHubIcon />}
+                                sx={{ mt: 2, mb: 2 }}
+                                onClick={handleGitHubSignIn}
+                                disabled={isLoading}
+                            >
+                                GitHub でサインイン
+                            </Button>
+                        )}
 
-                        <Divider>or</Divider>
+                        <Divider>または</Divider>
 
                         <form onSubmit={handleSubmit}>
                             <Stack spacing={2} mt={2}>
                                 <TextField
-                                    label="Email"
+                                    label="メールアドレス"
                                     type="email"
                                     placeholder="your@email.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     fullWidth
+                                    disabled={isLoading || isLoggedIn}
                                 />
                                 <TextField
-                                    label="Password"
+                                    label="パスワード"
                                     type="password"
                                     placeholder="******"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     fullWidth
+                                    disabled={isLoading || isLoggedIn}
                                 />
 
                                 <Box
@@ -101,13 +155,13 @@ const Login: React.FC = () => {
                                             <Checkbox
                                                 checked={remember}
                                                 onChange={(e) => setRemember(e.target.checked)}
+                                                disabled={isLoading || isLoggedIn}
                                             />
                                         }
-                                        label="Remember me"
-                                    />
-                                    <Link href="#" variant="body2">
-                                        Forgot password?
-                                    </Link>
+                                        label="ログイン状態を保存" />
+                                    <MuiLink component="button" variant="body2" onClick={() => console.log('パスワードリセット機能')}>
+                                        パスワードをお忘れですか？
+                                    </MuiLink>
                                 </Box>
 
                                 {error && <Alert severity="error">{error}</Alert>}
@@ -117,21 +171,20 @@ const Login: React.FC = () => {
                                     variant="contained"
                                     fullWidth
                                     sx={{ fontWeight: 'bold' }}
+                                    disabled={isLoading || isLoggedIn}
                                 >
-                                    Sign In
+                                    {isLoading ? <CircularProgress size={24} /> : 'ログイン'}
                                 </Button>
                             </Stack>
                         </form>
-
                         <Typography
                             variant="body2"
                             align="center"
                             sx={{ mt: 2 }}
-                        >
-                            Don't have an account?{' '}
-                            <Link href="/register" variant="body2">
-                                Sign up
-                            </Link>
+                        >                            アカウントをお持ちでないですか？{' '}
+                            <MuiLink component={RouterLink} to="/register" variant="body2">
+                                新規登録
+                            </MuiLink>
                         </Typography>
                     </CardContent>
                 </Card>

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Header } from '../component/Header';
+// ヘッダーのインポートを削除
 
 const Welcome: React.FC = () => {
     return (
         <div>
-            <Header />
+            {/* ヘッダー要素を削除 */}
 
             <p>Welcome to our application!</p>
         </div>

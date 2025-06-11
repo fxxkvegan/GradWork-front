@@ -1,0 +1,69 @@
+:root {
+    --carousel-item-width: 320px;
+    --carousel-gap: 20px;
+    --carousel-transition-timing: cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.carousel-section {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding: 20px 0;
+}
+
+.carousel-container {
+    width: 100%;
+    overflow: hidden;
+}
+
+.carousel-track {
+    display: flex;
+    gap: var(--carousel-gap);
+    overflow-x: scroll;
+    overflow-y: hidden;
+    padding: 30px 0;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    cursor: grab;
+    padding-left: calc(50% - (var(--carousel-item-width) / 2));
+    padding-right: calc(50% - (var(--carousel-item-width) / 2));
+    -webkit-overflow-scrolling: touch;
+}
+
+.carousel-track::-webkit-scrollbar {
+    display: none;
+}
+
+.carousel-track.dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+}
+
+.carousel-item {
+    min-width: var(--carousel-item-width);
+    flex-shrink: 0;
+    scroll-snap-align: center;
+    opacity: 0.7;
+    transition: transform 0.4s var(--carousel-transition-timing),
+        opacity 0.4s var(--carousel-transition-timing);
+}
+
+.carousel-item.active {
+    opacity: 1;
+    transform: scale(1.05);
+    z-index: 5;
+}
+
+@media (max-width: 768px) {
+    :root {
+        --carousel-item-width: 280px;
+        --carousel-gap: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --carousel-item-width: 240px;
+        --carousel-gap: 12px;
+    }
+}
