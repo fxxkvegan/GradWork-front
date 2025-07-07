@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import type { ReactNode } from "react";
 import AppHeader from "../component/AppHeader";
 import {
@@ -467,8 +467,8 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
             const setWidth = totalItemWidth * itemsPerSet;
 
             const currentScroll = carouselElement.scrollLeft;
-            const maxScroll = carouselElement.scrollWidth;
-            const viewportWidth = carouselElement.clientWidth;
+            // const maxScroll = carouselElement.scrollWidth;
+            // const viewportWidth = carouselElement.clientWidth;
 
             // 右端（4番目のセット以降）に到達したら、中央のセットの対応位置にリセット
             if (currentScroll >= setWidth * 3.5) {
@@ -645,8 +645,8 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
             carouselElement.removeEventListener('scroll', handleScroll);
-            carouselElement.removeEventListener('touchstart', (e: TouchEvent) => { });
-            carouselElement.removeEventListener('touchmove', (e: TouchEvent) => { });
+            carouselElement.removeEventListener('touchstart', () => { });
+            carouselElement.removeEventListener('touchmove', () => { });
             carouselElement.removeEventListener('touchend', () => { });
         };
     }, [projects, initialized, activeItemIndex]); return (

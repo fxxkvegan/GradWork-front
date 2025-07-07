@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
     Container,
@@ -31,7 +30,6 @@ const TestLogin: React.FC = () => {
     const [selectedUser, setSelectedUser] = useState<string | null>(null);
     const [remember, setRemember] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const navigate = useNavigate();
     const { login, logout, isLoggedIn, user } = useAuth();    // テストユーザーのリスト
     const testUsers = [
         {

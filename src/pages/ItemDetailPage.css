@@ -1,0 +1,102 @@
+/* ============================================
+   アイテム詳細ページCSS
+   スティッキーサイドバーとレスポンシブ対応
+============================================ */
+
+.item-detail-page {
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+/* 画像表示の最適化 */
+.item-detail-page .MuiCardMedia-root {
+    transition: transform 0.3s ease;
+}
+
+.item-detail-page .MuiCardMedia-root:hover {
+    transform: scale(1.02);
+}
+
+/* サムネイル画像のホバー効果 */
+.item-detail-page img {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.item-detail-page img:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+/* ボタンのホバー効果 */
+.item-detail-page .MuiButton-root {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.item-detail-page .MuiButton-contained:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* チップのスタイル */
+.item-detail-page .MuiChip-root {
+    transition: transform 0.2s ease;
+}
+
+.item-detail-page .MuiChip-root:hover {
+    transform: translateY(-1px);
+}
+
+/* スクロール時のスティッキー要素 */
+.item-detail-page .MuiPaper-root {
+    transition: box-shadow 0.3s ease;
+}
+
+/* 右側の固定パネル（スティッキー要素） */
+.item-detail-page .sticky-sidebar {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 80px; /* ヘッダーの高さ + 余白 */
+    align-self: flex-start;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    z-index: 1;
+}
+
+/* ヘッダーの高さを考慮した調整 */
+.item-detail-page .sticky-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.item-detail-page .sticky-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.item-detail-page .sticky-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+.item-detail-page .sticky-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* スティッキー要素のレスポンシブ対応 */
+@media (max-width: 1023px) {
+    .item-detail-page .sticky-sidebar {
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+    }
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .item-detail-page .MuiContainer-root {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    
+    .item-detail-page .MuiGrid-item {
+        padding: 8px;
+    }
+}
