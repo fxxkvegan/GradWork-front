@@ -62,9 +62,9 @@ const Register: React.FC = () => {
             login(data.user, true);
 
             navigate('/');
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('登録エラー:', err);
-            setError(err.response?.data?.message || '登録に失敗しました');
+            setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || '登録に失敗しました');
         } finally {
             setIsLoading(false);
         }

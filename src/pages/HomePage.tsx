@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import type { ReactNode } from "react";
-import AppHeader from "../component/AppHeader";
+import AppHeader from "../components/AppHeader";
 import {
     Card,
     CardMedia,
@@ -54,9 +54,9 @@ const useApiData = <T,>(endpoint: string, fallback: T) => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const json = await res.json();
                 if (!cancelled) setData(json);
-            } catch (e: any) {
+            } catch (e: unknown) {
                 console.warn(`${endpoint} failed, using fallback`, e);
-                if (!cancelled) setError(e.message);
+                if (!cancelled) setError(e instanceof Error ? e.message : 'Unknown error');
             } finally {
                 if (!cancelled) setLoading(false);
             }

@@ -14,7 +14,7 @@ import {
     Checkbox,
     Alert
 } from '@mui/material';
-import AppHeaderWithAuth from '../component/AppHeaderWithAuth';
+import AppHeaderWithAuth from '../components/AppHeaderWithAuth';
 
 /**
  * テストログインページコンポーネント
@@ -22,15 +22,16 @@ import AppHeaderWithAuth from '../component/AppHeaderWithAuth';
  * 複数のモックユーザーでログインできる機能を提供
  */
 const TestLogin: React.FC = () => {
-    // 本番環境の場合は何も表示しない
-    if (import.meta.env.PROD) {
-        return null;
-    }
     const [loading, setLoading] = useState(false);
     const [selectedUser, setSelectedUser] = useState<string | null>(null);
     const [remember, setRemember] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { login, logout, isLoggedIn, user } = useAuth();    // テストユーザーのリスト
+    const { login, logout, isLoggedIn, user } = useAuth();
+
+    // 本番環境の場合は何も表示しない
+    if (import.meta.env.PROD) {
+        return null;
+    }    // テストユーザーのリスト
     const testUsers = [
         {
             id: 'test-user-1',

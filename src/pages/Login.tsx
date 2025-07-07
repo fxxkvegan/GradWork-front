@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AppHeaderWithAuth from '../component/AppHeaderWithAuth';
+import AppHeaderWithAuth from '../components/AppHeaderWithAuth';
 import {
     Container,
     Card,
@@ -50,10 +50,10 @@ const Login: React.FC = () => {
             // ここに実際のAPIリクエスト
             const response = await axios.post('/api/auth/login', { email, password });            // ユーザー情報をAuthContextに保存
             login(response.data.user, remember);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('ログインエラー:', error);
             setError(
-                error.response?.data?.message ||
+                (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
                 'ログイン中にエラーが発生しました。もう一度お試しください。'
             );
         } finally {
