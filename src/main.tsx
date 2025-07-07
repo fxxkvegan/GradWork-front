@@ -8,6 +8,7 @@ import Legal from './pages/Legal.tsx'
 import GitHubCallback from './pages/GitHubCallback.tsx'
 import TestLogin from './pages/TestLogin.tsx'
 import ItemDemoPage from './pages/ItemDemoPage'
+import ItemDetailPage from './pages/ItemDetailPage.tsx'
 import React from 'react'
 import { AuthProvider } from './context/AuthContext'
 
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: "/item",
     element: <ItemDemoPage />
+  },
+  {
+    path: "/item/:id",
+    element: <ItemDetailPage />
   }
 ]);
 
