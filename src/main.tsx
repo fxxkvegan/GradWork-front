@@ -7,6 +7,8 @@ import Login from './pages/Login.tsx'
 import Legal from './pages/Legal.tsx'
 import GitHubCallback from './pages/GitHubCallback.tsx'
 import TestLogin from './pages/TestLogin.tsx'
+import ItemDemoPage from './pages/ItemDemoPage.tsx'
+import ItemDetailPage from './pages/ItemDetailPage.tsx'
 import React from 'react'
 import { AuthProvider } from './context/AuthContext'
 
