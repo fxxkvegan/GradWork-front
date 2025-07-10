@@ -35,15 +35,15 @@ const router = createBrowserRouter([
     path: "/Legal",
     element: <Legal />
   },{
-    path: "/item",
+    path: "/item/:itemId",
     element: <ItemDetailPage />
   }
 ]);
 
 createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <AuthProvider>
       <RouterProvider router={router} />
     </AuthProvider>
-  </React.StrictMode>
+  // </React.StrictMode>
 )

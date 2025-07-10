@@ -23,6 +23,9 @@ import {
     ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import './ItemDetailPage.css';
+import axios from 'axios';
+
+export default ItemDetailPage;
 
 // プロジェクト詳細の型定義
 interface ProjectDetail {
@@ -61,94 +64,132 @@ interface ProjectDetail {
 }
 
 // デモ用詳細データ
-const getDemoProjectDetail = (id: string): ProjectDetail => {
-    const baseProject: ProjectDetail = {
-        id: parseInt(id),
-        title: "React E-commerce Platform",
-        description: "モダンなReactとTypeScriptで構築された本格的なEコマースプラットフォーム",
-        shortDescription: "レスポンシブ対応のECプラットフォーム",
-        longDescription: `
-このプロジェクトは、最新のReact 18とTypeScriptを使用して構築された、
-本格的なEコマースプラットフォームです。
+// const getDemoProjectDetail = (id: string): ProjectDetail => {
+//     const baseProject: ProjectDetail = {
+//         id: parseInt(id),
+//         title: "React E-commerce Platform",
+//         description: "モダンなReactとTypeScriptで構築された本格的なEコマースプラットフォーム",
+//         shortDescription: "レスポンシブ対応のECプラットフォーム",
+//         longDescription: `
+// このプロジェクトは、最新のReact 18とTypeScriptを使用して構築された、
+// 本格的なEコマースプラットフォームです。
 
-• 完全レスポンシブデザイン
-• ショッピングカート機能
-• ユーザー認証システム
-• 管理者ダッシュボード
-• 決済システム統合
-• SEO最適化済み
+// • 完全レスポンシブデザイン
+// • ショッピングカート機能
+// • ユーザー認証システム
+// • 管理者ダッシュボード
+// • 決済システム統合
+// • SEO最適化済み
 
-開発者にとって理解しやすく、カスタマイズしやすい構造になっており、
-実際のビジネスでもそのまま使用できる品質を保っています。
-        `,
-        images: ["/nice_dig.png", "/nice_dig.png", "/nice_dig.png"],
-        price: 15000,
-        isFree: false,
-        rating: { average: 4.5, count: 128 },
-        features: [
-            "レスポンシブデザイン",
-            "ショッピングカート",
-            "ユーザー認証",
-            "管理者機能",
-            "決済システム",
-            "SEO対応",
-            "PWA対応",
-            "多言語対応"
-        ],
-        technicalDetails: {
-            framework: ["React 18", "Material-UI", "Redux Toolkit"],
-            language: ["TypeScript", "JavaScript", "HTML5", "CSS3"],
-            database: ["PostgreSQL", "Redis"],
-            tools: ["Vite", "ESLint", "Prettier", "Jest"]
-        },
-        systemRequirements: {
-            os: "Windows 10+, macOS 10.15+, Linux Ubuntu 18+",
-            browser: "Chrome 90+, Firefox 88+, Safari 14+",
-            memory: "8GB RAM 推奨"
-        },
-        author: {
-            name: "TechDeveloper",
-            avatar: "/nice_dig.png",
-            rating: 4.8
-        },
-        downloadCount: 1250,
-        lastUpdated: "2024-06-15",
-        version: "2.1.0"
-    };
+// 開発者にとって理解しやすく、カスタマイズしやすい構造になっており、
+// 実際のビジネスでもそのまま使用できる品質を保っています。
+//         `,
+//         images: ["/nice_dig.png", "/nice_dig.png", "/nice_dig.png"],
+//         price: 15000,
+//         isFree: false,
+//         rating: { average: 4.5, count: 128 },
+//         features: [
+//             "レスポンシブデザイン",
+//             "ショッピングカート",
+//             "ユーザー認証",
+//             "管理者機能",
+//             "決済システム",
+//             "SEO対応",
+//             "PWA対応",
+//             "多言語対応"
+//         ],
+//         technicalDetails: {
+//             framework: ["React 18", "Material-UI", "Redux Toolkit"],
+//             language: ["TypeScript", "JavaScript", "HTML5", "CSS3"],
+//             database: ["PostgreSQL", "Redis"],
+//             tools: ["Vite", "ESLint", "Prettier", "Jest"]
+//         },
+//         systemRequirements: {
+//             os: "Windows 10+, macOS 10.15+, Linux Ubuntu 18+",
+//             browser: "Chrome 90+, Firefox 88+, Safari 14+",
+//             memory: "8GB RAM 推奨"
+//         },
+//         author: {
+//             name: "TechDeveloper",
+//             avatar: "/nice_dig.png",
+//             rating: 4.8
+//         },
+//         downloadCount: 1250,
+//         lastUpdated: "2024-06-15",
+//         version: "2.1.0"
+//     };
 
-    // IDに応じて少し内容を変更
-    if (id === "2") {
-        baseProject.title = "Vue.js Dashboard";
-        baseProject.description = "Vue.js 3とComposition APIで構築された管理者用ダッシュボード";
-        baseProject.technicalDetails.framework = ["Vue.js 3", "Vuetify", "Pinia"];
-    } else if (id === "3") {
-        baseProject.title = "Node.js API Starter";
-        baseProject.description = "Express.jsとMongoDBを使ったRESTful APIのスターターキット";
-        baseProject.isFree = true;
-        baseProject.price = 0;
-        baseProject.technicalDetails.framework = ["Express.js", "Mongoose"];
-        baseProject.technicalDetails.language = ["Node.js", "TypeScript"];
-    }
+//     // IDに応じて少し内容を変更
+//     if (id === "2") {
+//         baseProject.title = "Vue.js Dashboard";
+//         baseProject.description = "Vue.js 3とComposition APIで構築された管理者用ダッシュボード";
+//         baseProject.technicalDetails.framework = ["Vue.js 3", "Vuetify", "Pinia"];
+//     } else if (id === "3") {
+//         baseProject.title = "Node.js API Starter";
+//         baseProject.description = "Express.jsとMongoDBを使ったRESTful APIのスターターキット";
+//         baseProject.isFree = true;
+//         baseProject.price = 0;
+//         baseProject.technicalDetails.framework = ["Express.js", "Mongoose"];
+//         baseProject.technicalDetails.language = ["Node.js", "TypeScript"];
+//     }
 
-    return baseProject;
-};
+//     return baseProject;
+// };
 
 function ItemDetailPage() {
-    const { id } = useParams<{ id: string }>();
+    const { itemId } = useParams<{ itemId?: string }>();
     const navigate = useNavigate();
     const [project, setProject] = useState<ProjectDetail | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [isFavorite, setIsFavorite] = useState(false);
-
     useEffect(() => {
-        if (id) {
-            // デモデータを取得（実際のAPIコールに置き換え可能）
-            setTimeout(() => {
-                setProject(getDemoProjectDetail(id));
-                setLoading(false);
-            }, 500);
+        console.log("useEffect実行 - itemId:", itemId); // デバッグ用ログ
+        
+        if (itemId) {
+            console.log("itemId存在確認済み、APIコール開始"); // デバッグ用ログ
+            const getProject = async () => {
+                try {
+                    setLoading(true);
+                    setError(null);
+                    
+                    const res = await axios.get(`http://app.nice-dig.com/api/products/${itemId}`);
+                    
+                    // レスポンスの構造を確認
+                    if (res.data) {
+                        setProject(res.data);
+                        console.log("プロジェクトデータ取得成功:", res.data); // デバッグ用ログ
+                    } else {
+                        setError('プロジェクトデータが見つかりませんでした');
+                    }
+                } catch (error) {
+                    console.error("プロジェクトの取得に失敗しました:", error);
+                    
+                    // エラーの詳細を判別
+                    if (axios.isAxiosError(error)) {
+                        if (error.response?.status === 404) {
+                            setError('プロジェクトが見つかりませんでした');
+                        } else if (error.response?.status === 500) {
+                            setError('サーバーエラーが発生しました');
+                        } else {
+                            setError('プロジェクトの取得に失敗しました');
+                        }
+                    } else {
+                        setError('ネットワークエラーが発生しました');
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            getProject();
+        } else {
+            console.log("itemId が存在しません:", itemId); // デバッグ用ログ
+            setLoading(false);
+            setError('プロジェクトIDが取得できませんでした');
         }
-    }, [id]);
+    }, [itemId]);
+
 
     const handleDownload = () => {
         alert('ダウンロード機能はデモ版のため利用できません');
@@ -175,6 +216,21 @@ function ItemDetailPage() {
                     <Skeleton variant="text" sx={{ fontSize: '2rem' }} />
                     <Skeleton variant="text" width="60%" />
                     <Skeleton variant="text" width="40%" />
+                </Box>
+            </Container>
+        );
+    }
+
+    if (error) {
+        return (
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Typography variant="h5" align="center" color="error">
+                    {error}
+                </Typography>
+                <Box sx={{ textAlign: 'center', mt: 2 }}>
+                    <Button variant="contained" onClick={handleBack}>
+                        戻る
+                    </Button>
                 </Box>
             </Container>
         );
@@ -484,5 +540,3 @@ function ItemDetailPage() {
     );
 }
 
-export default ItemDetailPage;
-export { ItemDetailPage };
