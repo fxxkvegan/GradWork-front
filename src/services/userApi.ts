@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_CONFIG } from '../constants/api';
 import {
   User,
   UserSettings,
@@ -16,8 +17,8 @@ import {
 
 // Axios インスタンスの設定
 const api = axios.create({
-  baseURL: 'http://app.nice-dig.com',
-  timeout: 10000,
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -40,12 +41,12 @@ api.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('🔐 userApi.interceptor: 認証トークン追加済み');
+      console.log('userApi.interceptor: 認証トークン追加済み');
     }
     return config;
   },
   (error) => {
-    console.error('💥 userApi.interceptor: リクエストエラー', error);
+    console.error('userApi.interceptor: リクエストエラー', error);
     return Promise.reject(error);
   }
 );
@@ -63,7 +64,7 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    console.error('💥 userApi.interceptor: レスポンスエラー', {
+    console.error('userApi.interceptor: レスポンスエラー', {
       status: error.response?.status,
       statusText: error.response?.statusText,
       url: error.config?.url,

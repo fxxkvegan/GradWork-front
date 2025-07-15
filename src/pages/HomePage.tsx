@@ -21,6 +21,7 @@ import {
     Favorite as FavoriteIcon,
 } from "@mui/icons-material";
 import * as favorites from "../utils/favorites";
+import { API_CONFIG } from "../constants/api";
 
 import "./HomePage.css";
 import "./carousel-extra.css";
@@ -38,7 +39,6 @@ export interface Project {
     tags: string[];
 }
 export interface Category { name: string; icon: ReactNode; count: number }
-export interface Stat { value: string; label: string }
 
 /* ---------- 汎用フェッチフック ---------- */
 const useApiData = <T,>(endpoint: string, fallback: T) => {
@@ -50,7 +50,7 @@ const useApiData = <T,>(endpoint: string, fallback: T) => {
         let cancelled = false;
         (async () => {
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`);
+                const res = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const json = await res.json();
                 if (!cancelled) setData(json);
@@ -331,14 +331,10 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
         { name: "ブロックチェーン", icon: <img src="https://img.icons8.com/ios/50/blockchain-technology.png" alt="ブロックチェーン" width="24" height="24" />, count: 9 },
         { name: "セキュリティ", icon: <img src="https://img.icons8.com/ios/50/shield.png" alt="セキュリティ" width="24" height="24" />, count: 13 }
     ];
-    const dummyStats: Stat[] = [
-        { value: "187", label: "プロジェクト" },
-        { value: "5,420", label: "ダウンロード" },
-        { value: "842", label: "ユーザー" },
-        { value: "128", label: "開発者" }
-    ];    /* API 取得 - 先に取得しておくことで初期化前アクセスエラーを防ぐ */    const { data: projects, loading: loadingP } = useApiData<Project[]>("/projects", dummyProjects);
-    const { data: categories } = useApiData<Category[]>("/categories", dummyCategories);
-    const { data: stats } = useApiData<Stat[]>("/stats", dummyStats);    /* カルーセルの実装 - 完全シームレス無限ループ版 */
+
+    /* API 取得 - 先に取得しておくことで初期化前アクセスエラーを防ぐ */
+    const { data: projects, loading: loadingP } = useApiData<Project[]>("/projects", dummyProjects);
+    const { data: categories } = useApiData<Category[]>("/categories", dummyCategories);    /* カルーセルの実装 - 完全シームレス無限ループ版 */
     const carouselRef = useRef<HTMLDivElement | null>(null);
     const intervalRef = useRef<number | null>(null);
     const isScrollingRef = useRef(false);

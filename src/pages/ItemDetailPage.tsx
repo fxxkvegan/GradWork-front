@@ -143,16 +143,16 @@ function ItemDetailPage() {
     const [isFavorite, setIsFavorite] = useState(false);
     useEffect(() => {
         console.log("useEffect実行 - itemId:", itemId); // デバッグ用ログ
-        
+
         if (itemId) {
             console.log("itemId存在確認済み、APIコール開始"); // デバッグ用ログ
             const getProject = async () => {
                 try {
                     setLoading(true);
                     setError(null);
-                    
-                    const res = await axios.get(`http://app.nice-dig.com/api/products/${itemId}`);
-                    
+
+                    const res = await axios.get(`https://app.nice-dig.com/api/products/${itemId}`);
+
                     // レスポンスの構造を確認
                     if (res.data) {
                         setProject(res.data);
@@ -162,7 +162,7 @@ function ItemDetailPage() {
                     }
                 } catch (error) {
                     console.error("プロジェクトの取得に失敗しました:", error);
-                    
+
                     // エラーの詳細を判別
                     if (axios.isAxiosError(error)) {
                         if (error.response?.status === 404) {
@@ -179,7 +179,7 @@ function ItemDetailPage() {
                     setLoading(false);
                 }
             };
-            
+
             getProject();
         } else {
             console.log("itemId が存在しません:", itemId); // デバッグ用ログ

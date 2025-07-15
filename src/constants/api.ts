@@ -1,6 +1,5 @@
-// API関連の定数
 export const API_CONFIG = {
-    BASE_URL: 'http://app.nice-dig.com',
+    BASE_URL: 'https://app.nice-dig.com',
     TIMEOUT: 10000,
 } as const;
 
