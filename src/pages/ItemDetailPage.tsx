@@ -25,8 +25,6 @@ import {
 import './ItemDetailPage.css';
 import axios from 'axios';
 
-export default ItemDetailPage;
-
 // プロジェクト詳細の型定義
 interface ProjectDetail {
     id: number;
@@ -540,3 +538,4 @@ function ItemDetailPage() {
     );
 }
 
+export default ItemDetailPage;

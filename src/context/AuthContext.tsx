@@ -1,36 +1,29 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-
-// ユーザー情報の型定義
-interface User {
-    id: string;
-    name: string;
-    email?: string;
-    avatarUrl?: string;
-    accessToken?: string;
-    role?: string; // テストユーザー用のロール情報
-}
+import { User } from '../types/user';
+import { getUserProfile, logoutUser } from '../services/userApi';
 
 // 認証コンテキストの型定義
 interface AuthContextType {
     user: User | null;
     isLoggedIn: boolean;
     login: (userData: User, remember?: boolean) => void;
-    logout: () => void;
+    logout: () => Promise<void>;
     loading: boolean;
+    refreshUser: () => Promise<void>;
 }
 
 // ストレージキー
 const USER_STORAGE_KEY = 'user';
-const TEST_USER_STORAGE_KEY = 'testLoginUser';
 
 // デフォルト値
 const defaultContext: AuthContextType = {
     user: null,
     isLoggedIn: false,
     login: () => { },
-    logout: () => { },
-    loading: true
+    logout: async () => { },
+    loading: true,
+    refreshUser: async () => { }
 };
 
 // コンテキストの作成
@@ -41,38 +34,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // 初期化時にストレージからユーザー情報を取得
-    useEffect(() => {
-        const loadUserFromStorage = () => {
-            // テストユーザー情報を最初にチェック（優先度高）
-            const storedTestUser = localStorage.getItem(TEST_USER_STORAGE_KEY);
-            if (storedTestUser) {
-                try {
-                    const parsedUser = JSON.parse(storedTestUser);
-                    setUser(parsedUser);
-                    setLoading(false);
-                    return; // テストユーザーが見つかったら他のストレージはチェックしない
-                } catch (error) {
-                    console.error('Failed to parse test user data:', error);
-                    localStorage.removeItem(TEST_USER_STORAGE_KEY);
-                }
+    // ユーザー情報を更新する関数
+    const refreshUser = async () => {
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        if (token) {
+            try {
+                const userData = await getUserProfile();
+                setUser(userData);
+            } catch (error) {
+                console.error('Failed to refresh user data:', error);
+                // トークンが無効な場合はログアウト
+                await handleLogout();
             }
+        }
+    };
 
-            // 通常のユーザー情報をチェック
-            // localStorageを次にチェック
-            const storedUserLocal = localStorage.getItem(USER_STORAGE_KEY);
-            if (storedUserLocal) {
+    // 初期化時にユーザー情報を取得
+    useEffect(() => {
+        const initializeAuth = async () => {
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+
+            if (token) {
                 try {
-                    const parsedUser = JSON.parse(storedUserLocal);
-                    setUser(parsedUser);
+                    // トークンがある場合はAPIからユーザー情報を取得
+                    const userData = await getUserProfile();
+                    setUser(userData);
                 } catch (error) {
-                    console.error('Failed to parse user data from localStorage:', error);
-                    localStorage.removeItem(USER_STORAGE_KEY);
+                    console.error('Failed to load user from API:', error);
+                    // APIエラーの場合はトークンを削除
+                    localStorage.removeItem('authToken');
+                    sessionStorage.removeItem('authToken');
+                    localStorage.removeItem('refreshToken');
                 }
             } else {
-                // sessionStorageを最後にチェック
+                // トークンがない場合はローカルストレージから取得（フォールバック）
+                const storedUserLocal = localStorage.getItem(USER_STORAGE_KEY);
                 const storedUserSession = sessionStorage.getItem(USER_STORAGE_KEY);
-                if (storedUserSession) {
+
+                if (storedUserLocal) {
+                    try {
+                        const parsedUser = JSON.parse(storedUserLocal);
+                        setUser(parsedUser);
+                    } catch (error) {
+                        console.error('Failed to parse user data from localStorage:', error);
+                        localStorage.removeItem(USER_STORAGE_KEY);
+                    }
+                } else if (storedUserSession) {
                     try {
                         const parsedUser = JSON.parse(storedUserSession);
                         setUser(parsedUser);
@@ -82,43 +89,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     }
                 }
             }
+
             setLoading(false);
         };
 
-        loadUserFromStorage();
+        initializeAuth();
     }, []);
 
     // ログイン処理
     const login = (userData: User, remember: boolean = false) => {
         setUser(userData);
 
-        // テストユーザーかどうかを判断（ロールが設定されているかで判断）
-        if (userData.role) {
-            // テストユーザーの場合は常にlocalStorageに保存（永続化）
-            localStorage.setItem(TEST_USER_STORAGE_KEY, JSON.stringify(userData));
+        // ユーザー情報をストレージに保存（フォールバック用）
+        if (remember) {
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
         } else {
-            // 通常のユーザーの場合は設定に応じて保存先を決定
-            if (remember) {
-                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
-            } else {
-                sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
-            }
+            sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
         }
-    };    // ログアウト処理
-    const logout = () => {
-        setUser(null);
-        // すべてのストレージからユーザー情報を削除
-        localStorage.removeItem(USER_STORAGE_KEY);
-        localStorage.removeItem(TEST_USER_STORAGE_KEY);
-        sessionStorage.removeItem(USER_STORAGE_KEY);
+    };
+
+    // ログアウト処理
+    const handleLogout = async () => {
+        try {
+            await logoutUser();
+        } catch (error) {
+            console.error('Logout API error:', error);
+        } finally {
+            setUser(null);
+            // すべてのストレージからユーザー情報を削除
+            localStorage.removeItem(USER_STORAGE_KEY);
+            sessionStorage.removeItem(USER_STORAGE_KEY);
+            localStorage.removeItem('authToken');
+            sessionStorage.removeItem('authToken');
+            localStorage.removeItem('refreshToken');
+        }
     };
 
     const value = {
         user,
         isLoggedIn: !!user,
         login,
-        logout,
-        loading
+        logout: handleLogout,
+        loading,
+        refreshUser
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

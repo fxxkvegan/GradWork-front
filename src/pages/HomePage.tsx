@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import type { ReactNode } from "react";
 import AppHeader from "../component/AppHeader";
 import {
@@ -54,9 +54,9 @@ const useApiData = <T,>(endpoint: string, fallback: T) => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const json = await res.json();
                 if (!cancelled) setData(json);
-            } catch (e: any) {
-                console.warn(`${endpoint} failed, using fallback`, e);
-                if (!cancelled) setError(e.message);
+            } catch (error: any) {
+                console.warn(`${endpoint} failed, using fallback`, error);
+                if (!cancelled) setError(error.message);
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -73,8 +73,8 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
     const [isFavorite, setIsFavorite] = useState(() => favorites.isFavorite(project.id));
 
     // お気に入りトグル処理
-    const handleFavoriteClick = (e: React.MouseEvent) => {
-        e.preventDefault();
+    const handleFavoriteClick = (event: React.MouseEvent) => {
+        event.preventDefault();
         const newState = favorites.toggleFavorite(project.id);
         setIsFavorite(newState);
     };
@@ -467,8 +467,6 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
             const setWidth = totalItemWidth * itemsPerSet;
 
             const currentScroll = carouselElement.scrollLeft;
-            const maxScroll = carouselElement.scrollWidth;
-            const viewportWidth = carouselElement.clientWidth;
 
             // 右端（4番目のセット以降）に到達したら、中央のセットの対応位置にリセット
             if (currentScroll >= setWidth * 3.5) {
@@ -545,9 +543,9 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
         };
 
         // ドラッグ操作のイベントハンドラー
-        const handleMouseDown = (e: MouseEvent) => {
+        const handleMouseDown = (event: MouseEvent) => {
             isDraggingRef.current = true;
-            startXRef.current = e.pageX - carouselElement.offsetLeft;
+            startXRef.current = event.pageX - carouselElement.offsetLeft;
             scrollLeftRef.current = carouselElement.scrollLeft;
             carouselElement.classList.add('dragging');
 
@@ -555,10 +553,10 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
             pauseScroll();
         };
 
-        const handleMouseMove = (e: MouseEvent) => {
+        const handleMouseMove = (event: MouseEvent) => {
             if (!isDraggingRef.current) return;
 
-            const x = e.pageX - carouselElement.offsetLeft;
+            const x = event.pageX - carouselElement.offsetLeft;
             const walk = (x - startXRef.current) * 2; // スクロール倍率
             carouselElement.scrollLeft = scrollLeftRef.current - walk;
 
@@ -607,29 +605,33 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
         carouselElement.addEventListener('scroll', handleScroll);
 
         // タッチイベントのサポート
-        carouselElement.addEventListener('touchstart', (e: TouchEvent) => {
+        const handleTouchStart = (event: TouchEvent) => {
             isDraggingRef.current = true;
-            startXRef.current = e.touches[0].pageX - carouselElement.offsetLeft;
+            startXRef.current = event.touches[0].pageX - carouselElement.offsetLeft;
             scrollLeftRef.current = carouselElement.scrollLeft;
             carouselElement.classList.add('dragging');
             pauseScroll();
-        });
+        };
 
-        carouselElement.addEventListener('touchmove', (e: TouchEvent) => {
+        const handleTouchMove = (event: TouchEvent) => {
             if (!isDraggingRef.current) return;
-            e.preventDefault(); // ページ全体のスクロールを防止
-            const x = e.touches[0].pageX - carouselElement.offsetLeft;
+            event.preventDefault(); // ページ全体のスクロールを防止
+            const x = event.touches[0].pageX - carouselElement.offsetLeft;
             const walk = (x - startXRef.current) * 2;
             carouselElement.scrollLeft = scrollLeftRef.current - walk;
             updateActiveItem();
-        });
+        };
 
-        carouselElement.addEventListener('touchend', () => {
+        const handleTouchEnd = () => {
             isDraggingRef.current = false;
             carouselElement.classList.remove('dragging');
             checkAndResetPosition();
             resumeScroll();
-        });
+        };
+
+        carouselElement.addEventListener('touchstart', handleTouchStart);
+        carouselElement.addEventListener('touchmove', handleTouchMove);
+        carouselElement.addEventListener('touchend', handleTouchEnd);
 
         // 自動スクロールの開始
         startAutoScroll();
@@ -645,9 +647,9 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
             carouselElement.removeEventListener('scroll', handleScroll);
-            carouselElement.removeEventListener('touchstart', (e: TouchEvent) => { });
-            carouselElement.removeEventListener('touchmove', (e: TouchEvent) => { });
-            carouselElement.removeEventListener('touchend', () => { });
+            carouselElement.removeEventListener('touchstart', handleTouchStart);
+            carouselElement.removeEventListener('touchmove', handleTouchMove);
+            carouselElement.removeEventListener('touchend', handleTouchEnd);
         };
     }, [projects, initialized, activeItemIndex]); return (
         <div className="homepage">
@@ -658,16 +660,8 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                 <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: 5 }}>
                     <Box className="hero-content">
                         <Typography variant="h2" className="hero-title">
-                            開発
+                            開発ちゅ♡
                         </Typography>
-                        <Typography variant="h5" className="hero-subtitle">
-                            開発中
-                        </Typography>
-                        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} className="hero-buttons">
-                            <Button variant="contained" size="large" startIcon={<CodeIcon />}>
-                                プロジェクトを探す
-                            </Button>
-                        </Stack>
                     </Box>
                 </Container>
             </Box>            {/* 注目のプロジェクト */}
@@ -729,34 +723,6 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                                     <Box sx={{ fontSize: '2rem' }}>{c.icon}</Box>
                                     <Typography variant="h6">{c.name}</Typography>
                                 </Button>
-                            </Box>
-                        ))}
-                    </Box>
-                </Container>
-            </Box>
-
-            {/* 統計 */}
-            <Box className="stats-section">
-                <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-                    <Typography variant="h4" className="section-title" sx={{ mb: 4 }}>プラットフォーム統計</Typography>
-                    <Box sx={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        justifyContent: "space-around",
-                        mx: { xs: -1, sm: -2 } // ネガティブマージンで小さい画面でも均等配置
-                    }}>
-                        {stats.map((s) => (
-                            <Box
-                                key={s.label}
-                                sx={{
-                                    flex: { xs: "1 1 45%", sm: "1 1 40%", md: "1 1 22%" },
-                                    m: { xs: 1, sm: 2 },
-                                    p: 2
-                                }}
-                                className="stat-item"
-                            >
-                                <Typography variant="h3" className="stat-value">{s.value}</Typography>
-                                <Typography variant="body1" className="stat-label">{s.label}</Typography>
                             </Box>
                         ))}
                     </Box>

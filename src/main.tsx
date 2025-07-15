@@ -2,48 +2,53 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import HomePage from './pages/HomePage.tsx'
-import Register from './pages/Register.tsx'
-import Login from './pages/Login.tsx'
+import RegisterPage from './pages/auth/RegisterPage.tsx'
+import LoginPage from './pages/auth/LoginPage.tsx'
+import GitHubCallbackPage from './pages/auth/GitHubCallbackPage.tsx'
 import Legal from './pages/Legal.tsx'
-import GitHubCallback from './pages/GitHubCallback.tsx'
-import TestLogin from './pages/TestLogin.tsx'
 import ItemDetailPage from './pages/ItemDetailPage.tsx'
-import React from 'react'
+import Layout from './components/Layout.tsx'
 import { AuthProvider } from './context/AuthContext'
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <HomePage />,
+    element: <Layout><HomePage /></Layout>,
+  },
+  {
+    path: "/home",
+    element: <Layout><HomePage /></Layout>,
   },
   {
     path: "/register",
-    element: <Register />
+    element: <Layout><RegisterPage /></Layout>
   },
   {
     path: "/login",
-    element: <Login />
-  }, {
+    element: <Layout><LoginPage /></Layout>
+  },
+  {
     path: "/login/github-callback",
-    element: <GitHubCallback />
+    element: <Layout><GitHubCallbackPage /></Layout>
   },
   {
-    path: "/testlogin",
-    element: <TestLogin />
+    path: "/legal",
+    element: <Layout><Legal /></Layout>
   },
   {
-    path: "/Legal",
-    element: <Legal />
-  },{
     path: "/item/:itemId",
-    element: <ItemDetailPage />
+    element: <Layout><ItemDetailPage /></Layout>
+  },
+  {
+    path: "/local/item/:itemId",
+    element: <Layout><ItemDetailPage /></Layout>
   }
 ]);
 
 createRoot(document.getElementById('root')!).render(
   // <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+  <AuthProvider>
+    <RouterProvider router={router} />
+  </AuthProvider>
   // </React.StrictMode>
 )

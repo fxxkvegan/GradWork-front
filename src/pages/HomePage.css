@@ -16,41 +16,77 @@
 
 /* ヒーローセクション */
 .hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('/Herosection.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     color: white;
-    padding-top: 0;
-    /* 上部パディングを完全に削除 */
-    padding-bottom: 60px;
+    padding-top: 48px;
+    /* ヘッダーの高さ分のパディングを追加 */
+    padding-bottom: 80px;
     text-align: center;
-    margin-top: 48px;
-    /* ヘッダーの高さ分だけ確保 */
+    margin-top: -48px;
+    /* ヘッダーの下まで背景を延ばす */
+    min-height: calc(500px + 48px);
+    /* ヘッダー分の高さも含める */
+    display: flex;
+    align-items: center;
+    position: relative;
 }
 
 .hero-content {
     max-width: 800px;
     margin: 0 auto;
+    z-index: 2;
+    position: relative;
+    padding: 60px 20px 40px 20px;
+    /* 上部パディングを増やしてヘッダーとの間隔を確保 */
 }
 
 .hero-title {
     font-weight: 700 !important;
     margin-bottom: 24px !important;
-    font-size: clamp(2rem, 5vw, 3.5rem) !important;
+    font-size: clamp(2.5rem, 6vw, 4rem) !important;
     animation: fadeInUp 0.8s ease-out;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    line-height: 1.2 !important;
 }
 
 .hero-subtitle {
     margin-bottom: 40px !important;
-    opacity: 0.9;
-    font-weight: 300 !important;
+    opacity: 0.95;
+    font-weight: 400 !important;
     line-height: 1.6 !important;
     animation: fadeInUp 0.8s ease-out 0.2s;
     animation-fill-mode: both;
+    font-size: clamp(1.1rem, 3vw, 1.5rem) !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .hero-buttons {
     justify-content: center;
     animation: fadeInUp 0.8s ease-out 0.4s;
     animation-fill-mode: both;
+}
+
+.hero-buttons .MuiButton-root {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    color: #333 !important;
+    font-weight: 600 !important;
+    padding: 14px 36px !important;
+    border-radius: 30px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+    transition: all 0.3s ease !important;
+}
+
+.hero-buttons .MuiButton-root:hover {
+    background-color: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
 .primary-button {
@@ -396,7 +432,19 @@
 
     /* タブレットサイズの調整 */
     .hero-section {
-        padding: 60px 20px;
+        padding: 48px 20px 40px 20px;
+        /* 上部パディングでヘッダー分を確保 */
+        min-height: calc(400px + 48px);
+        /* ヘッダー分の高さも含める */
+        background-attachment: scroll;
+        /* モバイルでは fixed を無効化 */
+        margin-top: -48px;
+        /* ヘッダーの下まで背景を延ばす */
+    }
+
+    .hero-content {
+        padding: 40px 10px 20px 10px;
+        /* 上部パディングを調整 */
     }
 
     .featured-section,
@@ -470,6 +518,26 @@
 @media (max-width: 480px) {
 
     /* スマートフォンサイズの調整 - UI崩れ防止と最適化 */
+    .hero-section {
+        min-height: calc(350px + 48px);
+        /* ヘッダー分の高さも含める */
+        padding: 48px 15px 30px 15px;
+        /* 上部パディングでヘッダー分を確保 */
+        background-attachment: scroll;
+        margin-top: -48px;
+        /* ヘッダーの下まで背景を延ばす */
+    }
+
+    .hero-content {
+        padding: 30px 5px 15px 5px;
+        /* 上部パディングを調整 */
+    }
+
+    .hero-buttons .MuiButton-root {
+        padding: 12px 28px !important;
+        font-size: 0.9rem !important;
+    }
+
     .card-content {
         padding: 12px !important;
     }
