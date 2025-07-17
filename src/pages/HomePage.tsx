@@ -687,11 +687,33 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                 </Box>
                 )}
             </Container>
-
             {/* カテゴリ */}
             <Box className="category-section">
                 <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-                    <Typography variant="h4" className="section-title">カテゴリから探す</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <Typography variant="h4" className="section-title">カテゴリから探す</Typography>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                                minWidth: 36,
+                                height: 36,
+                                borderRadius: '50%',
+                                padding: 0,
+                                fontSize: 20,
+                                fontWeight: 'bold',
+                                borderColor: 'grey.400',
+                                color: 'grey.700',
+                                transition: 'all 0.2s',
+                                '&:hover': {
+                                    backgroundColor: 'grey.100',
+                                    borderColor: 'grey.600',
+                                    color: 'primary.main',
+                                },
+                            }}
+                            onClick={() => window.location.href = '/projects'}
+                        >▶</Button>
+                    </Box>
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: { xs: 1, sm: 2, md: 3 }, mt: 4 }}>
                         {categories.map((c) => (
                             <Box key={c.name} sx={{ flex: { xs: "1 1 100%", sm: "1 1 45%", md: "1 1 30%", lg: "1 1 23%" }, mb: 2 }} className="category-item">
@@ -699,6 +721,7 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                                     variant="contained"
                                     className="category-content"
                                     fullWidth
+                                    onClick={() => window.location.href = '/projects'}
                                     sx={{
                                         display: 'flex',
                                         flexDirection: 'column',
@@ -713,7 +736,8 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                                         color: 'text.primary',
                                         '&:hover': {
                                             backgroundColor: 'grey.100',
-                                        }
+                                        },
+                                        position: 'relative'
                                     }}
                                 >
                                     <Box sx={{ fontSize: '2rem' }}>{c.icon}</Box>

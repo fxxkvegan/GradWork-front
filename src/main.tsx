@@ -9,6 +9,7 @@ import Legal from './pages/Legal.tsx'
 import ItemDetailPage from './pages/ItemDetailPage.tsx'
 import Layout from './components/Layout.tsx'
 import { AuthProvider } from './context/AuthContext'
+import ProjectList from './pages/ProjectList.tsx' // ✅ 追加
 
 const router = createBrowserRouter([
   {
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
   {
     path: "/local/item/:itemId",
     element: <Layout><ItemDetailPage /></Layout>
+  },
+  {
+    path: "/projects", // ✅ 新規追加
+    element: <Layout><ProjectList /></Layout>
   }
 ]);
 
