@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-    BASE_URL: 'https://app.nice-dig.com',
+    BASE_URL: 'https://app.nice-dig.com/api',
     TIMEOUT: 10000,
 } as const;
 
@@ -18,7 +18,7 @@ export const HTTP_STATUS = {
 export const API_ENDPOINTS = {
     AUTH: {
         LOGIN: '/auth/login',
-        REGISTER: '/auth/register',
+        REGISTER: '/auth/signup',
         LOGOUT: '/auth/logout',
         REFRESH: '/auth/refresh',
     },

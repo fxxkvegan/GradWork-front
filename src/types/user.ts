@@ -105,9 +105,9 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   email: string;
-  username: string;
+  name: string;
   password: string;
-  confirmPassword: string;
+  password_confirmation: string;
 }
 
 export interface AuthResponse {

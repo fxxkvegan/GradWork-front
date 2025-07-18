@@ -166,23 +166,30 @@ export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse
  */
 export const registerUser = async (userData: RegisterRequest): Promise<AuthResponse> => {
   console.log('🌐 userApi.registerUser: API呼び出し開始');
-  console.log('📤 userApi.registerUser: 送信データ', {
+
+  const payload = {
     email: userData.email,
-    username: userData.username,
-    passwordProvided: !!userData.password,
-    confirmPasswordProvided: !!userData.confirmPassword,
-    url: `${api.defaults.baseURL}/auth/register`,
+    name: userData.name,
+    password: userData.password,
+    password_confirmation: userData.password_confirmation,
+  };
+
+  console.log('📤 userApi.registerUser: 送信データ', {
+    email: payload.email,
+    name: payload.name,
+    passwordProvided: !!payload.password,
+    passwordConfirmationProvided: !!payload.password_confirmation,
+    url: `${api.defaults.baseURL}/auth/signup`,
     timestamp: new Date().toISOString()
   });
 
   try {
-    const response = await api.post<AuthResponse>('/auth/register', userData);
+    const response = await api.post<AuthResponse>('/auth/signup', payload);
 
     console.log('✅ userApi.registerUser: API成功レスポンス', {
       status: response.status,
       success: response.data.success,
       userId: response.data.data?.user?.id,
-      username: response.data.data?.user?.username,
       email: response.data.data?.user?.email,
       tokenReceived: !!response.data.data?.token,
       refreshTokenReceived: !!response.data.data?.refreshToken,
@@ -202,11 +209,11 @@ export const registerUser = async (userData: RegisterRequest): Promise<AuthRespo
 
     return response.data;
   } catch (error) {
-    console.error('💥 userApi.registerUser: API呼び出しエラー', {
+    console.error(' userApi.registerUser: API呼び出しエラー', {
       error: error,
       status: axios.isAxiosError(error) ? error.response?.status : 'unknown',
       message: axios.isAxiosError(error) ? error.response?.data?.message : error,
-      url: `${api.defaults.baseURL}/auth/register`,
+      url: `${api.defaults.baseURL}/auth/signup`,
       timestamp: new Date().toISOString()
     });
 

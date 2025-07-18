@@ -68,16 +68,16 @@ const RegisterPage: React.FC = () => {
             // バックエンドに送信するデータ
             const registerData = {
                 email,
-                username: username.trim(),
+                name: username.trim(),
                 password,
-                confirmPassword
+                password_confirmation: password
             };
 
             console.log('📤 RegisterPage: バックエンドに送信するデータ', {
                 email: registerData.email,
-                username: registerData.username,
+                name: registerData.name,
                 passwordProvided: !!registerData.password,
-                confirmPasswordProvided: !!registerData.confirmPassword,
+                passwordConfirmationProvided: !!registerData.password_confirmation,
                 timestamp: new Date().toISOString()
             });
             console.log('🌐 RegisterPage: API呼び出し開始 - POST /auth/register');
@@ -88,7 +88,6 @@ const RegisterPage: React.FC = () => {
             console.log('✅ RegisterPage: API呼び出し成功', {
                 success: response.success,
                 userId: response.data?.user?.id,
-                username: response.data?.user?.username,
                 email: response.data?.user?.email,
                 tokenReceived: !!response.data?.token
             });

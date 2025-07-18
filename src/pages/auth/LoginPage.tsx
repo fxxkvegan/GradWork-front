@@ -111,7 +111,7 @@ const LoginPage: React.FC = () => {
         console.log('🔗 LoginPage: GitHub OAuthログイン開始');
         console.log('🌐 LoginPage: GitHub OAuthリダイレクト');
         // GitHub OAuth の実装
-        window.location.href = 'http://app.nice-dig.com/auth/github?action=login';
+        window.location.href = 'null';
     };
 
     console.log('LoginPage component rendered');

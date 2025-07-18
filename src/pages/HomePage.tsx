@@ -6,7 +6,6 @@ import {
     CardMedia,
     CardContent,
     Typography,
-    Stack,
     Button,
     Box,
     Container,
@@ -56,7 +55,10 @@ const useApiData = <T,>(endpoint: string, fallback: T) => {
                 if (!cancelled) setData(json);
             } catch (error: any) {
                 console.warn(`${endpoint} failed, using fallback`, error);
-                if (!cancelled) setError(error.message);
+                if (!cancelled) {
+                    setError(error.message);
+                    setData(fallback);
+                }
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -333,7 +335,7 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
     ];
 
     /* API 取得 - 先に取得しておくことで初期化前アクセスエラーを防ぐ */
-    const { data: projects, loading: loadingP } = useApiData<Project[]>("/projects", dummyProjects);
+    const { data: projects, loading: loadingP } = useApiData<Project[]>("/products", dummyProjects);
     const { data: categories } = useApiData<Category[]>("/categories", dummyCategories);    /* カルーセルの実装 - 完全シームレス無限ループ版 */
     const carouselRef = useRef<HTMLDivElement | null>(null);
     const intervalRef = useRef<number | null>(null);
@@ -346,7 +348,7 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
 
     // カルーセルの初期化と無限スクロール
     useEffect(() => {
-        if (!carouselRef.current || !projects.length) return;
+        if (!carouselRef.current || !Array.isArray(projects) || !projects.length) return;
 
         const carouselElement = carouselRef.current;
 
@@ -664,7 +666,7 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
             <Container maxWidth="lg" className="featured-section" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                 <Typography variant="h4" className="section-title">注目のプロジェクト</Typography>                {loadingP ? (
                     <Box className="loading-container"><CircularProgress /></Box>
-                ) : projects.length === 0 ? (
+                ) : !Array.isArray(projects) || projects.length === 0 ? (
                     <Alert severity="info" className="api-error-alert">現在、表示できるプロジェクトがありません。</Alert>
                 ) : (<Box className="carousel-section" id="projectCarousel" sx={{ mt: 5, mb: 5 }}>                        <Box className="carousel-container">
                     <Box
@@ -673,7 +675,7 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                     >
                         {/* 初期レンダリングのためのプレースホルダー - 実際の内容はJSで動的に生成 */}
                         {/* 初期マウント時のみ表示され、useEffectで置き換えられる */}
-                        {!initialized && projects.map((project) => (
+                        {!initialized && Array.isArray(projects) && projects.map((project) => (
                             <Box
                                 key={`placeholder-${project.id}`}
                                 className="carousel-item"
@@ -693,7 +695,7 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                 <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                     <Typography variant="h4" className="section-title">カテゴリから探す</Typography>
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: { xs: 1, sm: 2, md: 3 }, mt: 4 }}>
-                        {categories.map((c) => (
+                        {Array.isArray(categories) && categories.map((c) => (
                             <Box key={c.name} sx={{ flex: { xs: "1 1 100%", sm: "1 1 45%", md: "1 1 30%", lg: "1 1 23%" }, mb: 2 }} className="category-item">
                                 <Button
                                     variant="contained"
