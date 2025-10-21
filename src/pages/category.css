@@ -1,0 +1,122 @@
+/* カテゴリ欄を注目プロジェクトのカルーセル風に表示するスタイル */
+
+/* 横スワイプ対応（モバイルでもなめらかに横スクロール） */
+.category-carousel {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+    flex-wrap: nowrap;            /* 常に横並び（スマホでも折返しさせない） */
+    overflow-x: auto;
+    padding: 12px 6px;
+    -webkit-overflow-scrolling: touch; /* 滑らかな慣性スクロール（iOS） */
+    scroll-snap-type: x mandatory;
+    touch-action: pan-x;         /* 横スワイプを優先 */
+    overscroll-behavior-x: contain; /* ページ全体スクロールの干渉を抑制 */
+}
+
+/* スクロールバー（控えめ） - 非表示でもOK */
+.category-carousel::-webkit-scrollbar {
+    height: 8px;
+}
+.category-carousel::-webkit-scrollbar-track {
+    background: transparent;
+}
+.category-carousel::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.12);
+    border-radius: 999px;
+}
+
+/* アイテム幅をカルーセルと揃える（調整は --item-width） */
+/* 小さい画面では幅を vw ベースにして見切れ感を出す（スワイプしやすく） */
+.category-carousel .carousel-item {
+    flex: 0 0 var(--item-width, 220px);
+    width: var(--item-width, 220px);
+    box-sizing: border-box;
+    scroll-snap-align: center;
+    min-width: 0; /* 子要素の縮小を許可 */
+}
+
+/* カード風の見た目 */
+.category-carousel .category-content {
+    height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+    transition: transform .18s ease, box-shadow .18s ease;
+    text-transform: none;
+    min-width: 0;
+}
+
+/* アイコン画像のサイズを統一 */
+.category-carousel .category-icon-wrapper img,
+.category-carousel .category-icon-wrapper svg {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+/* テキスト調整 */
+.category-carousel .category-name {
+    font-weight: 600;
+}
+.category-carousel .category-count {
+    color: rgba(0,0,0,0.54);
+}
+
+/* ホバー時の控えめな強調 */
+.category-carousel .category-content:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(16,24,40,0.08);
+}
+
+/* モバイル（狭い画面）向け：アイテム幅を vw ベースで調整し、横スライド感を強調 */
+@media (max-width: 720px) {
+    .category-carousel {
+        gap: 12px;
+        padding: 10px 8px;
+    }
+    .category-carousel .carousel-item {
+        /* 画面幅の約70%表示にして左右に見切れを作る（スワイプの誘導） */
+        flex: 0 0 calc(72vw - 24px);
+        width: calc(72vw - 24px);
+    }
+    .category-carousel .category-content {
+        height: 200px;
+        padding: 12px;
+    }
+}
+
+/* 右上の「すべて表示」ボタン等の見た目調整 */
+.all-categories-button {
+    border-radius: 999px;
+    text-transform: none;
+    padding: 6px 10px;
+}
+
+/* 見出し中央寄せ（既存の指定を維持） */
+.category-section .section-title {
+    display: block;
+    text-align: center;
+    margin: 0 auto 12px;
+}
+
+/* 下のスクロールバー（移動バー）を非表示にする（補助） */
+.category-carousel {
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none; /* Firefox */
+}
+.category-carousel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+/* 件数表示を非表示にする */
+.category-carousel .category-count {
+    display: none !important;
+}

@@ -81,7 +81,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
                         )}
                     </Badge>
                 ) : (
-                    <PersonOutline />
+                    <PersonOutline sx={{ color: '#fff' }} />
                 )}
             </IconButton>
 
