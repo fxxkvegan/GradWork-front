@@ -1,45 +1,68 @@
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import { createBrowserRouter, RouterProvider } from 'react-router'
-import HomePage from './pages/HomePage.tsx'
-import Register from './pages/Register.tsx'
-import Login from './pages/Login.tsx'
-import Legal from './pages/Legal.tsx'
-import GitHubCallback from './pages/GitHubCallback.tsx'
-import TestLogin from './pages/TestLogin.tsx'
-import React from 'react'
-import { AuthProvider } from './context/AuthContext'
-
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';  // react-router-dom からインポート
+import HomePage from './pages/HomePage';
+import RegisterPage from './pages/auth/RegisterPage';
+import LoginPage from './pages/auth/LoginPage';
+import GitHubCallbackPage from './pages/auth/GitHubCallbackPage';
+import Legal from './pages/Legal';
+import ItemDetailPage from './pages/ItemDetailPage';
+import Layout from './components/Layout';
+import { AuthProvider } from './context/AuthContext';
+import ItemFormPage from './pages/ItemFormPage';
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <HomePage />,
+    element: <Layout><HomePage /></Layout>,
+  },
+  {
+    path: "/home",
+    element: <Layout><HomePage /></Layout>,
   },
   {
     path: "/register",
-    element: <Register />
+    element: <Layout><RegisterPage /></Layout>,
   },
   {
     path: "/login",
-    element: <Login />
-  }, {
+    element: <Layout><LoginPage /></Layout>,
+  },
+  {
     path: "/login/github-callback",
-    element: <GitHubCallback />
+    element: <Layout><GitHubCallbackPage /></Layout>,
   },
   {
-    path: "/testlogin",
-    element: <TestLogin />
+    path: "/legal",
+    element: <Layout><Legal /></Layout>,
   },
   {
-    path: "/Legal",
-    element: <Legal />
-  }
+    path: "/item/:itemId",
+    element: <Layout><ItemDetailPage /></Layout>,
+  },
+  {
+    path: "/test/item/:itemId",
+    element: <Layout><ItemDetailPage demoMode /></Layout>,
+  },
+  {
+    path: "/create",
+    element: <Layout><ItemFormPage /></Layout>,
+  },
+  {
+    path: "/edit/:itemId",
+    element: <Layout><ItemFormPage /></Layout>,
+  },
+  {
+    path: "*",
+    element: <Layout><div style={{ padding: '2rem', textAlign: 'center' }}>
+      <h1>404 - ページが見つかりません</h1>
+      <p>お探しのページは存在しません。</p>
+      <a href="/">ホームに戻る</a>
+    </div></Layout>,
+  },
 ]);
 
 createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  </React.StrictMode>
-)
+  <AuthProvider>
+    <RouterProvider router={router} />
+  </AuthProvider>
+);

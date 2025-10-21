@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import type { ReactNode } from "react";
 import AppHeader from "../component/AppHeader";
 import {
@@ -6,7 +6,6 @@ import {
     CardMedia,
     CardContent,
     Typography,
-    Stack,
     Button,
     Box,
     Container,
@@ -21,6 +20,7 @@ import {
     Favorite as FavoriteIcon,
 } from "@mui/icons-material";
 import * as favorites from "../utils/favorites";
+import { API_CONFIG } from "../constants/api";
 
 import "./HomePage.css";
 import "./carousel-extra.css";
@@ -38,7 +38,6 @@ export interface Project {
     tags: string[];
 }
 export interface Category { name: string; icon: ReactNode; count: number }
-export interface Stat { value: string; label: string }
 
 /* ---------- 汎用フェッチフック ---------- */
 const useApiData = <T,>(endpoint: string, fallback: T) => {
@@ -50,13 +49,16 @@ const useApiData = <T,>(endpoint: string, fallback: T) => {
         let cancelled = false;
         (async () => {
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_BASE}${endpoint}`);
+                const res = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const json = await res.json();
                 if (!cancelled) setData(json);
-            } catch (e: any) {
-                console.warn(`${endpoint} failed, using fallback`, e);
-                if (!cancelled) setError(e.message);
+            } catch (error: any) {
+                console.warn(`${endpoint} failed, using fallback`, error);
+                if (!cancelled) {
+                    setError(error.message);
+                    setData(fallback);
+                }
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -73,8 +75,8 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
     const [isFavorite, setIsFavorite] = useState(() => favorites.isFavorite(project.id));
 
     // お気に入りトグル処理
-    const handleFavoriteClick = (e: React.MouseEvent) => {
-        e.preventDefault();
+    const handleFavoriteClick = (event: React.MouseEvent) => {
+        event.preventDefault();
         const newState = favorites.toggleFavorite(project.id);
         setIsFavorite(newState);
     };
@@ -331,14 +333,10 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
         { name: "ブロックチェーン", icon: <img src="https://img.icons8.com/ios/50/blockchain-technology.png" alt="ブロックチェーン" width="24" height="24" />, count: 9 },
         { name: "セキュリティ", icon: <img src="https://img.icons8.com/ios/50/shield.png" alt="セキュリティ" width="24" height="24" />, count: 13 }
     ];
-    const dummyStats: Stat[] = [
-        { value: "187", label: "プロジェクト" },
-        { value: "5,420", label: "ダウンロード" },
-        { value: "842", label: "ユーザー" },
-        { value: "128", label: "開発者" }
-    ];    /* API 取得 - 先に取得しておくことで初期化前アクセスエラーを防ぐ */    const { data: projects, loading: loadingP } = useApiData<Project[]>("/projects", dummyProjects);
-    const { data: categories } = useApiData<Category[]>("/categories", dummyCategories);
-    const { data: stats } = useApiData<Stat[]>("/stats", dummyStats);    /* カルーセルの実装 - 完全シームレス無限ループ版 */
+
+    /* API 取得 - 先に取得しておくことで初期化前アクセスエラーを防ぐ */
+    const { data: projects, loading: loadingP } = useApiData<Project[]>("/products", dummyProjects);
+    const { data: categories } = useApiData<Category[]>("/categories", dummyCategories);    /* カルーセルの実装 - 完全シームレス無限ループ版 */
     const carouselRef = useRef<HTMLDivElement | null>(null);
     const intervalRef = useRef<number | null>(null);
     const isScrollingRef = useRef(false);
@@ -350,7 +348,7 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
 
     // カルーセルの初期化と無限スクロール
     useEffect(() => {
-        if (!carouselRef.current || !projects.length) return;
+        if (!carouselRef.current || !Array.isArray(projects) || !projects.length) return;
 
         const carouselElement = carouselRef.current;
 
@@ -467,8 +465,6 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
             const setWidth = totalItemWidth * itemsPerSet;
 
             const currentScroll = carouselElement.scrollLeft;
-            const maxScroll = carouselElement.scrollWidth;
-            const viewportWidth = carouselElement.clientWidth;
 
             // 右端（4番目のセット以降）に到達したら、中央のセットの対応位置にリセット
             if (currentScroll >= setWidth * 3.5) {
@@ -545,9 +541,9 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
         };
 
         // ドラッグ操作のイベントハンドラー
-        const handleMouseDown = (e: MouseEvent) => {
+        const handleMouseDown = (event: MouseEvent) => {
             isDraggingRef.current = true;
-            startXRef.current = e.pageX - carouselElement.offsetLeft;
+            startXRef.current = event.pageX - carouselElement.offsetLeft;
             scrollLeftRef.current = carouselElement.scrollLeft;
             carouselElement.classList.add('dragging');
 
@@ -555,10 +551,10 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
             pauseScroll();
         };
 
-        const handleMouseMove = (e: MouseEvent) => {
+        const handleMouseMove = (event: MouseEvent) => {
             if (!isDraggingRef.current) return;
 
-            const x = e.pageX - carouselElement.offsetLeft;
+            const x = event.pageX - carouselElement.offsetLeft;
             const walk = (x - startXRef.current) * 2; // スクロール倍率
             carouselElement.scrollLeft = scrollLeftRef.current - walk;
 
@@ -607,29 +603,33 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
         carouselElement.addEventListener('scroll', handleScroll);
 
         // タッチイベントのサポート
-        carouselElement.addEventListener('touchstart', (e: TouchEvent) => {
+        const handleTouchStart = (event: TouchEvent) => {
             isDraggingRef.current = true;
-            startXRef.current = e.touches[0].pageX - carouselElement.offsetLeft;
+            startXRef.current = event.touches[0].pageX - carouselElement.offsetLeft;
             scrollLeftRef.current = carouselElement.scrollLeft;
             carouselElement.classList.add('dragging');
             pauseScroll();
-        });
+        };
 
-        carouselElement.addEventListener('touchmove', (e: TouchEvent) => {
+        const handleTouchMove = (event: TouchEvent) => {
             if (!isDraggingRef.current) return;
-            e.preventDefault(); // ページ全体のスクロールを防止
-            const x = e.touches[0].pageX - carouselElement.offsetLeft;
+            event.preventDefault(); // ページ全体のスクロールを防止
+            const x = event.touches[0].pageX - carouselElement.offsetLeft;
             const walk = (x - startXRef.current) * 2;
             carouselElement.scrollLeft = scrollLeftRef.current - walk;
             updateActiveItem();
-        });
+        };
 
-        carouselElement.addEventListener('touchend', () => {
+        const handleTouchEnd = () => {
             isDraggingRef.current = false;
             carouselElement.classList.remove('dragging');
             checkAndResetPosition();
             resumeScroll();
-        });
+        };
+
+        carouselElement.addEventListener('touchstart', handleTouchStart);
+        carouselElement.addEventListener('touchmove', handleTouchMove);
+        carouselElement.addEventListener('touchend', handleTouchEnd);
 
         // 自動スクロールの開始
         startAutoScroll();
@@ -645,9 +645,9 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
             carouselElement.removeEventListener('scroll', handleScroll);
-            carouselElement.removeEventListener('touchstart', (e: TouchEvent) => { });
-            carouselElement.removeEventListener('touchmove', (e: TouchEvent) => { });
-            carouselElement.removeEventListener('touchend', () => { });
+            carouselElement.removeEventListener('touchstart', handleTouchStart);
+            carouselElement.removeEventListener('touchmove', handleTouchMove);
+            carouselElement.removeEventListener('touchend', handleTouchEnd);
         };
     }, [projects, initialized, activeItemIndex]); return (
         <div className="homepage">
@@ -658,23 +658,15 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                 <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: 5 }}>
                     <Box className="hero-content">
                         <Typography variant="h2" className="hero-title">
-                            開発
+                            開発ちゅ♡
                         </Typography>
-                        <Typography variant="h5" className="hero-subtitle">
-                            開発中
-                        </Typography>
-                        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} className="hero-buttons">
-                            <Button variant="contained" size="large" startIcon={<CodeIcon />}>
-                                プロジェクトを探す
-                            </Button>
-                        </Stack>
                     </Box>
                 </Container>
             </Box>            {/* 注目のプロジェクト */}
             <Container maxWidth="lg" className="featured-section" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                 <Typography variant="h4" className="section-title">注目のプロジェクト</Typography>                {loadingP ? (
                     <Box className="loading-container"><CircularProgress /></Box>
-                ) : projects.length === 0 ? (
+                ) : !Array.isArray(projects) || projects.length === 0 ? (
                     <Alert severity="info" className="api-error-alert">現在、表示できるプロジェクトがありません。</Alert>
                 ) : (<Box className="carousel-section" id="projectCarousel" sx={{ mt: 5, mb: 5 }}>                        <Box className="carousel-container">
                     <Box
@@ -683,7 +675,7 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                     >
                         {/* 初期レンダリングのためのプレースホルダー - 実際の内容はJSで動的に生成 */}
                         {/* 初期マウント時のみ表示され、useEffectで置き換えられる */}
-                        {!initialized && projects.map((project) => (
+                        {!initialized && Array.isArray(projects) && projects.map((project) => (
                             <Box
                                 key={`placeholder-${project.id}`}
                                 className="carousel-item"
@@ -703,7 +695,7 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                 <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                     <Typography variant="h4" className="section-title">カテゴリから探す</Typography>
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: { xs: 1, sm: 2, md: 3 }, mt: 4 }}>
-                        {categories.map((c) => (
+                        {Array.isArray(categories) && categories.map((c) => (
                             <Box key={c.name} sx={{ flex: { xs: "1 1 100%", sm: "1 1 45%", md: "1 1 30%", lg: "1 1 23%" }, mb: 2 }} className="category-item">
                                 <Button
                                     variant="contained"
@@ -729,34 +721,6 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                                     <Box sx={{ fontSize: '2rem' }}>{c.icon}</Box>
                                     <Typography variant="h6">{c.name}</Typography>
                                 </Button>
-                            </Box>
-                        ))}
-                    </Box>
-                </Container>
-            </Box>
-
-            {/* 統計 */}
-            <Box className="stats-section">
-                <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-                    <Typography variant="h4" className="section-title" sx={{ mb: 4 }}>プラットフォーム統計</Typography>
-                    <Box sx={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        justifyContent: "space-around",
-                        mx: { xs: -1, sm: -2 } // ネガティブマージンで小さい画面でも均等配置
-                    }}>
-                        {stats.map((s) => (
-                            <Box
-                                key={s.label}
-                                sx={{
-                                    flex: { xs: "1 1 45%", sm: "1 1 40%", md: "1 1 22%" },
-                                    m: { xs: 1, sm: 2 },
-                                    p: 2
-                                }}
-                                className="stat-item"
-                            >
-                                <Typography variant="h3" className="stat-value">{s.value}</Typography>
-                                <Typography variant="body1" className="stat-label">{s.label}</Typography>
                             </Box>
                         ))}
                     </Box>
