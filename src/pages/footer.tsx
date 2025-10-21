@@ -39,7 +39,7 @@ const Footer: React.FC = () => {
                         {/* ブランド情報 */}
                         <Box>
                             <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                                GradWork
+                                Nice dig
                             </Typography>
                             <Typography variant="body2" color="grey.400" sx={{ maxWidth: 300 }}>
                                 開発者のための高品質なプロジェクトとツールを提供するプラットフォーム
