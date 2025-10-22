@@ -25,6 +25,7 @@ import { API_CONFIG } from "../constants/api";
 
 import "./HomePage.css";
 import "./carousel-extra.css";
+import "./category.css";
 
 /* ---------- 型定義 ---------- */
 export interface Project {
@@ -691,10 +692,16 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
             {/* カテゴリ */}
             <Box className="category-section">
                 <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-                    <Typography variant="h4" className="section-title">カテゴリから探す</Typography>
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: { xs: 1, sm: 2, md: 3 }, mt: 4 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <Typography variant="h4" className="section-title">カテゴリから探す</Typography>
+                    </Box>
+                    {/* carousel の見た目を流用するラッパーに変更 */}
+                    <Box className="category-carousel" sx={{ mt: 4 }}>
                         {categories.map((c) => (
-                            <Box key={c.name} sx={{ flex: { xs: "1 1 100%", sm: "1 1 45%", md: "1 1 30%", lg: "1 1 23%" }, mb: 2 }} className="category-item">
+                            <Box
+                                key={c.name}
+                                className="carousel-item category-item"
+                            >
                                 <Button
                                     variant="contained"
                                     className="category-content"
@@ -704,20 +711,20 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        gap: '12px',
+                                        gap: '8px',
                                         height: '100%',
-                                        p: 3,
+                                        p: 2,
                                         borderRadius: 2,
                                         textTransform: 'none',
                                         backgroundColor: 'white',
                                         color: 'text.primary',
-                                        '&:hover': {
-                                            backgroundColor: 'grey.100',
-                                        }
                                     }}
                                 >
-                                    <Box sx={{ fontSize: '2rem' }}>{c.icon}</Box>
-                                    <Typography variant="h6">{c.name}</Typography>
+                                    <Box className="category-icon-wrapper">
+                                        {c.icon}
+                                    </Box>
+                                    <Typography variant="subtitle1" className="category-name">{c.name}</Typography>
+                                    <Typography variant="caption" color="text.secondary" className="category-count">{c.count}件</Typography>
                                 </Button>
                             </Box>
                         ))}
