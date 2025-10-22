@@ -32,8 +32,8 @@
     flex: 0 0 var(--item-width, 220px);
     width: var(--item-width, 220px);
     box-sizing: border-box;
-    scroll-snap-align: center;
-    min-width: 0; /* 子要素の縮小を許可 */
+    scroll-snap-align: start;
+    min-width: 0;
 }
 
 /* カード風の見た目 */
@@ -82,15 +82,12 @@
         gap: 12px;
         padding: 10px 8px;
     }
+    /* モバイル：見切れを少なくして6個目が入らないように少し幅を縮める */
     .category-carousel .carousel-item {
-        /* 画面幅の約70%表示にして左右に見切れを作る（スワイプの誘導） */
-        flex: 0 0 calc(72vw - 24px);
-        width: calc(72vw - 24px);
+        flex: 0 0 calc(72vw - 26px);
+        width: calc(72vw - 26px);
     }
-    .category-carousel .category-content {
-        height: 200px;
-        padding: 12px;
-    }
+    .category-carousel .category-content { height: 200px; padding: 12px; }
 }
 
 /* 右上の「すべて表示」ボタン等の見た目調整 */
@@ -100,11 +97,70 @@
     padding: 6px 10px;
 }
 
-/* 見出し中央寄せ（既存の指定を維持） */
+/* 見出しにパディングを追加して中央揃え */
 .category-section .section-title {
     display: block;
+    width: 100%;
+    box-sizing: border-box;
     text-align: center;
     margin: 0 auto 12px;
+    padding: 12px 16px; /* 追加：左右の余白で中央表示を安定させる */
+}
+
+/* カルーセル両端に余白を入れて画面端で切れないようにする */
+.category-carousel {
+    padding-inline: 30px; /* 左右に余白を追加（最初と最後のアイテムが切れない） */
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    overflow-x: auto;
+    gap: 20px;
+}
+
+/* 各ブレークポイントでコンテナのパディング分を差し引いて幅を計算する */
+/* モバイル（見切れでスワイプ誘導） */
+@media (max-width: 720px) {
+    .category-carousel { padding-inline: 12px; gap: 12px; }
+    .category-carousel .carousel-item {
+        flex: 0 0 calc(72vw - 26px);
+        width: calc(72vw - 26px);
+    }
+}
+
+/* タブレット：3列表示の幅を若干縮めて端のはみ出しを防止 */
+@media (min-width: 721px) and (max-width: 1023px) {
+    .category-carousel {
+        overflow-x: auto; /* スクロールを維持 */
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+    /* タブレット：3列表示の幅を若干縮めて端のはみ出しを防止 */
+    .category-carousel .carousel-item {
+        flex: 0 0 calc((100% - 2 * 20px) / 3 - 2px);
+        width: calc((100% - 2 * 20px) / 3 - 2px);
+        min-width: 0;
+    }
+}
+
+/* デスクトップ：1画面に5個表示する計算をして、端のはみ出し防止のため少し余裕を持たせる */
+@media (min-width: 1024px) {
+    .category-carousel {
+        overflow-x: auto; /* 切れずに表示しつつ、項目が多ければスクロール可能 */
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+    /* デスクトップ：1画面に5個表示する計算をして、端のはみ出し防止のため少し余裕を持たせる */
+    .category-carousel .carousel-item {
+        /* 微小値を引いて丸め差分で5個目がはみ出るのを防止 */
+        flex: 0 0 calc((100% - 4 * var(--cat-gap) - 2 * var(--cat-padding)) / 5 - 2px);
+        width: calc((100% - 4 * var(--cat-gap) - 2 * var(--cat-padding)) / 5 - 2px);
+        box-sizing: border-box;
+    }
+
+    /* 右端に目に見えない余白を追加して、最後のカードが途中で切れないようにする */
+    .category-carousel::after{
+        content: "";
+        flex: 0 0 var(--cat-padding);
+    }
 }
 
 /* 下のスクロールバー（移動バー）を非表示にする（補助） */
@@ -119,4 +175,223 @@
 /* 件数表示を非表示にする */
 .category-carousel .category-count {
     display: none !important;
+}
+
+/* 微調整：6個目が見切れないように幅を少し縮める（サブピクセル調整） */
+
+:root{
+    --cat-gap: 20px;
+    --cat-padding: 12px; /* 余白を少し減らして端のはみ出しを抑制 */
+}
+
+/* コンテナ共通 */
+.category-carousel{
+    display:flex;
+    gap: var(--cat-gap);
+    padding-inline: var(--cat-padding);
+    box-sizing: border-box;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 調整：カテゴリカードを少し大きくして、画面端で途切れないように計算を微調整 */
+
+:root{
+    /* gap/padding を小さくしてカード幅を確保 */
+    --cat-gap: 12px;
+    --cat-padding: 24px; /* 左右余白を同じ値で管理 */
+    --cat-item-width: 260px; /* 追加: アイテムの基本幅を拡大 */
+}
+
+/* デフォルト幅に反映（既存の calc を置き換えていない場合は参考値として） */
+.category-carousel .carousel-item {
+    flex: 0 0 var(--cat-item-width);
+    width: var(--cat-item-width);
+    min-width: 0;
+}
+
+/* コンテナ共通 */
+.category-carousel{
+    display:flex;
+    gap: var(--cat-gap);
+    padding-inline: var(--cat-padding); /* 左右を同じにする（短く書ける） */
+    box-sizing: border-box;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* カード本体を大きく */
+.category-carousel .category-content {
+    height: 200px;               /* 以前より高さを大きく */
+    padding: 30px;               /* 内側の余白をやや増やす */
+    border-radius: 12px;
+    box-shadow: 0 8px 22px rgba(16,24,40,0.06);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+/* アイコンを大きくして見栄えを合わせる */
+.category-carousel .category-icon-wrapper img,
+.category-carousel .category-icon-wrapper svg {
+    width: 72px;
+    height: 99px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+/* テキストの余白微調整 */
+.category-carousel .category-name {
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+/* デスクトップ: 1画面にちょうど5個表示できるよう計算（余白小 / 切れ対策で -2px） */
+@media (min-width:1024px){
+    .category-carousel .carousel-item{
+        flex: 0 0 calc((100% - 4 * var(--cat-gap) - 2 * var(--cat-padding)) / 5 - 2px);
+        width: calc((100% - 4 * var(--cat-gap) - 2 * var(--cat-padding)) / 5 - 2px);
+        box-sizing: border-box;
+    }
+}
+
+/* タブレット: 3列表示をやや大きめに */
+@media (min-width:721px) and (max-width:1023px){
+    .category-carousel .carousel-item{
+        flex: 0 0 calc((100% - 2 * var(--cat-gap) - 2 * var(--cat-padding)) / 3 - 2px);
+        width: calc((100% - 2 * var(--cat-gap) - 2 * var(--cat-padding)) / 3 - 2px);
+        min-width: 0;
+        box-sizing: border-box;
+    }
+}
+
+/* モバイル: カードを大きめに、かつ見切れないように vw を調整 */
+@media (max-width:720px){
+    .category-carousel{
+        gap:10px;
+        padding-inline:12px;
+    }
+    .category-carousel .carousel-item{
+        flex:0 0 calc(80vw - 24px); /* 画面幅の約80%に拡大 */
+        width: calc(80vw - 24px);
+        min-width: 0;
+        box-sizing: border-box;
+    }
+}
+
+/* スクロールバー非表示補助（お好みで） */
+.category-carousel { -ms-overflow-style: none; scrollbar-width: none; }
+.category-carousel::-webkit-scrollbar { display: none; }
+
+/* 件数表示を非表示にする（既存） */
+.category-carousel .category-count { display: none !important; }
+
+:root{
+    --cat-gap: 16px;
+    --cat-padding: 24px; /* 左右余白 */
+}
+
+/* コンテナ共通 */
+.category-carousel{
+    display:flex;
+    gap: var(--cat-gap);
+    padding-inline: var(--cat-padding);
+    box-sizing: border-box;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 各アイテムの共通設定 */
+.category-carousel .carousel-item{
+    box-sizing: border-box;
+    min-width: 0;
+    scroll-snap-align: start;
+}
+
+/* デスクトップ: 1画面にちょうど5個表示（gap=4箇所、padding 両端分を差し引く） */
+@media (min-width: 1024px) {
+    .category-carousel .carousel-item{
+        /* 微小値を引いて丸め差分で5個目がはみ出るのを防止 */
+        flex: 0 0 calc((100% - 4 * var(--cat-gap) - 2 * var(--cat-padding)) / 5 - 2px);
+        width: calc((100% - 4 * var(--cat-gap) - 2 * var(--cat-padding)) / 5 - 2px);
+        box-sizing: border-box;
+    }
+
+    /* 右端に目に見えない余白を追加して、最後のカードが途中で切れないようにする */
+    .category-carousel::after{
+        content: "";
+        flex: 0 0 var(--cat-padding);
+    }
+}
+
+/* デスクトップ：カードを少し大きくして、右の飛び出しを防止する */
+@media (min-width: 1024px) {
+    :root {
+        --cat-gap: 16px;
+        --cat-padding: 24px;
+    }
+
+    .category-carousel {
+        /* 右側に余白スペーサを追加（最後のカードが見切れないようにする） */
+        position: relative;
+    }
+
+    .category-carousel .carousel-item{
+        /* ベース幅を5分割した値に少し上乗せしてカードを大きくする */
+        flex: 0 0 calc((100% - 4 * var(--cat-gap) - 2 * var(--cat-padding)) / 5 + 8px);
+        width: calc((100% - 4 * var(--cat-gap) - 2 * var(--cat-padding)) / 5 + 8px);
+        box-sizing: border-box;
+        min-width: 0;
+    }
+
+    /* 目に見えない右側スペーサを追加して、6個目が画面内に入り込まないようにする */
+    .category-carousel::after{
+        content: "";
+        display: block;
+        flex: 0 0 calc(var(--cat-padding) + var(--cat-gap)); /* 余裕をもたせる */
+        width: calc(var(--cat-padding) + var(--cat-gap));
+        height: 1px;
+    }
+}
+
+/* 隣り合うカード間を広げる（ここを大きくすると6個目が見えにくくなります） */
+:root{
+    --cat-gap: 32px;
+    --cat-padding: 24px;
+}
+
+/* デスクトップ：5列表示に合わせてアイテム幅をやや縮める */
+@media (min-width: 1024px) {
+    .category-carousel .carousel-item{
+        flex: 0 0 calc((100% - 4 * var(--cat-gap) - 2 * var(--cat-padding)) / 5 - 8px);
+        width: calc((100% - 4 * var(--cat-gap) - 2 * var(--cat-padding)) / 5 - 8px);
+        box-sizing: border-box;
+    }
+
+    /* 右端の余白スペーサ（万が一のはみ出し防止） */
+    .category-carousel::after{
+        content: "";
+        display: block;
+        flex: 0 0 calc(var(--cat-padding) + var(--cat-gap));
+        width: calc(var(--cat-padding) + var(--cat-gap));
+        height: 1px;
+    }
+}
+
+/* デフォルト：JSで設定する --cat-item-width を使用 */
+.category-carousel .carousel-item {
+    flex: 0 0 var(--cat-item-width, 220px);
+    width: var(--cat-item-width, 220px);
+    box-sizing: border-box;
+    scroll-snap-align: start;
+    min-width: 0;
+}
+
+/* デスクトップ用の余白スペーサは残す（万が一の丸め誤差対策） */
+@media (min-width: 1024px) {
+    .category-carousel::after {
+        content: "";
+        flex: 0 0 calc(var(--cat-padding, 24px) + var(--cat-gap, 16px));
+    }
 }
