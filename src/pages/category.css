@@ -103,7 +103,7 @@
     width: 100%;
     box-sizing: border-box;
     text-align: center;
-    margin: 0 auto 12px;
+    margin: 0 !important;
     padding: 12px 16px; /* 追加：左右の余白で中央表示を安定させる */
 }
 
