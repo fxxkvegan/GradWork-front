@@ -19,7 +19,7 @@ import {
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import { loginUser } from '../services/userApi';
 
 // GitHub OAuth設定 - 環境変数から取得（.env.localから優先的に読み込む）
 const CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
@@ -47,14 +47,12 @@ const Login: React.FC = () => {
         setError('');
 
         try {
-            // ここに実際のAPIリクエスト
-            const response = await axios.post('/api/auth/login', { email, password });            // ユーザー情報をAuthContextに保存
-            login(response.data.user, remember);
+            const response = await loginUser({ email, password, remember });
+            login(response.user, remember);
         } catch (error: unknown) {
             console.error('ログインエラー:', error);
             setError(
-                (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                'ログイン中にエラーが発生しました。もう一度お試しください。'
+                error instanceof Error ? error.message : 'ログイン中にエラーが発生しました。もう一度お試しください。'
             );
         } finally {
             setIsLoading(false);

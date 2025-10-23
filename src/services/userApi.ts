@@ -122,26 +122,18 @@ export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse
 
     console.log('✅ userApi.loginUser: API成功レスポンス', {
       status: response.status,
-      success: response.data.success,
-      userId: response.data.data?.user?.id,
-      tokenReceived: !!response.data.data?.token,
-      refreshTokenReceived: !!response.data.data?.refreshToken,
-      message: response.data.message
+      userId: response.data.user?.id,
+      tokenReceived: !!response.data.token,
     });
 
-    if (response.data.success && response.data.data.token) {
+    if (response.data.token) {
       const storage = credentials.remember ? localStorage : sessionStorage;
-      storage.setItem('authToken', response.data.data.token);
+      storage.setItem('authToken', response.data.token);
 
       console.log('💾 userApi.loginUser: トークン保存完了', {
         storage: credentials.remember ? 'localStorage' : 'sessionStorage',
-        tokenLength: response.data.data.token.length
+        tokenLength: response.data.token.length
       });
-
-      if (response.data.data.refreshToken) {
-        localStorage.setItem('refreshToken', response.data.data.refreshToken);
-        console.log('💾 userApi.loginUser: リフレッシュトークン保存完了');
-      }
     }
 
     return response.data;
@@ -188,23 +180,15 @@ export const registerUser = async (userData: RegisterRequest): Promise<AuthRespo
 
     console.log('✅ userApi.registerUser: API成功レスポンス', {
       status: response.status,
-      success: response.data.success,
-      userId: response.data.data?.user?.id,
-      email: response.data.data?.user?.email,
-      tokenReceived: !!response.data.data?.token,
-      refreshTokenReceived: !!response.data.data?.refreshToken,
-      message: response.data.message
+      userId: response.data.user?.id,
+      email: response.data.user?.email,
+      tokenReceived: !!response.data.token,
     });
 
-    if (response.data.success && response.data.data.token) {
-      sessionStorage.setItem('authToken', response.data.data.token);
+    if (response.data.token) {
+      sessionStorage.setItem('authToken', response.data.token);
 
       console.log('💾 userApi.registerUser: トークン保存完了 (sessionStorage)');
-
-      if (response.data.data.refreshToken) {
-        localStorage.setItem('refreshToken', response.data.data.refreshToken);
-        console.log('💾 userApi.registerUser: リフレッシュトークン保存完了');
-      }
     }
 
     return response.data;

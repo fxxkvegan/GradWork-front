@@ -36,31 +36,28 @@ const TestLogin: React.FC = () => {
             id: 'test-user-1',
             name: '開発者ユーザー',
             email: 'developer@example.com',
-            username: 'developer',
             avatarUrl: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
             role: '開発者',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         },
         {
             id: 'test-user-2',
             name: '管理者ユーザー',
             email: 'admin@example.com',
-            username: 'admin',
             avatarUrl: 'https://github.githubassets.com/images/modules/logos_page/Octocat.png',
             role: '管理者',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         },
         {
             id: 'test-user-3',
             name: '一般ユーザー',
             email: 'user@example.com',
-            username: 'user',
             avatarUrl: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Logo.png',
             role: '一般ユーザー',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         }
     ];
 
@@ -87,12 +84,10 @@ const TestLogin: React.FC = () => {
 
             const userForAuth = {
                 id: user.id,
+                name: user.name,
                 email: user.email,
-                username: user.username,
-                displayName: user.name,
-                avatar: user.avatarUrl,
-                createdAt: user.createdAt,
-                updatedAt: user.updatedAt
+                created_at: user.created_at,
+                updated_at: user.updated_at
             };
 
             login(userForAuth, remember);
@@ -125,7 +120,7 @@ const TestLogin: React.FC = () => {
                 {isLoggedIn ? (
                     <Box sx={{ mb: 4 }}>
                         <Alert severity="success" sx={{ mb: 2 }}>
-                            {user?.displayName || user?.username}としてログイン中です。
+                            {user?.name}としてログイン中です。
                         </Alert>
                         <Button
                             variant="contained"
