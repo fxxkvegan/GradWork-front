@@ -15,22 +15,19 @@ import { AuthProvider } from './context/AuthContext'
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <HomePage />,
+    element: <Layout><HomePage /></Layout>,
+  },
+  {
+    path: "/home",
+    element: <Layout><HomePage /></Layout>,
   },
   {
     path: "/register",
-    element: <Register />
+    element: <Layout><RegisterPage /></Layout>,
   },
   {
     path: "/login",
-    element: <Login />
-  }, {
-    path: "/login/github-callback",
-    element: <GitHubCallback />
-  },
-  {
-    path: "/testlogin",
-    element: <TestLogin />
+    element: <Layout><LoginPage /></Layout>,
   },
   {
     path: "/Legal",
@@ -43,13 +40,27 @@ const router = createBrowserRouter([
   {
     path: "/item/:id",
     element: <ItemDetailPage />
-  }
+  },
+  {
+    path: "/create",
+    element: <Layout><ItemFormPage /></Layout>,
+  },
+  {
+    path: "/edit/:itemId",
+    element: <Layout><ItemFormPage /></Layout>,
+  },
+  {
+    path: "*",
+    element: <Layout><div style={{ padding: '2rem', textAlign: 'center' }}>
+      <h1>404 - ページが見つかりません</h1>
+      <p>お探しのページは存在しません。</p>
+      <a href="/">ホームに戻る</a>
+    </div></Layout>,
+  },
 ]);
 
 createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  </React.StrictMode>
-)
+  <AuthProvider>
+    <RouterProvider router={router} />
+  </AuthProvider>
+);

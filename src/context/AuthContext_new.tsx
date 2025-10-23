@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const initializeAuth = async () => {
             const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-
+            
             if (token) {
                 try {
                     // トークンがある場合はAPIからユーザー情報を取得
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 // トークンがない場合はローカルストレージから取得（フォールバック）
                 const storedUserLocal = localStorage.getItem(USER_STORAGE_KEY);
                 const storedUserSession = sessionStorage.getItem(USER_STORAGE_KEY);
-
+                
                 if (storedUserLocal) {
                     try {
                         const parsedUser = JSON.parse(storedUserLocal);
@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     }
                 }
             }
-
+            
             setLoading(false);
         };
 
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // ログイン処理
     const login = (userData: User, remember: boolean = false) => {
         setUser(userData);
-
+        
         // ユーザー情報をストレージに保存（フォールバック用）
         if (remember) {
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));

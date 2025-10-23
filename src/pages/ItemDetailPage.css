@@ -55,7 +55,8 @@
 .item-detail-page .sticky-sidebar {
     position: -webkit-sticky;
     position: sticky;
-    top: 80px; /* ヘッダーの高さ + 余白 */
+    top: 80px;
+    /* ヘッダーの高さ + 余白 */
     align-self: flex-start;
     max-height: calc(100vh - 100px);
     overflow-y: auto;
@@ -95,7 +96,7 @@
         padding-left: 16px;
         padding-right: 16px;
     }
-    
+
     .item-detail-page .MuiGrid-item {
         padding: 8px;
     }
