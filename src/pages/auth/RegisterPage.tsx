@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AppHeader from '../../component/AppHeader';
+import AppHeader from '../../components/AppHeader';
 import { useAuth } from '../../context/AuthContext';
 import { registerUser } from '../../services/userApi';
 import {

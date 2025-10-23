@@ -31,28 +31,36 @@ const TestLogin: React.FC = () => {
     // 本番環境の場合は何も表示しない
     if (import.meta.env.PROD) {
         return null;
-    }    // テストユーザーのリスト
-    const testUsers = [
+    }    const testUsers = [
         {
             id: 'test-user-1',
             name: '開発者ユーザー',
             email: 'developer@example.com',
+            username: 'developer',
             avatarUrl: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
-            role: '開発者'
+            role: '開発者',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         },
         {
             id: 'test-user-2',
             name: '管理者ユーザー',
             email: 'admin@example.com',
+            username: 'admin',
             avatarUrl: 'https://github.githubassets.com/images/modules/logos_page/Octocat.png',
-            role: '管理者'
+            role: '管理者',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         },
         {
             id: 'test-user-3',
             name: '一般ユーザー',
             email: 'user@example.com',
+            username: 'user',
             avatarUrl: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Logo.png',
-            role: '一般ユーザー'
+            role: '一般ユーザー',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         }
     ];
 
@@ -77,8 +85,17 @@ const TestLogin: React.FC = () => {
             // テスト用に少し遅延を入れる（1秒）
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // ユーザー情報をAuthContextに保存
-            login(user, remember);
+            const userForAuth = {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                displayName: user.name,
+                avatar: user.avatarUrl,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt
+            };
+
+            login(userForAuth, remember);
 
             // リダイレクトせずに成功状態を設定
             setError(null);
@@ -108,7 +125,7 @@ const TestLogin: React.FC = () => {
                 {isLoggedIn ? (
                     <Box sx={{ mb: 4 }}>
                         <Alert severity="success" sx={{ mb: 2 }}>
-                            {user?.name}としてログイン中です。
+                            {user?.displayName || user?.username}としてログイン中です。
                         </Alert>
                         <Button
                             variant="contained"

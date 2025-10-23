@@ -22,7 +22,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import axios from 'axios';
-import AppHeader from '../component/AppHeader';
+import AppHeader from '../components/AppHeader';
 
 interface ProjectFormData {
     title: string;

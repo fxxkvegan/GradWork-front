@@ -22,7 +22,7 @@ import {
     Share as ShareIcon,
     ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
-import AppHeader from '../component/AppHeader';
+import AppHeader from '../components/AppHeader';
 import './ItemDetailPage.css';
 import axios from 'axios';
 
