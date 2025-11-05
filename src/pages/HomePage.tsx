@@ -27,6 +27,8 @@ import "./HomePage.css";
 import "./carousel-extra.css";
 import "./category.css";
 
+import { useNavigate } from "react-router-dom";
+
 /* ---------- 型定義 ---------- */
 export interface Project {
     id: number;
@@ -140,7 +142,10 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
 };
 
 /* ---------- HomePage ---------- */
-const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    const dummyProjects: Project[] = [
+const HomePage: React.FC = () => {
+    const navigate = useNavigate();
+    /* ダミー (API 失敗時用) */    
+    const dummyProjects: Project[] = [
     {
         id: 0,
         title: "Webアプリ開発テンプレート",
@@ -719,6 +724,7 @@ const HomePage: React.FC = () => {    /* ダミー (API 失敗時用) */    cons
                                         backgroundColor: 'white',
                                         color: 'text.primary',
                                     }}
+                                    onClick={() => navigate(`/projects?category=${encodeURIComponent(c.name)}`)}
                                 >
                                     <Box className="category-icon-wrapper">
                                         {c.icon}
