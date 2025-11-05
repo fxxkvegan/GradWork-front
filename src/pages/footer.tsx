@@ -50,12 +50,37 @@ const Footer: React.FC = () => {
                         </Box>
 
                         {/* クイックリンク */}
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 4 }}>
-                            <Stack spacing={1}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                        <Stack 
+                            direction={{ xs: 'row', sm: 'row' }}
+                            spacing={{ xs: 1, sm: 4 }}  // xs時の間隔を1に縮小
+                            sx={{
+                                flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                                justifyContent: { xs: 'space-between', sm: 'flex-start' },
+                                width: '100%',  // 幅を100%に設定
+                            }}
+                        >
+                            {/* サービス */}
+                            <Stack spacing={1} sx={{ 
+                                minWidth: { xs: '30%', sm: 'auto' },
+                                flexShrink: 0  // 収縮を防ぐ
+                            }}>
+                                <Typography variant="subtitle2" sx={{ 
+                                    fontWeight: 'bold', 
+                                    mb: 1,
+                                    fontSize: { xs: '0.875rem', sm: '1rem' } // モバイルで文字サイズ調整
+                                }}>
                                     サービス
                                 </Typography>
-                                <Link href="/" color="grey.400" underline="hover" variant="body2">
+                                <Link 
+                                    href="/" 
+                                    color="grey.400" 
+                                    underline="hover" 
+                                    variant="body2"
+                                    sx={{
+                                        fontSize: { xs: '0.75rem', sm: '0.875rem' }, // モバイルでフォントサイズを小さく
+                                        whiteSpace: 'nowrap', // テキストを1行に
+                                    }}
+                                >
                                     プロジェクト一覧
                                 </Link>
                                 <Link href="/categories" color="grey.400" underline="hover" variant="body2">
@@ -66,8 +91,16 @@ const Footer: React.FC = () => {
                                 </Link>
                             </Stack>
 
-                            <Stack spacing={1}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                            {/* サポート */}
+                            <Stack spacing={1} sx={{ 
+                                minWidth: { xs: '30%', sm: 'auto' },
+                                flexShrink: 0  // 収縮を防ぐ
+                            }}>
+                                <Typography variant="subtitle2" sx={{ 
+                                    fontWeight: 'bold', 
+                                    mb: 1,
+                                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                                }}>
                                     サポート
                                 </Typography>
                                 <Link href="/help" color="grey.400" underline="hover" variant="body2">
@@ -81,8 +114,16 @@ const Footer: React.FC = () => {
                                 </Link>
                             </Stack>
 
-                            <Stack spacing={1}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                            {/* 法的情報 */}
+                            <Stack spacing={1} sx={{ 
+                                minWidth: { xs: '30%', sm: 'auto' },
+                                flexShrink: 0  // 収縮を防ぐ
+                            }}>
+                                <Typography variant="subtitle2" sx={{ 
+                                    fontWeight: 'bold', 
+                                    mb: 1,
+                                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                                }}>
                                     法的情報
                                 </Typography>
                                 <Link href="/legal" color="grey.400" underline="hover" variant="body2">
