@@ -9,6 +9,7 @@ import Legal from './pages/Legal.tsx'
 import ItemDetailPage from './pages/ItemDetailPage.tsx'
 import Layout from './components/Layout.tsx'
 import { AuthProvider } from './context/AuthContext'
+import ProjectList from './pages/ProjectList.tsx'
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
   {
     path: "/home",
     element: <Layout><HomePage /></Layout>,
+  },
+  {
+    path: "/projects",
+    element: <Layout><ProjectList /></Layout>
   },
   {
     path: "/register",
