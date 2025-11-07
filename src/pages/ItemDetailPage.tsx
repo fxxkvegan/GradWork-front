@@ -28,111 +28,16 @@ import axios from 'axios';
 // プロジェクト詳細の型定義
 interface ProjectDetail {
     id: number;
-    title: string;
+    name: string;
     description: string;
-    shortDescription: string;
-    longDescription: string;
-    images: string[];
-    price: number;
-    isFree: boolean;
-    rating: {
-        average: number;
-        count: number;
-    };
-    features: string[];
-    technicalDetails: {
-        framework: string[];
-        language: string[];
-        database?: string[];
-        tools?: string[];
-    };
-    systemRequirements: {
-        os: string;
-        browser: string;
-        memory: string;
-    };
-    author: {
-        name: string;
-        avatar: string;
-        rating: number;
-    };
-    downloadCount: number;
-    lastUpdated: string;
-    version: string;
+    image_url: string[];
+    rating: number;
+    download_count: number;
+    created_at: string;
+    updated_at: string;
+    categoryIds: number[];
 }
 
-// デモ用詳細データ
-// const getDemoProjectDetail = (id: string): ProjectDetail => {
-//     const baseProject: ProjectDetail = {
-//         id: parseInt(id),
-//         title: "React E-commerce Platform",
-//         description: "モダンなReactとTypeScriptで構築された本格的なEコマースプラットフォーム",
-//         shortDescription: "レスポンシブ対応のECプラットフォーム",
-//         longDescription: `
-// このプロジェクトは、最新のReact 18とTypeScriptを使用して構築された、
-// 本格的なEコマースプラットフォームです。
-
-// • 完全レスポンシブデザイン
-// • ショッピングカート機能
-// • ユーザー認証システム
-// • 管理者ダッシュボード
-// • 決済システム統合
-// • SEO最適化済み
-
-// 開発者にとって理解しやすく、カスタマイズしやすい構造になっており、
-// 実際のビジネスでもそのまま使用できる品質を保っています。
-//         `,
-//         images: ["/nice_dig.png", "/nice_dig.png", "/nice_dig.png"],
-//         price: 15000,
-//         isFree: false,
-//         rating: { average: 4.5, count: 128 },
-//         features: [
-//             "レスポンシブデザイン",
-//             "ショッピングカート",
-//             "ユーザー認証",
-//             "管理者機能",
-//             "決済システム",
-//             "SEO対応",
-//             "PWA対応",
-//             "多言語対応"
-//         ],
-//         technicalDetails: {
-//             framework: ["React 18", "Material-UI", "Redux Toolkit"],
-//             language: ["TypeScript", "JavaScript", "HTML5", "CSS3"],
-//             database: ["PostgreSQL", "Redis"],
-//             tools: ["Vite", "ESLint", "Prettier", "Jest"]
-//         },
-//         systemRequirements: {
-//             os: "Windows 10+, macOS 10.15+, Linux Ubuntu 18+",
-//             browser: "Chrome 90+, Firefox 88+, Safari 14+",
-//             memory: "8GB RAM 推奨"
-//         },
-//         author: {
-//             name: "TechDeveloper",
-//             avatar: "/nice_dig.png",
-//             rating: 4.8
-//         },
-//         downloadCount: 1250,
-//         lastUpdated: "2024-06-15",
-//         version: "2.1.0"
-//     };
-
-//     // IDに応じて少し内容を変更
-//     if (id === "2") {
-//         baseProject.title = "Vue.js Dashboard";
-//         baseProject.description = "Vue.js 3とComposition APIで構築された管理者用ダッシュボード";
-//         baseProject.technicalDetails.framework = ["Vue.js 3", "Vuetify", "Pinia"];
-//     } else if (id === "3") {
-//         baseProject.title = "Node.js API Starter";
-//         baseProject.description = "Express.jsとMongoDBを使ったRESTful APIのスターターキット";
-//         baseProject.isFree = true;
-//         baseProject.price = 0;
-//         baseProject.technicalDetails.framework = ["Express.js", "Mongoose"];
-//         baseProject.technicalDetails.language = ["Node.js", "TypeScript"];
-//     }
-
-//     return baseProject;
-// };
 
 function ItemDetailPage() {
     const { itemId } = useParams<{ itemId?: string }>();
@@ -155,7 +60,10 @@ function ItemDetailPage() {
 
                     // レスポンスの構造を確認
                     if (res.data) {
-                        setProject(res.data);
+                        setProject({
+                            ...res.data,
+                            image_url: JSON.parse(res.data.image_url) // 文字列を配列に変換
+                        });
                         console.log("プロジェクトデータ取得成功:", res.data); // デバッグ用ログ
                     } else {
                         setError('プロジェクトデータが見つかりませんでした');
@@ -271,15 +179,19 @@ function ItemDetailPage() {
                             <CardMedia
                                 component="img"
                                 height="400"
-                                image={project.images[0]}
-                                alt={project.title}
+                                image={project.image_url[0]}
+                                alt={project.name}
                                 sx={{ objectFit: 'cover' }}
                             />
                         </Card>
 
                         {/* サムネイル画像 */}
                         <Box sx={{ display: 'flex', gap: 1, mb: 3, overflowX: 'auto' }}>
-                            {project.images.map((image, index) => (
+                            {
+                            
+                            
+                            project.image_url.map((image, index) => (
+                    
                                 <Box
                                     key={index}
                                     sx={{
@@ -292,7 +204,7 @@ function ItemDetailPage() {
                                 >
                                     <img
                                         src={image}
-                                        alt={`${project.title} ${index + 1}`}
+                                        alt={`${project.name} ${index + 1}`}
                                         style={{
                                             width: '100%',
                                             height: '100%',
@@ -315,7 +227,7 @@ function ItemDetailPage() {
                                     lineHeight: 1.7
                                 }}
                             >
-                                {project.longDescription}
+                                {project.description}
                             </Typography>
                         </Paper>
 
@@ -330,7 +242,7 @@ function ItemDetailPage() {
                                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     フレームワーク・ライブラリ
                                 </Typography>
-                                <Box sx={{ mb: 2 }}>
+                                {/* <Box sx={{ mb: 2 }}>
                                     {project.technicalDetails.framework.map((tech, index) => (
                                         <Chip
                                             key={index}
@@ -339,14 +251,14 @@ function ItemDetailPage() {
                                             sx={{ mr: 1, mb: 1 }}
                                         />
                                     ))}
-                                </Box>
+                                </Box> */}
                             </Box>
 
                             <Box sx={{ mb: 3 }}>
                                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                     プログラミング言語
                                 </Typography>
-                                <Box>
+                                {/* <Box>
                                     {project.technicalDetails.language.map((lang, index) => (
                                         <Chip
                                             key={index}
@@ -356,14 +268,14 @@ function ItemDetailPage() {
                                             sx={{ mr: 1, mb: 1 }}
                                         />
                                     ))}
-                                </Box>
+                                </Box> */}
                             </Box>
 
                             {/* 主要機能 */}
                             <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
                                 主要機能
                             </Typography>
-                            <Box sx={{ mb: 3 }}>
+                            {/* <Box sx={{ mb: 3 }}>
                                 {project.features.map((feature, index) => (
                                     <Chip
                                         key={index}
@@ -372,10 +284,10 @@ function ItemDetailPage() {
                                         sx={{ mr: 1, mb: 1 }}
                                     />
                                 ))}
-                            </Box>
+                            </Box> */}
 
                             {/* システム要件 */}
-                            <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
+                            {/* <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
                                 システム要件
                             </Typography>
                             <Box sx={{
@@ -408,7 +320,7 @@ function ItemDetailPage() {
                                         {project.systemRequirements.memory}
                                     </Typography>
                                 </Box>
-                            </Box>
+                            </Box> */}
                         </Paper>
                     </Box>
 
@@ -417,36 +329,23 @@ function ItemDetailPage() {
                         <Paper sx={{ p: 3, position: 'sticky', top: 100 }}>
                             {/* タイトルと評価 */}
                             <Typography variant="h5" gutterBottom>
-                                {project.title}
+                                {project.name}
                             </Typography>
                             <Typography variant="body2" color="text.secondary" paragraph>
-                                {project.shortDescription}
+                                {project.created_at} に公開、 最終更新: {project.updated_at}
                             </Typography>
 
                             {/* 評価 */}
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                                 <Rating
-                                    value={project.rating.average}
+                                    value={project.rating}
                                     precision={0.1}
                                     readOnly
                                     size="small"
                                 />
                                 <Typography variant="caption" sx={{ ml: 1 }}>
-                                    ({project.rating.count}件)
+                                    ({project.rating}件)
                                 </Typography>
-                            </Box>
-
-                            {/* 価格 */}
-                            <Box sx={{ mb: 3 }}>
-                                {project.isFree ? (
-                                    <Typography variant="h6" color="success.main">
-                                        無料
-                                    </Typography>
-                                ) : (
-                                    <Typography variant="h6">
-                                        ¥{project.price.toLocaleString()}
-                                    </Typography>
-                                )}
                             </Box>
 
                             {/* アクションボタン */}
@@ -481,7 +380,7 @@ function ItemDetailPage() {
                                     ダウンロード数
                                 </Typography>
                                 <Typography variant="body1">
-                                    {project.downloadCount.toLocaleString()}
+                                    {project.download_count}
                                 </Typography>
                             </Box>
 
@@ -490,7 +389,7 @@ function ItemDetailPage() {
                                     最終更新
                                 </Typography>
                                 <Typography variant="body1">
-                                    {project.lastUpdated}
+                                    {project.updated_at}
                                 </Typography>
                             </Box>
 
@@ -499,14 +398,13 @@ function ItemDetailPage() {
                                     バージョン
                                 </Typography>
                                 <Typography variant="body1">
-                                    {project.version}
                                 </Typography>
                             </Box>
 
                             <Divider sx={{ my: 2 }} />
 
                             {/* 作者情報 */}
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Box
                                     component="img"
                                     src={project.author.avatar}
@@ -529,7 +427,7 @@ function ItemDetailPage() {
                                         size="small"
                                     />
                                 </Box>
-                            </Box>
+                            </Box> */}
                         </Paper>
                     </Box>
                 </Box>
