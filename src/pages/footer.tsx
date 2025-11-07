@@ -55,7 +55,7 @@ const Footer: React.FC = () => {
                                 <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
                                     サービス
                                 </Typography>
-                                <Link href="/" color="grey.400" underline="hover" variant="body2">
+                                <Link href="/projects" color="grey.400" underline="hover" variant="body2">
                                     プロジェクト一覧
                                 </Link>
                                 <Link href="/categories" color="grey.400" underline="hover" variant="body2">

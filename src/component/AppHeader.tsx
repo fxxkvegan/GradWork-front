@@ -35,10 +35,10 @@ const MenuIcon = () => (
 // ナビゲーションリンク
 const navItems = [
     { label: 'HOME', path: '/home' },
-    { label: 'Web 開発', path: '/web' },
-    { label: 'iOS 開発', path: '/ios' },
-    { label: 'Android 開発', path: '/android' },
-    { label: 'プログラミング 学習', path: '/tools' },
+    { label: 'Web 開発', path: '/projects?category=Web開発' },
+    { label: 'iOS 開発', path: '/projects?category=iOS開発' },
+    { label: 'Android 開発', path: '/projects?category=Android開発' },
+    { label: 'プログラミング 学習', path: '/projects?category=プログラミング学習' },
     { label: 'サポート', path: '/support' },
 ];
 
