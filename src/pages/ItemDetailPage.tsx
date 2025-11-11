@@ -188,31 +188,31 @@ function ItemDetailPage() {
                         {/* サムネイル画像 */}
                         <Box sx={{ display: 'flex', gap: 1, mb: 3, overflowX: 'auto' }}>
                             {
-                            
-                            
-                            project.image_url.map((image, index) => (
-                    
-                                <Box
-                                    key={index}
-                                    sx={{
-                                        minWidth: 120,
-                                        height: 80,
-                                        borderRadius: 1,
-                                        overflow: 'hidden',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    <img
-                                        src={image}
-                                        alt={`${project.name} ${index + 1}`}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover'
+
+
+                                project.image_url.map((image, index) => (
+
+                                    <Box
+                                        key={index}
+                                        sx={{
+                                            minWidth: 120,
+                                            height: 80,
+                                            borderRadius: 1,
+                                            overflow: 'hidden',
+                                            cursor: 'pointer'
                                         }}
-                                    />
-                                </Box>
-                            ))}
+                                    >
+                                        <img
+                                            src={image}
+                                            alt={`${project.name} ${index + 1}`}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover'
+                                            }}
+                                        />
+                                    </Box>
+                                ))}
                         </Box>
 
                         {/* 詳細説明 */}
