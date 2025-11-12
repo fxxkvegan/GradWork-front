@@ -1,17 +1,25 @@
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { getUserProfile, logoutUser } from "../services/userApi";
-import { User } from "../types/user";
+import type { User, UserProfile } from "../types/user";
 
-// 認証コンテキストの型定義
 interface AuthContextType {
-	user: User | null;
+	user: UserProfile | null;
 	isLoggedIn: boolean;
 	login: (userData: User, remember?: boolean) => void;
 	logout: () => Promise<void>;
 	loading: boolean;
 	refreshUser: () => Promise<void>;
 }
+
+const convertUserToProfile = (user: User): UserProfile => ({
+	id: user.id,
+	name: user.name,
+	email: user.email,
+	avatarUrl: user.avatar_url ?? null,
+	locale: user.locale ?? null,
+	theme: user.theme ?? null,
+});
 
 // ストレージキー
 const USER_STORAGE_KEY = "user";
@@ -29,9 +37,8 @@ const defaultContext: AuthContextType = {
 // コンテキストの作成
 const AuthContext = createContext<AuthContextType>(defaultContext);
 
-// AuthContextのプロバイダーコンポーネント
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-	const [user, setUser] = useState<User | null>(null);
+	const [user, setUser] = useState<UserProfile | null>(null);
 	const [loading, setLoading] = useState(true);
 
 	// ユーザー情報を更新する関数
@@ -105,15 +112,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		initializeAuth();
 	}, []);
 
-	// ログイン処理
 	const login = (userData: User, remember: boolean = false) => {
-		setUser(userData);
+		const userProfile = convertUserToProfile(userData);
+		setUser(userProfile);
 
-		// ユーザー情報をストレージに保存（フォールバック用）
 		if (remember) {
-			localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+			localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userProfile));
 		} else {
-			sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+			sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userProfile));
 		}
 	};
 

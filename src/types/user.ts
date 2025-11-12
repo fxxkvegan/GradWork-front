@@ -1,44 +1,27 @@
-// ユーザー関連の型定義
-
 export interface User {
-	id: string;
+	id: number;
 	name: string;
 	email: string;
+	avatar_url?: string | null;
+	locale?: string | null;
+	theme?: string | null;
 	email_verified_at?: string | null;
-	created_at: string;
-	updated_at: string;
-	username?: string;
-	displayName?: string;
-	avatar?: string;
-	github?: string;
-	bio?: string;
-	location?: string;
-	website?: string;
+	created_at?: string;
+	updated_at?: string;
+}
+
+export interface UserProfile {
+	id: number;
+	name: string;
+	email: string;
+	avatarUrl?: string | null;
+	locale?: string | null;
+	theme?: string | null;
 }
 
 export interface UserSettings {
-	id: string;
-	userId: string;
-	theme: "light" | "dark" | "auto";
-	language: string;
-	notifications: {
-		email: boolean;
-		push: boolean;
-		newItems: boolean;
-		favorites: boolean;
-		security: boolean;
-	};
-	privacy: {
-		profileVisibility: "public" | "private" | "friends";
-		showEmail: boolean;
-		showLocation: boolean;
-	};
-	preferences: {
-		itemsPerPage: number;
-		defaultView: "grid" | "list";
-		autoSave: boolean;
-	};
-	updatedAt: string;
+	locale: string | null;
+	theme: string | null;
 }
 
 export interface UserHistoryItem {
@@ -50,52 +33,38 @@ export interface UserHistoryItem {
 	action: "view" | "favorite" | "unfavorite" | "share" | "download";
 	timestamp: string;
 	metadata?: {
-		duration?: number; // 閲覧時間（秒）
-		source?: string; // アクセス元
-		[key: string]: any;
+		duration?: number;
+		source?: string;
+		[key: string]: unknown;
 	};
 }
 
-// API レスポンス用の型
 export interface UserResponse {
-	success: boolean;
-	data: User;
-	message?: string;
+	message: string;
+	data: UserProfile;
 }
 
 export interface UserSettingsResponse {
-	success: boolean;
+	message: string;
 	data: UserSettings;
-	message?: string;
 }
 
 export interface UserHistoryResponse {
-	success: boolean;
-	data: {
-		items: UserHistoryItem[];
-		total: number;
-		page: number;
-		limit: number;
-	};
-	message?: string;
+	message: string;
+	data: UserHistoryItem[];
 }
 
-// API リクエスト用の型
 export interface UpdateUserRequest {
-	username?: string;
-	displayName?: string;
-	bio?: string;
-	location?: string;
-	website?: string;
-	github?: string;
+	name?: string;
+	email?: string;
+	avatarUrl?: string;
+	locale?: string;
+	theme?: string;
 }
 
 export interface UpdateUserSettingsRequest {
-	theme?: "light" | "dark" | "auto";
-	language?: string;
-	notifications?: Partial<UserSettings["notifications"]>;
-	privacy?: Partial<UserSettings["privacy"]>;
-	preferences?: Partial<UserSettings["preferences"]>;
+	locale?: string;
+	theme?: string;
 }
 
 // 認証関連の型

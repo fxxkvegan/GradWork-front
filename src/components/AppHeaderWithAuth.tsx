@@ -6,13 +6,11 @@ interface AppHeaderWithAuthProps {
 	activePath?: string;
 }
 
-// AuthContextを使用するAppHeaderのラッパーコンポーネント
 const AppHeaderWithAuth: React.FC<AppHeaderWithAuthProps> = ({
 	activePath,
 }) => {
 	const { isLoggedIn, user, logout } = useAuth();
 
-	// ログアウト処理
 	const handleLogout = () => {
 		logout();
 	};
@@ -21,8 +19,8 @@ const AppHeaderWithAuth: React.FC<AppHeaderWithAuthProps> = ({
 		<AppHeader
 			activePath={activePath}
 			isLoggedIn={isLoggedIn}
-			userName={user?.displayName || user?.username}
-			avatarUrl={user?.avatar}
+			userName={user?.name}
+			avatarUrl={user?.avatarUrl ?? undefined}
 			onLogout={handleLogout}
 			messageCount={0}
 		/>

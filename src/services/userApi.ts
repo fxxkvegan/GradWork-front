@@ -1,13 +1,13 @@
 import axios from "axios";
 import { API_CONFIG } from "../constants/api";
-import {
+import type {
 	AuthResponse,
 	LoginRequest,
 	RegisterRequest,
 	TokenRefreshResponse,
 	UpdateUserRequest,
 	UpdateUserSettingsRequest,
-	User,
+	UserProfile,
 	UserHistoryItem,
 	UserHistoryResponse,
 	UserResponse,
@@ -292,15 +292,9 @@ export const logoutUser = async (): Promise<void> => {
 /**
  * 現在のユーザー情報を取得
  */
-export const getUserProfile = async (): Promise<User> => {
+export const getUserProfile = async (): Promise<UserProfile> => {
 	try {
 		const response = await api.get<UserResponse>("/users/me");
-
-		if (!response.data.success) {
-			throw new Error(
-				response.data.message || "ユーザー情報の取得に失敗しました",
-			);
-		}
 
 		return response.data.data;
 	} catch (error) {
@@ -318,15 +312,9 @@ export const getUserProfile = async (): Promise<User> => {
  */
 export const updateUserProfile = async (
 	userData: UpdateUserRequest,
-): Promise<User> => {
+): Promise<UserProfile> => {
 	try {
 		const response = await api.put<UserResponse>("/users/me", userData);
-
-		if (!response.data.success) {
-			throw new Error(
-				response.data.message || "ユーザー情報の更新に失敗しました",
-			);
-		}
 
 		return response.data.data;
 	} catch (error) {
@@ -347,10 +335,6 @@ export const updateUserProfile = async (
 export const getUserSettings = async (): Promise<UserSettings> => {
 	try {
 		const response = await api.get<UserSettingsResponse>("/users/me/settings");
-
-		if (!response.data.success) {
-			throw new Error(response.data.message || "設定情報の取得に失敗しました");
-		}
 
 		return response.data.data;
 	} catch (error) {
@@ -375,10 +359,6 @@ export const updateUserSettings = async (
 			settings,
 		);
 
-		if (!response.data.success) {
-			throw new Error(response.data.message || "設定の更新に失敗しました");
-		}
-
 		return response.data.data;
 	} catch (error) {
 		if (axios.isAxiosError(error) && error.response) {
@@ -399,12 +379,7 @@ export const getUserHistory = async (
 	page: number = 1,
 	limit: number = 20,
 	action?: string,
-): Promise<{
-	items: UserHistoryItem[];
-	total: number;
-	page: number;
-	limit: number;
-}> => {
+): Promise<UserHistoryItem[]> => {
 	try {
 		const params = new URLSearchParams({
 			page: page.toString(),
@@ -418,10 +393,6 @@ export const getUserHistory = async (
 		const response = await api.get<UserHistoryResponse>(
 			`/users/me/history?${params}`,
 		);
-
-		if (!response.data.success) {
-			throw new Error(response.data.message || "履歴の取得に失敗しました");
-		}
 
 		return response.data.data;
 	} catch (error) {
@@ -440,22 +411,17 @@ export const getUserHistory = async (
 export const addHistoryItem = async (
 	itemId: string,
 	action: "view" | "favorite" | "unfavorite" | "share" | "download",
-	metadata?: Record<string, any>,
+	metadata?: Record<string, unknown>,
 ): Promise<UserHistoryItem> => {
 	try {
 		const response = await api.post<{
-			success: boolean;
+			message: string;
 			data: UserHistoryItem;
-			message?: string;
 		}>("/users/me/history", {
 			itemId,
 			action,
 			metadata,
 		});
-
-		if (!response.data.success) {
-			throw new Error(response.data.message || "履歴の追加に失敗しました");
-		}
 
 		return response.data.data;
 	} catch (error) {
