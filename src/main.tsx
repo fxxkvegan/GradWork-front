@@ -10,6 +10,7 @@ import ItemDetailPage from './pages/ItemDetailPage.tsx'
 import Layout from './components/Layout.tsx'
 import { AuthProvider } from './context/AuthContext'
 import ProjectList from './pages/ProjectList.tsx'
+import AddItemsPage from './pages/admin/AddItemsPage.tsx'
 
 const router = createBrowserRouter([
   {
@@ -47,6 +48,10 @@ const router = createBrowserRouter([
   {
     path: "/local/item/:itemId",
     element: <Layout><ItemDetailPage /></Layout>
+  },
+  {
+    path: "/admin/add-items",
+    element: <Layout><AddItemsPage /></Layout>
   }
 ]);
 
