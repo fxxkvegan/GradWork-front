@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import AppHeader from "../components/AppHeader";
+import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import * as favorites from "../utils/favorites";
 
 interface Project {
@@ -221,7 +221,7 @@ const ProjectList: React.FC = () => {
 
 	return (
 		<>
-			<AppHeader activePath="/projects" />
+			<AppHeaderWithAuth activePath="/projects" />
 			<Container
 				maxWidth="lg"
 				sx={{ pt: 5, px: { xs: 2, sm: 3, md: 4 }, pb: 8 }}

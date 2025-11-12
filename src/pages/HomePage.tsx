@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import type { ReactNode } from "react";
 import React, { useEffect, useRef, useState } from "react";
-import AppHeader from "../components/AppHeader";
+import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import { API_CONFIG } from "../constants/api";
 import * as favorites from "../utils/favorites";
 
@@ -903,7 +903,7 @@ const HomePage: React.FC = () => {
 	}, [projects, initialized, activeItemIndex]);
 	return (
 		<div className="homepage">
-			<AppHeader activePath="/" />
+			<AppHeaderWithAuth activePath="/" />
 			{/* ヒーロー */}
 			<Box className="hero-section">
 				<Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: 5 }}>

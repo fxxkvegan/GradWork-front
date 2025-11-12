@@ -46,6 +46,7 @@ const GitHubCallbackPage: React.FC = () => {
 						theme: "light",
 						created_at: new Date().toISOString(),
 						updated_at: new Date().toISOString(),
+						token: "mock-token",
 					};
 
 					authCtx.login(mockUser, true);
@@ -61,7 +62,7 @@ const GitHubCallbackPage: React.FC = () => {
 					console.log("APIレスポンス:", data);
 
 					if (data.success) {
-						authCtx.login(data.data.user, true);
+						authCtx.login({ ...data.data.user, token: data.data.token }, true);
 						navigate("/home");
 					} else {
 						throw new Error(data.message || "GitHub認証に失敗しました");

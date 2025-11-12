@@ -16,7 +16,7 @@ import {
 	Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../services/userApi";
@@ -36,6 +36,7 @@ const Login: React.FC = () => {
 	const [error, setError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const { login, isLoggedIn } = useAuth();
+	const navigate = useNavigate();
 
 	/**
 	 * 通常のログインフォーム送信処理
@@ -48,7 +49,8 @@ const Login: React.FC = () => {
 
 		try {
 			const response = await loginUser({ email, password, remember });
-			login(response.user, remember);
+			login({ ...response.user, token: response.token }, remember);
+			navigate("/");
 		} catch (error: unknown) {
 			console.error("ログインエラー:", error);
 			setError(

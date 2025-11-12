@@ -2,6 +2,7 @@ export interface User {
 	id: number;
 	name: string;
 	email: string;
+	token?: string;
 	avatar_url?: string | null;
 	locale?: string | null;
 	theme?: string | null;

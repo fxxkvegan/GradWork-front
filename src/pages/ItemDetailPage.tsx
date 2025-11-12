@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import AppHeader from "../components/AppHeader";
+import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import "./ItemDetailPage.css";
 import axios from "axios";
 
@@ -210,7 +210,7 @@ export default function ItemDetailPage({
 	if (loading) {
 		return (
 			<div className="item-detail-page">
-				<AppHeader activePath={`/item/${itemId}`} />
+				<AppHeaderWithAuth activePath={`/item/${itemId}`} />
 				<Container maxWidth="lg" sx={{ py: 4, mt: 6 }}>
 					<Skeleton variant="rectangular" width="100%" height={400} />
 					<Box sx={{ mt: 3 }}>
@@ -226,7 +226,7 @@ export default function ItemDetailPage({
 	if (error) {
 		return (
 			<div className="item-detail-page">
-				<AppHeader activePath={`/item/${itemId}`} />
+				<AppHeaderWithAuth activePath={`/item/${itemId}`} />
 				<Container maxWidth="lg" sx={{ py: 4, mt: 6 }}>
 					<Typography variant="h5" align="center" color="error">
 						{error}
@@ -244,7 +244,7 @@ export default function ItemDetailPage({
 	if (!project) {
 		return (
 			<div className="item-detail-page">
-				<AppHeader activePath={`/item/${itemId}`} />
+				<AppHeaderWithAuth activePath={`/item/${itemId}`} />
 				<Container maxWidth="lg" sx={{ py: 4, mt: 6 }}>
 					<Typography variant="h5" align="center">
 						プロジェクトが見つかりませんでした
@@ -261,7 +261,7 @@ export default function ItemDetailPage({
 
 	return (
 		<div className="item-detail-page">
-			<AppHeader activePath={`/item/${itemId}`} />
+			<AppHeaderWithAuth activePath={`/item/${itemId}`} />
 			<Container maxWidth="lg" sx={{ py: 4, mt: 6 }}>
 				<Box sx={{ mb: 3 }}>
 					<Button

@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AppHeader from "../../components/AppHeader";
+import AppHeaderWithAuth from "../../components/AppHeaderWithAuth";
 import { useAuth } from "../../context/AuthContext";
 import { registerUser } from "../../services/userApi";
 
@@ -88,7 +88,7 @@ const RegisterPage: React.FC = () => {
 				tokenReceived: !!response.token,
 			});
 
-			login(response.user, false);
+			login({ ...response.user, token: response.token }, false);
 			console.log("🎉 RegisterPage: ユーザー登録成功、ホームページに遷移");
 			navigate("/home");
 		} catch (error) {
@@ -106,6 +106,7 @@ const RegisterPage: React.FC = () => {
 					email: email,
 					created_at: new Date().toISOString(),
 					updated_at: new Date().toISOString(),
+					token: "debug-token",
 				};
 
 				console.log("✅ RegisterPage: テストユーザー作成成功", testUser);
@@ -133,7 +134,7 @@ const RegisterPage: React.FC = () => {
 
 	return (
 		<>
-			<AppHeader />
+			<AppHeaderWithAuth activePath="/register" />
 			<Container maxWidth="xs" sx={{ mt: 8 }}>
 				<Card elevation={3}>
 					<CardContent>

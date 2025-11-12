@@ -23,7 +23,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import axios from "axios";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import AppHeader from "../components/AppHeader";
+import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 
 interface ProjectFormData {
 	title: string;
@@ -183,7 +183,9 @@ export default function ItemFormPage() {
 			adapterLocale={undefined}
 		>
 			<div className="item-form-page">
-				<AppHeader activePath={itemId ? `/edit/${itemId}` : "/create"} />
+				<AppHeaderWithAuth
+					activePath={itemId ? `/edit/${itemId}` : "/create"}
+				/>
 				<Container maxWidth="md" sx={{ py: 4, mt: 6 }}>
 					<Button
 						startIcon={<ArrowBackIcon />}
