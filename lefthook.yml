@@ -1,0 +1,10 @@
+pre-commit:
+  commands:
+    check:
+      run: npm run check
+
+pre-push:
+  commands:
+    build:
+      run: npx tsc --noEmit
+      stage_fixed: true

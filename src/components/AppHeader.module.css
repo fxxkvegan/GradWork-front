@@ -1,267 +1,269 @@
 /* AppHeader.module.css */
 :root {
-    --header-height: 48px;
-    --nicedig-black: rgba(20, 20, 20, 0.75);
-    --nicedig-white: #fff;
-    --nicedig-gray: rgba(255, 255, 255, 0.8);
-    --nicedig-hover: rgba(255, 255, 255, 0.65);
-    --transition-speed: 0.3s;
+	--header-height: 48px;
+	--nicedig-black: rgba(20, 20, 20, 0.75);
+	--nicedig-white: #fff;
+	--nicedig-gray: rgba(255, 255, 255, 0.8);
+	--nicedig-hover: rgba(255, 255, 255, 0.65);
+	--transition-speed: 0.3s;
 }
 
 .header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--header-height);
-    background: var(--nicedig-black);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    z-index: 1000;
-    transition: transform var(--transition-speed) ease;
-    color: var(--nicedig-gray);
-    font-size: 12px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: var(--header-height);
+	background: var(--nicedig-black);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	z-index: 1000;
+	transition: transform var(--transition-speed) ease;
+	color: var(--nicedig-gray);
+	font-size: 12px;
 }
 
 .headerHidden {
-    transform: translateY(-100%);
+	transform: translateY(-100%);
 }
 
 .container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 100%;
-    padding: 0 16px;
-    max-width: 1440px;
-    margin: 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 100%;
+	padding: 0 16px;
+	max-width: 1440px;
+	margin: 0 auto;
 }
 
 .leftSection {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
 }
 
 .logo {
-    display: flex;
-    align-items: center;
-    color: var(--nicedig-white);
+	display: flex;
+	align-items: center;
+	color: var(--nicedig-white);
 }
 
 .logo svg {
-    width: 24px;
-    height: 24px;
-    fill: currentColor;
+	width: 24px;
+	height: 24px;
+	fill: currentColor;
 }
 
 .title {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--nicedig-white);
-    margin-left: 10px;
-    text-decoration: none;
+	font-size: 20px;
+	font-weight: 600;
+	color: var(--nicedig-white);
+	margin-left: 10px;
+	text-decoration: none;
 }
 
 .nav {
-    display: none;
+	display: none;
 }
 
 .navList {
-    display: flex;
-    list-style: none;
-    gap: 24px;
-    margin: 0;
-    padding: 0;
+	display: flex;
+	list-style: none;
+	gap: 24px;
+	margin: 0;
+	padding: 0;
 }
 
 .navItem {
-    position: relative;
-    color: var(--nicedig-gray);
-    text-decoration: none;
-    font-size: 12px;
-    padding: 0;
-    cursor: pointer;
-    transition: color var(--transition-speed) ease;
+	position: relative;
+	color: var(--nicedig-gray);
+	text-decoration: none;
+	font-size: 12px;
+	padding: 0;
+	cursor: pointer;
+	transition: color var(--transition-speed) ease;
 }
 
 .navItem:hover,
 .navItem:focus {
-    color: var(--nicedig-white);
+	color: var(--nicedig-white);
 }
 
 .navItem::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background-color: var(--nicedig-white);
-    transition: width var(--transition-speed) ease;
+	content: "";
+	position: absolute;
+	bottom: -5px;
+	left: 0;
+	width: 0;
+	height: 1px;
+	background-color: var(--nicedig-white);
+	transition: width var(--transition-speed) ease;
 }
 
 .navItem:hover::after,
 .navItem:focus::after {
-    width: 100%;
+	width: 100%;
 }
 
 .activeNavItem {
-    color: var(--nicedig-white);
+	color: var(--nicedig-white);
 }
 
 .activeNavItem::after {
-    width: 100%;
+	width: 100%;
 }
 
 .rightSection {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
 }
 
 .iconButton {
-    background: none;
-    border: none;
-    color: var(--nicedig-gray);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    border-radius: 50%;
-    transition: color var(--transition-speed) ease, background-color var(--transition-speed) ease;
+	background: none;
+	border: none;
+	color: var(--nicedig-gray);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 8px;
+	border-radius: 50%;
+	transition:
+		color var(--transition-speed) ease,
+		background-color var(--transition-speed) ease;
 }
 
 .iconButton:hover,
 .iconButton:focus {
-    color: var(--nicedig-white);
-    background-color: rgba(255, 255, 255, 0.1);
+	color: var(--nicedig-white);
+	background-color: rgba(255, 255, 255, 0.1);
 }
 
 .iconButton svg {
-    width: 20px;
-    height: 20px;
+	width: 20px;
+	height: 20px;
 }
 
 .menuButton {
-    display: flex;
+	display: flex;
 }
 
 .searchOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: var(--header-height);
-    background: var(--nicedig-black);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    z-index: 1001;
-    display: flex;
-    align-items: center;
-    animation: slideDown 0.3s ease forwards;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: var(--header-height);
+	background: var(--nicedig-black);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	z-index: 1001;
+	display: flex;
+	align-items: center;
+	animation: slideDown 0.3s ease forwards;
 }
 
 .searchOverlayHidden {
-    animation: slideUp 0.3s ease forwards;
+	animation: slideUp 0.3s ease forwards;
 }
 
 .searchForm {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 0 16px;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	padding: 0 16px;
 }
 
 .searchInput {
-    flex: 1;
-    background: none;
-    border: none;
-    color: var(--nicedig-white);
-    font-size: 16px;
-    padding: 8px 16px;
-    outline: none;
+	flex: 1;
+	background: none;
+	border: none;
+	color: var(--nicedig-white);
+	font-size: 16px;
+	padding: 8px 16px;
+	outline: none;
 }
 
 .searchInput::placeholder {
-    color: var(--nicedig-hover);
+	color: var(--nicedig-hover);
 }
 
 .drawer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1002;
-    display: flex;
-    transform: translateX(-100%);
-    transition: transform var(--transition-speed) ease;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 1002;
+	display: flex;
+	transform: translateX(-100%);
+	transition: transform var(--transition-speed) ease;
 }
 
 .drawerOpen {
-    transform: translateX(0);
+	transform: translateX(0);
 }
 
 .drawerContent {
-    width: 80%;
-    max-width: 320px;
-    height: 100%;
-    background-color: #1d1d1f;
-    padding: 48px 24px 24px;
-    overflow-y: auto;
+	width: 80%;
+	max-width: 320px;
+	height: 100%;
+	background-color: #1d1d1f;
+	padding: 48px 24px 24px;
+	overflow-y: auto;
 }
 
 .drawerNavList {
-    list-style: none;
-    padding: 0;
-    margin: 24px 0;
+	list-style: none;
+	padding: 0;
+	margin: 24px 0;
 }
 
 .drawerNavItem {
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--nicedig-gray);
-    font-size: 16px;
-    cursor: pointer;
+	padding: 12px 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	color: var(--nicedig-gray);
+	font-size: 16px;
+	cursor: pointer;
 }
 
 .drawerNavItem:hover {
-    color: var(--nicedig-white);
+	color: var(--nicedig-white);
 }
 
 /* Animations */
 @keyframes slideDown {
-    from {
-        transform: translateY(-100%);
-    }
+	from {
+		transform: translateY(-100%);
+	}
 
-    to {
-        transform: translateY(0);
-    }
+	to {
+		transform: translateY(0);
+	}
 }
 
 @keyframes slideUp {
-    from {
-        transform: translateY(0);
-    }
+	from {
+		transform: translateY(0);
+	}
 
-    to {
-        transform: translateY(-100%);
-    }
+	to {
+		transform: translateY(-100%);
+	}
 }
 
 /* Media Queries */
 @media (min-width: 768px) {
-    .nav {
-        display: flex;
-        justify-content: center;
-        flex: 1;
-    }
+	.nav {
+		display: flex;
+		justify-content: center;
+		flex: 1;
+	}
 
-    .menuButton {
-        display: none;
-    }
+	.menuButton {
+		display: none;
+	}
 }

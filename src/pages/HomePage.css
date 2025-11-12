@@ -1,655 +1,659 @@
 /* ホームページ全体 */
 .homepage {
-    min-height: 100vh;
-    background-color: #ffffff;
-    overflow-x: hidden;
-    /* 横スクロールを防止 - 重要: 横揺れ防止のため削除しないこと */
-    width: 100%;
-    max-width: 100%;
+	min-height: 100vh;
+	background-color: #ffffff;
+	overflow-x: hidden;
+	/* 横スクロールを防止 - 重要: 横揺れ防止のため削除しないこと */
+	width: 100%;
+	max-width: 100%;
 }
 
 /* すべての要素が画面幅を超えないようにする - 重要: レスポンシブ対応の基本設定 */
 * {
-    box-sizing: border-box;
-    max-width: 100%;
+	box-sizing: border-box;
+	max-width: 100%;
 }
 
 /* ヒーローセクション */
 .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('/Herosection.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    color: white;
-    padding-top: 48px;
-    /* ヘッダーの高さ分のパディングを追加 */
-    padding-bottom: 80px;
-    text-align: center;
-    margin-top: -48px;
-    /* ヘッダーの下まで背景を延ばす */
-    min-height: calc(500px + 48px);
-    /* ヘッダー分の高さも含める */
-    display: flex;
-    align-items: center;
-    position: relative;
+	background:
+		linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)),
+		url("/Herosection.png");
+	background-size: cover;
+	background-position: center;
+	background-attachment: fixed;
+	color: white;
+	padding-top: 48px;
+	/* ヘッダーの高さ分のパディングを追加 */
+	padding-bottom: 80px;
+	text-align: center;
+	margin-top: -48px;
+	/* ヘッダーの下まで背景を延ばす */
+	min-height: calc(500px + 48px);
+	/* ヘッダー分の高さも含める */
+	display: flex;
+	align-items: center;
+	position: relative;
 }
 
 .hero-content {
-    max-width: 800px;
-    margin: 0 auto;
-    z-index: 2;
-    position: relative;
-    padding: 60px 20px 40px 20px;
-    /* 上部パディングを増やしてヘッダーとの間隔を確保 */
+	max-width: 800px;
+	margin: 0 auto;
+	z-index: 2;
+	position: relative;
+	padding: 60px 20px 40px 20px;
+	/* 上部パディングを増やしてヘッダーとの間隔を確保 */
 }
 
 .hero-title {
-    font-weight: 700 !important;
-    margin-bottom: 24px !important;
-    font-size: clamp(2.5rem, 6vw, 4rem) !important;
-    animation: fadeInUp 0.8s ease-out;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    line-height: 1.2 !important;
+	font-weight: 700 !important;
+	margin-bottom: 24px !important;
+	font-size: clamp(2.5rem, 6vw, 4rem) !important;
+	animation: fadeInUp 0.8s ease-out;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	line-height: 1.2 !important;
 }
 
 .hero-subtitle {
-    margin-bottom: 40px !important;
-    opacity: 0.95;
-    font-weight: 400 !important;
-    line-height: 1.6 !important;
-    animation: fadeInUp 0.8s ease-out 0.2s;
-    animation-fill-mode: both;
-    font-size: clamp(1.1rem, 3vw, 1.5rem) !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+	margin-bottom: 40px !important;
+	opacity: 0.95;
+	font-weight: 400 !important;
+	line-height: 1.6 !important;
+	animation: fadeInUp 0.8s ease-out 0.2s;
+	animation-fill-mode: both;
+	font-size: clamp(1.1rem, 3vw, 1.5rem) !important;
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+	max-width: 600px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .hero-buttons {
-    justify-content: center;
-    animation: fadeInUp 0.8s ease-out 0.4s;
-    animation-fill-mode: both;
+	justify-content: center;
+	animation: fadeInUp 0.8s ease-out 0.4s;
+	animation-fill-mode: both;
 }
 
 .hero-buttons .MuiButton-root {
-    background-color: rgba(255, 255, 255, 0.95) !important;
-    color: #333 !important;
-    font-weight: 600 !important;
-    padding: 14px 36px !important;
-    border-radius: 30px !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-    backdrop-filter: blur(10px) !important;
-    transition: all 0.3s ease !important;
+	background-color: rgba(255, 255, 255, 0.95) !important;
+	color: #333 !important;
+	font-weight: 600 !important;
+	padding: 14px 36px !important;
+	border-radius: 30px !important;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+	backdrop-filter: blur(10px) !important;
+	transition: all 0.3s ease !important;
 }
 
 .hero-buttons .MuiButton-root:hover {
-    background-color: white !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+	background-color: white !important;
+	transform: translateY(-2px) !important;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
 .primary-button {
-    background-color: white !important;
-    color: #667eea !important;
-    font-weight: 600 !important;
-    padding: 12px 32px !important;
-    border-radius: 8px !important;
+	background-color: white !important;
+	color: #667eea !important;
+	font-weight: 600 !important;
+	padding: 12px 32px !important;
+	border-radius: 8px !important;
 }
 
 .primary-button:hover {
-    background-color: #f8f9fa !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+	background-color: #f8f9fa !important;
+	transform: translateY(-2px);
+	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .secondary-button {
-    color: white !important;
-    border-color: white !important;
-    font-weight: 600 !important;
-    padding: 12px 32px !important;
-    border-radius: 8px !important;
+	color: white !important;
+	border-color: white !important;
+	font-weight: 600 !important;
+	padding: 12px 32px !important;
+	border-radius: 8px !important;
 }
 
 .secondary-button:hover {
-    border-color: white !important;
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    transform: translateY(-2px);
+	border-color: white !important;
+	background-color: rgba(255, 255, 255, 0.1) !important;
+	transform: translateY(-2px);
 }
 
 /* 注目のプロジェクトセクション */
 .featured-section {
-    padding: 80px 0 !important;
+	padding: 80px 0 !important;
 }
 
 .section-title {
-    text-align: center;
-    margin-bottom: 16px !important;
-    font-weight: 700 !important;
-    color: #1a1a1a;
+	text-align: center;
+	margin-bottom: 16px !important;
+	font-weight: 700 !important;
+	color: #1a1a1a;
 }
 
 .section-subtitle {
-    text-align: center;
-    margin-bottom: 48px !important;
-    color: #666;
-    font-size: 1.1rem;
+	text-align: center;
+	margin-bottom: 48px !important;
+	color: #666;
+	font-size: 1.1rem;
 }
 
 /* プロジェクトグリッド */
 .projects-grid {
-    margin-top: 32px;
-    padding-bottom: 40px;
+	margin-top: 32px;
+	padding-bottom: 40px;
 }
 
 /* プロジェクトカード */
 .project-card {
-    border-radius: 16px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
-    overflow: hidden !important;
-    height: 100%;
-    border: none !important;
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    will-change: transform;
-    transform-origin: center center;
+	border-radius: 16px !important;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+	overflow: hidden !important;
+	height: 100%;
+	border: none !important;
+	width: 100%;
+	max-width: 100%;
+	margin: 0 auto;
+	will-change: transform;
+	transform-origin: center center;
 }
 
 .project-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15) !important;
+	transform: translateY(-8px);
+	box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* カード画像の3D効果 */
 .card-image-container {
-    position: relative;
-    overflow: hidden;
-    transform-style: preserve-3d;
+	position: relative;
+	overflow: hidden;
+	transform-style: preserve-3d;
 }
 
 .card-image-container::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg,
-            rgba(255, 255, 255, 0.05) 0%,
-            rgba(0, 0, 0, 0.05) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(
+		135deg,
+		rgba(255, 255, 255, 0.05) 0%,
+		rgba(0, 0, 0, 0.05) 100%
+	);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	pointer-events: none;
 }
 
 .project-card:hover .card-image-container::after {
-    opacity: 1;
+	opacity: 1;
 }
 
 /* カード画像コンテナ - 画像表示の重要な設定 */
 .card-image-container {
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
+	position: relative;
+	width: 100%;
+	max-width: 100%;
+	overflow: hidden;
 }
 
 /* カード画像 - 注意: 高さを変更する場合はレスポンシブ設定も確認 */
 .card-image {
-    height: 280px !important;
-    /* モバイルでも表示しやすい高さ - デザイン変更時に調整 */
-    width: 100% !important;
-    object-fit: cover !important;
-    /* 重要: 画像比率を維持しつつ領域を埋める */
-    transition: transform 0.3s ease-out;
+	height: 280px !important;
+	/* モバイルでも表示しやすい高さ - デザイン変更時に調整 */
+	width: 100% !important;
+	object-fit: cover !important;
+	/* 重要: 画像比率を維持しつつ領域を埋める */
+	transition: transform 0.3s ease-out;
 }
 
 .project-card:hover .card-image {
-    transform: scale(1.03);
+	transform: scale(1.03);
 }
 
 .card-overlay {
-    position: absolute;
-    top: 12px;
-    left: 12px;
+	position: absolute;
+	top: 12px;
+	left: 12px;
 }
 
 .category-chip {
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    font-weight: 500 !important;
-    font-size: 0.75rem !important;
+	background-color: rgba(255, 255, 255, 0.9) !important;
+	font-weight: 500 !important;
+	font-size: 0.75rem !important;
 }
 
 .favorite-button {
-    position: absolute !important;
-    top: 12px;
-    right: 12px;
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    opacity: 0;
-    transition: all 0.3s ease !important;
+	position: absolute !important;
+	top: 12px;
+	right: 12px;
+	background-color: rgba(255, 255, 255, 0.9) !important;
+	opacity: 0;
+	transition: all 0.3s ease !important;
 }
 
 .project-card:hover .favorite-button {
-    opacity: 1;
+	opacity: 1;
 }
 
 .favorite-button:hover {
-    background-color: white !important;
-    transform: scale(1.1);
+	background-color: white !important;
+	transform: scale(1.1);
 }
 
 .favorite-button:hover svg {
-    stroke: #e91e63 !important;
+	stroke: #e91e63 !important;
 }
 
 .card-content {
-    padding: 20px !important;
+	padding: 20px !important;
 }
 
 .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 12px;
 }
 
 .downloads-text {
-    color: #666 !important;
-    font-size: 0.8rem !important;
+	color: #666 !important;
+	font-size: 0.8rem !important;
 }
 
 .rating-container {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
 }
 
 .star-icon {
-    color: #ffc107 !important;
-    font-size: 16px !important;
+	color: #ffc107 !important;
+	font-size: 16px !important;
 }
 
 /* プロジェクトタイトル - 複数行の省略表示設定 */
 .project-title {
-    font-weight: 600 !important;
-    margin-bottom: 8px !important;
-    line-height: 1.3 !important;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    /* 重要: 2行で省略表示 */
-    line-clamp: 2;
-    /* 標準プロパティ - ブラウザ互換性のため両方必要 */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+	font-weight: 600 !important;
+	margin-bottom: 8px !important;
+	line-height: 1.3 !important;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	/* 重要: 2行で省略表示 */
+	line-clamp: 2;
+	/* 標準プロパティ - ブラウザ互換性のため両方必要 */
+	-webkit-box-orient: vertical;
+	overflow: hidden;
 }
 
 /* プロジェクト説明文 - 複数行の省略表示設定 */
 .project-description {
-    color: #666 !important;
-    margin-bottom: 16px !important;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    /* 重要: 2行で省略表示 */
-    line-clamp: 2;
-    /* 標準プロパティ - ブラウザ互換性のため両方必要 */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.4 !important;
+	color: #666 !important;
+	margin-bottom: 16px !important;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	/* 重要: 2行で省略表示 */
+	line-clamp: 2;
+	/* 標準プロパティ - ブラウザ互換性のため両方必要 */
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	line-height: 1.4 !important;
 }
 
 .tags-container {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+	display: flex;
+	gap: 6px;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
 }
 
 .tag-chip {
-    font-size: 0.7rem !important;
-    height: 20px !important;
-    background-color: #f5f5f5 !important;
-    border-color: #e0e0e0 !important;
+	font-size: 0.7rem !important;
+	height: 20px !important;
+	background-color: #f5f5f5 !important;
+	border-color: #e0e0e0 !important;
 }
 
 .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 8px;
 }
 
 .price-text {
-    color: #1976d2 !important;
-    font-weight: 700 !important;
-    font-size: 1.2rem !important;
+	color: #1976d2 !important;
+	font-weight: 700 !important;
+	font-size: 1.2rem !important;
 }
 
 .view-button {
-    border-radius: 8px !important;
-    font-weight: 500 !important;
-    padding: 6px 16px !important;
-    background-color: #f5f5f5 !important;
-    color: #333 !important;
+	border-radius: 8px !important;
+	font-weight: 500 !important;
+	padding: 6px 16px !important;
+	background-color: #f5f5f5 !important;
+	color: #333 !important;
 }
 
 .view-button:hover {
-    background-color: #e0e0e0 !important;
-    transform: translateY(-1px);
+	background-color: #e0e0e0 !important;
+	transform: translateY(-1px);
 }
 
 /* カテゴリセクション - モダンでレスポンシブな表示 */
 .category-section {
-    background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
-    padding: 40px 0;
-    width: 100%;
-    overflow: hidden;
+	background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
+	padding: 40px 0;
+	width: 100%;
+	overflow: hidden;
 }
 
 /* カテゴリグリッド - 均一なサイズ配置 */
 .category-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    padding: 0 24px;
-    max-width: 1200px;
-    margin: 0 auto;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 20px;
+	padding: 0 24px;
+	max-width: 1200px;
+	margin: 0 auto;
 }
 
 /* カテゴリ要素 - 統一されたサイズ */
 .category-item {
-    height: 100%;
-    width: 100%;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	height: 100%;
+	width: 100%;
+	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* カテゴリコンテンツ - モダンなデザイン */
 .category-content {
-    background: white;
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    text-align: center;
-    min-height: 160px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+	background: white;
+	border-radius: 16px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	text-align: center;
+	min-height: 160px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
 }
 
 .category-content:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .category-content img {
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
+	opacity: 0.8;
+	transition: opacity 0.3s ease;
 }
 
 .category-content:hover img {
-    opacity: 1;
+	opacity: 1;
 }
 
 .category-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #f0f5ff 0%, #e6e9ff 100%);
-    border-radius: 12px;
-    flex-shrink: 0;
+	width: 48px;
+	height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, #f0f5ff 0%, #e6e9ff 100%);
+	border-radius: 12px;
+	flex-shrink: 0;
 }
 
 .category-icon svg,
 .category-icon img {
-    width: 24px;
-    height: 24px;
-    color: #667eea;
+	width: 24px;
+	height: 24px;
+	color: #667eea;
 }
 
 .category-name {
-    font-weight: 600 !important;
-    font-size: 1.1rem !important;
-    color: #2d3748;
-    line-height: 1.3;
-    margin: 0 !important;
+	font-weight: 600 !important;
+	font-size: 1.1rem !important;
+	color: #2d3748;
+	line-height: 1.3;
+	margin: 0 !important;
 }
 
 .category-count {
-    color: #718096 !important;
-    font-size: 0.95rem !important;
-    font-weight: 500 !important;
-    background: #f7fafc;
-    padding: 4px 12px;
-    border-radius: 20px;
-    display: inline-block;
+	color: #718096 !important;
+	font-size: 0.95rem !important;
+	font-weight: 500 !important;
+	background: #f7fafc;
+	padding: 4px 12px;
+	border-radius: 20px;
+	display: inline-block;
 }
 
 @media (max-width: 768px) {
+	/* タブレットサイズの調整 */
+	.hero-section {
+		padding: 48px 20px 40px 20px;
+		/* 上部パディングでヘッダー分を確保 */
+		min-height: calc(400px + 48px);
+		/* ヘッダー分の高さも含める */
+		background-attachment: scroll;
+		/* モバイルでは fixed を無効化 */
+		margin-top: -48px;
+		/* ヘッダーの下まで背景を延ばす */
+	}
 
-    /* タブレットサイズの調整 */
-    .hero-section {
-        padding: 48px 20px 40px 20px;
-        /* 上部パディングでヘッダー分を確保 */
-        min-height: calc(400px + 48px);
-        /* ヘッダー分の高さも含める */
-        background-attachment: scroll;
-        /* モバイルでは fixed を無効化 */
-        margin-top: -48px;
-        /* ヘッダーの下まで背景を延ばす */
-    }
+	.hero-content {
+		padding: 40px 10px 20px 10px;
+		/* 上部パディングを調整 */
+	}
 
-    .hero-content {
-        padding: 40px 10px 20px 10px;
-        /* 上部パディングを調整 */
-    }
+	.featured-section,
+	.category-section,
+	.stats-section {
+		padding: 40px 20px !important;
+	}
 
-    .featured-section,
-    .category-section,
-    .stats-section {
-        padding: 40px 20px !important;
-    }
+	/* カテゴリーセクションのタブレット調整 */
+	.category-content {
+		padding: 20px 12px !important;
+	}
 
-    /* カテゴリーセクションのタブレット調整 */
-    .category-content {
-        padding: 20px 12px !important;
-    }
+	.category-name {
+		font-size: 1rem !important;
+	}
 
-    .category-name {
-        font-size: 1rem !important;
-    }
+	.category-count {
+		font-size: 0.85rem !important;
+		padding: 3px 10px;
+	}
 
-    .category-count {
-        font-size: 0.85rem !important;
-        padding: 3px 10px;
-    }
+	.hero-buttons {
+		flex-direction: column;
+		align-items: center;
+	}
 
-    .hero-buttons {
-        flex-direction: column;
-        align-items: center;
-    }
+	/* カードコンテンツを小さく */
+	.card-content {
+		padding: 15px !important;
+	}
 
-    /* カードコンテンツを小さく */
-    .card-content {
-        padding: 15px !important;
-    }
+	/* フォントサイズを調整 */
+	.project-title {
+		font-size: 16px !important;
+	}
 
-    /* フォントサイズを調整 */
-    .project-title {
-        font-size: 16px !important;
-    }
+	.project-description {
+		font-size: 14px !important;
+	}
 
-    .project-description {
-        font-size: 14px !important;
-    }
+	/* カテゴリグリッド - レスポンシブ調整 */
+	.category-grid {
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 16px;
+		padding: 0 20px;
+	}
 
-    /* カテゴリグリッド - レスポンシブ調整 */
-    .category-grid {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
-        padding: 0 20px;
-    }
+	.category-content {
+		padding: 20px !important;
+		min-height: 100px;
+		gap: 16px;
+	}
 
-    .category-content {
-        padding: 20px !important;
-        min-height: 100px;
-        gap: 16px;
-    }
+	.category-icon {
+		width: 48px;
+		height: 48px;
+	}
 
-    .category-icon {
-        width: 48px;
-        height: 48px;
-    }
+	.category-icon svg,
+	.category-icon img {
+		width: 28px;
+		height: 28px;
+	}
 
-    .category-icon svg,
-    .category-icon img {
-        width: 28px;
-        height: 28px;
-    }
-
-    .category-name {
-        font-size: 1.1rem !important;
-    }
+	.category-name {
+		font-size: 1.1rem !important;
+	}
 }
 
 @media (max-width: 480px) {
+	/* スマートフォンサイズの調整 - UI崩れ防止と最適化 */
+	.hero-section {
+		min-height: calc(350px + 48px);
+		/* ヘッダー分の高さも含める */
+		padding: 48px 15px 30px 15px;
+		/* 上部パディングでヘッダー分を確保 */
+		background-attachment: scroll;
+		margin-top: -48px;
+		/* ヘッダーの下まで背景を延ばす */
+	}
 
-    /* スマートフォンサイズの調整 - UI崩れ防止と最適化 */
-    .hero-section {
-        min-height: calc(350px + 48px);
-        /* ヘッダー分の高さも含める */
-        padding: 48px 15px 30px 15px;
-        /* 上部パディングでヘッダー分を確保 */
-        background-attachment: scroll;
-        margin-top: -48px;
-        /* ヘッダーの下まで背景を延ばす */
-    }
+	.hero-content {
+		padding: 30px 5px 15px 5px;
+		/* 上部パディングを調整 */
+	}
 
-    .hero-content {
-        padding: 30px 5px 15px 5px;
-        /* 上部パディングを調整 */
-    }
+	.hero-buttons .MuiButton-root {
+		padding: 12px 28px !important;
+		font-size: 0.9rem !important;
+	}
 
-    .hero-buttons .MuiButton-root {
-        padding: 12px 28px !important;
-        font-size: 0.9rem !important;
-    }
+	.card-content {
+		padding: 12px !important;
+	}
 
-    .card-content {
-        padding: 12px !important;
-    }
+	/* カテゴリーのモバイル最適化 - コンパクト表示 */
+	.category-section {
+		padding: 20px 12px !important;
+	}
 
-    /* カテゴリーのモバイル最適化 - コンパクト表示 */
-    .category-section {
-        padding: 20px 12px !important;
-    }
+	.category-grid {
+		grid-template-columns: 1fr;
+		gap: 12px;
+		padding: 0 16px;
+	}
 
-    .category-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 0 16px;
-    }
+	.category-content {
+		padding: 16px !important;
+		min-height: 90px;
+		gap: 14px;
+	}
 
-    .category-content {
-        padding: 16px !important;
-        min-height: 90px;
-        gap: 14px;
-    }
+	.category-icon {
+		width: 44px;
+		height: 44px;
+	}
 
-    .category-icon {
-        width: 44px;
-        height: 44px;
-    }
+	.category-icon svg,
+	.category-icon img {
+		width: 24px;
+		height: 24px;
+	}
 
-    .category-icon svg,
-    .category-icon img {
-        width: 24px;
-        height: 24px;
-    }
+	.category-name {
+		font-size: 1rem !important;
+		margin-bottom: 4px !important;
+	}
 
-    .category-name {
-        font-size: 1rem !important;
-        margin-bottom: 4px !important;
-    }
+	.category-count {
+		font-size: 0.85rem !important;
+		padding: 3px 10px;
+	}
 
-    .category-count {
-        font-size: 0.85rem !important;
-        padding: 3px 10px;
-    }
+	.hero-title {
+		font-size: 1.8rem !important;
+	}
 
-    .hero-title {
-        font-size: 1.8rem !important;
-    }
+	.hero-subtitle {
+		font-size: 1rem !important;
+	}
 
-    .hero-subtitle {
-        font-size: 1rem !important;
-    }
+	/* タグのサイズを調整 */
+	.tag-chip {
+		font-size: 0.65rem !important;
+		height: 18px !important;
+	}
 
-    /* タグのサイズを調整 */
-    .tag-chip {
-        font-size: 0.65rem !important;
-        height: 18px !important;
-    }
-
-    /* 料金表示を調整 */
-    .card-footer {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
+	/* 料金表示を調整 */
+	.card-footer {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
 }
 
 /* API取得エラー時の表示 - ユーザーフレンドリーなエラー表示 */
 .api-error-alert {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+	margin-top: 20px;
+	margin-bottom: 20px;
+	border-radius: 8px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 /* ローディング表示のスタイル - データ読み込み中のユーザー体験向上 */
 .loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
-    width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 200px;
+	width: 100%;
 }
 
 /* アニメーション - パフォーマンス最適化版 */
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px) translateZ(0);
-    }
+	from {
+		opacity: 0;
+		transform: translateY(20px) translateZ(0);
+	}
 
-    to {
-        opacity: 1;
-        transform: translateY(0) translateZ(0);
-    }
+	to {
+		opacity: 1;
+		transform: translateY(0) translateZ(0);
+	}
 }
 
 .section-title,
 .section-subtitle {
-    animation: fadeInUp 0.5s cubic-bezier(0.2, 0, 0.2, 1);
-    will-change: transform, opacity;
+	animation: fadeInUp 0.5s cubic-bezier(0.2, 0, 0.2, 1);
+	will-change: transform, opacity;
 }
 
 /* ホバーエフェクト - 高速レスポンス化 */
 .project-card,
 .category-content {
-    transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1),
-        box-shadow 0.25s cubic-bezier(0.2, 0, 0.2, 1) !important;
-    will-change: transform, box-shadow;
+	transition:
+		transform 0.25s cubic-bezier(0.2, 0, 0.2, 1),
+		box-shadow 0.25s cubic-bezier(0.2, 0, 0.2, 1) !important;
+	will-change: transform, box-shadow;
 }
 
 .primary-button,
 .secondary-button,
 .view-button {
-    transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1),
-        background-color 0.25s cubic-bezier(0.2, 0, 0.2, 1),
-        box-shadow 0.25s cubic-bezier(0.2, 0, 0.2, 1) !important;
+	transition:
+		transform 0.25s cubic-bezier(0.2, 0, 0.2, 1),
+		background-color 0.25s cubic-bezier(0.2, 0, 0.2, 1),
+		box-shadow 0.25s cubic-bezier(0.2, 0, 0.2, 1) !important;
 }
