@@ -9,6 +9,9 @@ import { AuthProvider } from './context/AuthContext'
 import Layout from './components/Layout.tsx'
 import RegisterPage from './pages/auth/RegisterPage.tsx'
 import LoginPage from './pages/auth/LoginPage.tsx'
+import GitHubCallbackPage from './pages/auth/GitHubCallbackPage.tsx'
+import ProjectList from './pages/ProjectList.tsx'
+import AddItemsPage from './pages/admin/AddItemsPage.tsx'
 import ItemFormPage from './pages/ItemFormPage.tsx'
 
 const router = createBrowserRouter([
@@ -19,6 +22,10 @@ const router = createBrowserRouter([
   {
     path: "/home",
     element: <Layout><HomePage /></Layout>,
+  },
+  {
+    path: "/projects",
+    element: <Layout><ProjectList /></Layout>
   },
   {
     path: "/register",
@@ -39,6 +46,14 @@ const router = createBrowserRouter([
   {
     path: "/item/:id",
     element: <ItemDetailPage />
+  },
+  {
+    path: "/local/item/:itemId",
+    element: <Layout><ItemDetailPage /></Layout>
+  },
+  {
+    path: "/admin/add-items",
+    element: <Layout><AddItemsPage /></Layout>
   },
   {
     path: "/create",
