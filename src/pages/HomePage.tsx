@@ -28,6 +28,7 @@ import "./carousel-extra.css";
 import "./category.css";
 
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 /* ---------- 型定義 ---------- */
 export interface Project {
@@ -144,8 +145,8 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
 /* ---------- HomePage ---------- */
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
-    /* ダミー (API 失敗時用) */    
-    const dummyProjects: Project[] = [
+    /* ダミー (API 失敗時用) */
+    const [dummyProjects] = useState<Project[]>([
     {
         id: 0,
         title: "Webアプリ開発テンプレート",
@@ -322,7 +323,7 @@ const HomePage: React.FC = () => {
         downloads: 1150,
         tags: ["マーケティング", "SEO", "分析"],
     }
-];
+    ]);
     const dummyCategories: Category[] = [
         { name: "Web開発", icon: <CodeIcon />, count: 28 },
         { name: "AI", icon: <img src="https://img.icons8.com/ios/50/artificial-intelligence.png" alt="AI" width="24" height="24" />, count: 15 },
@@ -349,6 +350,72 @@ const HomePage: React.FC = () => {
     const scrollLeftRef = useRef(0);
     const [initialized, setInitialized] = useState(false);
     const [activeItemIndex, setActiveItemIndex] = useState(0);
+    //  注目プロジェクト（API or ダミー）
+    const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
+    const [featuredLoading, setFeaturedLoading] = useState(false);
+    const [featuredError, setFeaturedError] = useState<string | null>(null);
+
+    // 注目プロジェクトをAPIから取得（複数対応＋フォールバック付き）
+    useEffect(() => {
+        const fetchFeatured = async () => {
+        try {
+            setFeaturedLoading(true);
+            setFeaturedError(null);
+
+            // 現状1件、将来的に複数件でもOK
+            const res = await axios.get("https://app.nice-dig.com/api/products/1");
+            const data = Array.isArray(res.data) ? res.data : [res.data];
+
+            const mapped = data.map((item: any) => {
+            let imageArr: string[] = [];
+            try {
+                if (Array.isArray(item.image_url)) {
+                imageArr = item.image_url;
+                } else if (
+                typeof item.image_url === "string" &&
+                item.image_url.trim()
+                ) {
+                imageArr = JSON.parse(item.image_url);
+                }
+            } catch {
+                imageArr = [];
+            }
+
+            return {
+                id: item.id ?? 0,
+                title: item.title ?? item.name ?? "無題",
+                subtitle: item.subtitle ?? item.description ?? "",
+                img: imageArr[0] ?? "/no-image.png",
+                category: item.category ?? "その他",
+                rating: item.rating ?? 0,
+                price: item.price ?? 0,
+                downloads: item.downloads ?? 0,
+                tags: Array.isArray(item.tags)
+                ? item.tags
+                : item.tags
+                ? [item.tags]
+                : [],
+            };
+            });
+
+            setFeaturedProjects(mapped);
+        } catch (err: any) {
+            console.error("注目プロジェクト取得失敗:", err);
+            if (axios.isAxiosError(err) && err.response?.status === 404) {
+            setFeaturedError("注目プロジェクトが見つかりませんでした");
+            } else {
+            setFeaturedError("注目プロジェクトの取得に失敗しました");
+            }
+
+            // 失敗時フォールバック
+            setFeaturedProjects(dummyProjects);
+        } finally {
+            setFeaturedLoading(false);
+        }
+        };
+
+        fetchFeatured();
+    }, [dummyProjects]);
 
     // カルーセルの初期化と無限スクロール
     useEffect(() => {
@@ -679,11 +746,20 @@ const HomePage: React.FC = () => {
                     >
                         {/* 初期レンダリングのためのプレースホルダー - 実際の内容はJSで動的に生成 */}
                         {/* 初期マウント時のみ表示され、useEffectで置き換えられる */}
-                        {!initialized && projects.map((project) => (
+                        {/* {!initialized && projects.map((project) => (
                             <Box
                                 key={`placeholder-${project.id}`}
                                 className="carousel-item"
                                 data-index={project.id % projects.length}
+                            >
+                                <ProjectCard project={project} />
+                            </Box>
+                        ))} */}
+                        {!initialized && featuredProjects.map((project) => (
+                            <Box
+                                key={`placeholder-${project.id}`}
+                                className="carousel-item"
+                                data-index={project.id % featuredProjects.length}
                             >
                                 <ProjectCard project={project} />
                             </Box>
