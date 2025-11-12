@@ -6,5 +6,5 @@ pre-commit:
 pre-push:
   commands:
     build:
-      run: npm run build
+      run: npx tsc --noEmit
       stage_fixed: true
