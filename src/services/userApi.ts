@@ -122,26 +122,18 @@ export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse
 
     console.log('✅ userApi.loginUser: API成功レスポンス', {
       status: response.status,
-      success: response.data.success,
-      userId: response.data.data?.user?.id,
-      tokenReceived: !!response.data.data?.token,
-      refreshTokenReceived: !!response.data.data?.refreshToken,
-      message: response.data.message
+      userId: response.data.user?.id,
+      tokenReceived: !!response.data.token,
     });
 
-    if (response.data.success && response.data.data.token) {
+    if (response.data.token) {
       const storage = credentials.remember ? localStorage : sessionStorage;
-      storage.setItem('authToken', response.data.data.token);
+      storage.setItem('authToken', response.data.token);
 
       console.log('💾 userApi.loginUser: トークン保存完了', {
         storage: credentials.remember ? 'localStorage' : 'sessionStorage',
-        tokenLength: response.data.data.token.length
+        tokenLength: response.data.token.length
       });
-
-      if (response.data.data.refreshToken) {
-        localStorage.setItem('refreshToken', response.data.data.refreshToken);
-        console.log('💾 userApi.loginUser: リフレッシュトークン保存完了');
-      }
     }
 
     return response.data;
@@ -166,47 +158,46 @@ export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse
  */
 export const registerUser = async (userData: RegisterRequest): Promise<AuthResponse> => {
   console.log('🌐 userApi.registerUser: API呼び出し開始');
-  console.log('📤 userApi.registerUser: 送信データ', {
+
+  const payload = {
     email: userData.email,
-    username: userData.username,
-    passwordProvided: !!userData.password,
-    confirmPasswordProvided: !!userData.confirmPassword,
-    url: `${api.defaults.baseURL}/auth/register`,
+    name: userData.name,
+    password: userData.password,
+    password_confirmation: userData.password_confirmation,
+  };
+
+  console.log('📤 userApi.registerUser: 送信データ', {
+    email: payload.email,
+    name: payload.name,
+    passwordProvided: !!payload.password,
+    passwordConfirmationProvided: !!payload.password_confirmation,
+    url: `${api.defaults.baseURL}/auth/signup`,
     timestamp: new Date().toISOString()
   });
 
   try {
-    const response = await api.post<AuthResponse>('/auth/register', userData);
+    const response = await api.post<AuthResponse>('/auth/signup', payload);
 
     console.log('✅ userApi.registerUser: API成功レスポンス', {
       status: response.status,
-      success: response.data.success,
-      userId: response.data.data?.user?.id,
-      username: response.data.data?.user?.username,
-      email: response.data.data?.user?.email,
-      tokenReceived: !!response.data.data?.token,
-      refreshTokenReceived: !!response.data.data?.refreshToken,
-      message: response.data.message
+      userId: response.data.user?.id,
+      email: response.data.user?.email,
+      tokenReceived: !!response.data.token,
     });
 
-    if (response.data.success && response.data.data.token) {
-      sessionStorage.setItem('authToken', response.data.data.token);
+    if (response.data.token) {
+      sessionStorage.setItem('authToken', response.data.token);
 
       console.log('💾 userApi.registerUser: トークン保存完了 (sessionStorage)');
-
-      if (response.data.data.refreshToken) {
-        localStorage.setItem('refreshToken', response.data.data.refreshToken);
-        console.log('💾 userApi.registerUser: リフレッシュトークン保存完了');
-      }
     }
 
     return response.data;
   } catch (error) {
-    console.error('💥 userApi.registerUser: API呼び出しエラー', {
+    console.error(' userApi.registerUser: API呼び出しエラー', {
       error: error,
       status: axios.isAxiosError(error) ? error.response?.status : 'unknown',
       message: axios.isAxiosError(error) ? error.response?.data?.message : error,
-      url: `${api.defaults.baseURL}/auth/register`,
+      url: `${api.defaults.baseURL}/auth/signup`,
       timestamp: new Date().toISOString()
     });
 

@@ -22,7 +22,6 @@ const AppHeaderWithAuth: React.FC<AppHeaderWithAuthProps> = ({ activePath }) => 
             userName={user?.displayName || user?.username}
             avatarUrl={user?.avatar}
             onLogout={handleLogout}
-            // ユーザーがメッセージを持っている場合はここで設定
             messageCount={0}
         />
     );

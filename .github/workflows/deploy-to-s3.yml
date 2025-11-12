@@ -1,0 +1,66 @@
+name: Deploy Prod
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_GITHUB_CLIENT_ID: ${{ secrets.VITE_GITHUB_CLIENT_ID }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "index.html" \
+            --exclude "*.png" \
+            --exclude "*.svg"
+
+          aws s3 cp dist/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --content-type "text/html"
+
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ \
+            --cache-control "public, max-age=86400" \
+            --exclude "*" \
+            --include "*.png" \
+            --include "*.svg"
+
+      - name: Deployment successful
+        run: |
+          echo "Deployment completed successfully!"
+          echo "S3 Bucket: ${{ secrets.S3_BUCKET_NAME }}"
+          echo "Region: ${{ secrets.AWS_REGION }}"

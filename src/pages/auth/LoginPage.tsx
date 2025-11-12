@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AppHeader from '../../component/AppHeader';
+import AppHeader from '../../components/AppHeader';
 import { useAuth } from '../../context/AuthContext';
 import { loginUser } from '../../services/userApi';
 
@@ -59,23 +59,15 @@ const LoginPage: React.FC = () => {
             const response = await loginUser(loginData);
 
             console.log('✅ LoginPage: API呼び出し成功', {
-                success: response.success,
-                userId: response.data?.user?.id,
-                username: response.data?.user?.username,
-                email: response.data?.user?.email,
-                tokenReceived: !!response.data?.token,
-                refreshTokenReceived: !!response.data?.refreshToken
+                userId: response.user?.id,
+                username: response.user?.name,
+                email: response.user?.email,
+                tokenReceived: !!response.token,
             });
 
-            if (response.success) {
-                // AuthContextにユーザー情報を設定
-                login(response.data.user, remember);
-                console.log('🎉 LoginPage: ログイン成功、ホームページに遷移');
-                navigate('/home');
-            } else {
-                setError(response.message || 'ログインに失敗しました');
-                console.log('❌ LoginPage: ログイン失敗', response.message);
-            }
+            login(response.user, remember);
+            console.log('🎉 LoginPage: ログイン成功、ホームページに遷移');
+            navigate('/home');
         } catch (error) {
             console.error('💥 LoginPage: API呼び出しエラー', {
                 error: error,
@@ -83,24 +75,7 @@ const LoginPage: React.FC = () => {
                 timestamp: new Date().toISOString()
             });
 
-            // テスト用のフォールバック
-            if (email === 'test@example.com' && password === 'password') {
-                console.log('🧪 LoginPage: テストモードでのログイン処理');
-                const testUser = {
-                    id: 'test-user-1',
-                    email: 'test@example.com',
-                    username: 'testuser',
-                    displayName: 'Test User',
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                };
-
-                console.log('✅ LoginPage: テストユーザーログイン成功', testUser);
-                login(testUser, remember);
-                navigate('/home');
-            } else {
-                setError(error instanceof Error ? error.message : 'ネットワークエラーが発生しました');
-            }
+            setError(error instanceof Error ? error.message : 'ネットワークエラーが発生しました');
         } finally {
             setLoading(false);
             console.log('🏁 LoginPage: ログイン処理完了');
@@ -111,7 +86,7 @@ const LoginPage: React.FC = () => {
         console.log('🔗 LoginPage: GitHub OAuthログイン開始');
         console.log('🌐 LoginPage: GitHub OAuthリダイレクト');
         // GitHub OAuth の実装
-        window.location.href = 'http://app.nice-dig.com/auth/github?action=login';
+        window.location.href = 'null';
     };
 
     console.log('LoginPage component rendered');

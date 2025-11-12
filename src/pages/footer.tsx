@@ -10,9 +10,6 @@ import {
 } from '@mui/material';
 import {
     GitHub as GitHubIcon,
-    Twitter as TwitterIcon,
-    LinkedIn as LinkedInIcon,
-    Email as EmailIcon,
 } from '@mui/icons-material';
 
 const Footer: React.FC = () => {
@@ -42,7 +39,7 @@ const Footer: React.FC = () => {
                         {/* ブランド情報 */}
                         <Box>
                             <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                                GradWork
+                                Nice dig
                             </Typography>
                             <Typography variant="body2" color="grey.400" sx={{ maxWidth: 300 }}>
                                 開発者のための高品質なプロジェクトとツールを提供するプラットフォーム
@@ -77,8 +74,8 @@ const Footer: React.FC = () => {
                                 <Link href="/categories" color="grey.400" underline="hover" variant="body2">
                                     カテゴリ
                                 </Link>
-                                <Link href="/pricing" color="grey.400" underline="hover" variant="body2">
-                                    料金プラン
+                                <Link href="/developer-services" color="grey.400" underline="hover" variant="body2">
+                                    開発者サービス
                                 </Link>
                             </Stack>
 
@@ -140,7 +137,7 @@ const Footer: React.FC = () => {
                         spacing={2}
                     >
                         <Typography variant="body2" color="grey.400">
-                            © {currentYear} GradWork. All rights reserved.
+                            © {currentYear} Nice dig
                         </Typography>
 
                         {/* ソーシャルメディアリンク */}
@@ -153,31 +150,6 @@ const Footer: React.FC = () => {
                                 sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}
                             >
                                 <GitHubIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                                href="https://twitter.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                size="small"
-                                sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}
-                            >
-                                <TwitterIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                                href="https://linkedin.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                size="small"
-                                sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}
-                            >
-                                <LinkedInIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                                href="mailto:contact@gradwork.com"
-                                size="small"
-                                sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}
-                            >
-                                <EmailIcon fontSize="small" />
                             </IconButton>
                         </Stack>
                     </Stack>

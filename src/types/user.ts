@@ -2,16 +2,11 @@
 
 export interface User {
   id: string;
+  name: string;
   email: string;
-  username: string;
-  displayName?: string;
-  avatar?: string;
-  bio?: string;
-  location?: string;
-  website?: string;
-  github?: string;
-  createdAt: string;
-  updatedAt: string;
+  email_verified_at?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UserSettings {
@@ -105,19 +100,14 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   email: string;
-  username: string;
+  name: string;
   password: string;
-  confirmPassword: string;
+  password_confirmation: string;
 }
 
 export interface AuthResponse {
-  success: boolean;
-  data: {
-    user: User;
-    token: string;
-    refreshToken?: string;
-  };
-  message?: string;
+  token: string;
+  user: User;
 }
 
 export interface TokenRefreshResponse {

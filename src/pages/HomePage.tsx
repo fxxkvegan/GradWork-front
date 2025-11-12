@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import type { ReactNode } from "react";
-import AppHeader from "../component/AppHeader";
+import AppHeader from "../components/AppHeader";
 import {
     Card,
     CardMedia,
     CardContent,
     Typography,
-    Stack,
     Button,
     Box,
     Container,
@@ -58,9 +57,9 @@ const useApiData = <T,>(endpoint: string, fallback: T) => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const json = await res.json();
                 if (!cancelled) setData(json);
-            } catch (error: any) {
-                console.warn(`${endpoint} failed, using fallback`, error);
-                if (!cancelled) setError(error.message);
+            } catch (e: unknown) {
+                console.warn(`${endpoint} failed, using fallback`, e);
+                if (!cancelled) setError(e instanceof Error ? e.message : 'Unknown error');
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -340,7 +339,7 @@ const HomePage: React.FC = () => {
     ];
 
     /* API 取得 - 先に取得しておくことで初期化前アクセスエラーを防ぐ */
-    const { data: projects, loading: loadingP } = useApiData<Project[]>("/projects", dummyProjects);
+    const { data: projects, loading: loadingP } = useApiData<Project[]>("/products", dummyProjects);
     const { data: categories } = useApiData<Category[]>("/categories", dummyCategories);    /* カルーセルの実装 - 完全シームレス無限ループ版 */
     const carouselRef = useRef<HTMLDivElement | null>(null);
     const intervalRef = useRef<number | null>(null);
@@ -419,7 +418,7 @@ const HomePage: React.FC = () => {
 
     // カルーセルの初期化と無限スクロール
     useEffect(() => {
-        if (!carouselRef.current || !projects.length) return;
+        if (!carouselRef.current || !Array.isArray(projects) || !projects.length) return;
 
         const carouselElement = carouselRef.current;
 
@@ -536,6 +535,8 @@ const HomePage: React.FC = () => {
             const setWidth = totalItemWidth * itemsPerSet;
 
             const currentScroll = carouselElement.scrollLeft;
+            // const maxScroll = carouselElement.scrollWidth;
+            // const viewportWidth = carouselElement.clientWidth;
 
             // 右端（4番目のセット以降）に到達したら、中央のセットの対応位置にリセット
             if (currentScroll >= setWidth * 3.5) {
@@ -716,9 +717,9 @@ const HomePage: React.FC = () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
             carouselElement.removeEventListener('scroll', handleScroll);
-            carouselElement.removeEventListener('touchstart', handleTouchStart);
-            carouselElement.removeEventListener('touchmove', handleTouchMove);
-            carouselElement.removeEventListener('touchend', handleTouchEnd);
+            carouselElement.removeEventListener('touchstart', () => { });
+            carouselElement.removeEventListener('touchmove', () => { });
+            carouselElement.removeEventListener('touchend', () => { });
         };
     }, [projects, initialized, activeItemIndex]); return (
         <div className="homepage">
@@ -737,25 +738,14 @@ const HomePage: React.FC = () => {
             <Container maxWidth="lg" className="featured-section" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
                 <Typography variant="h4" className="section-title">注目のプロジェクト</Typography>                {loadingP ? (
                     <Box className="loading-container"><CircularProgress /></Box>
-                ) : projects.length === 0 ? (
+                ) : !Array.isArray(projects) || projects.length === 0 ? (
                     <Alert severity="info" className="api-error-alert">現在、表示できるプロジェクトがありません。</Alert>
                 ) : (<Box className="carousel-section" id="projectCarousel" sx={{ mt: 5, mb: 5 }}>                        <Box className="carousel-container">
                     <Box
                         className={`carousel-track ${isScrollingRef.current ? 'scrolling' : ''}`}
                         ref={carouselRef}
                     >
-                        {/* 初期レンダリングのためのプレースホルダー - 実際の内容はJSで動的に生成 */}
-                        {/* 初期マウント時のみ表示され、useEffectで置き換えられる */}
-                        {/* {!initialized && projects.map((project) => (
-                            <Box
-                                key={`placeholder-${project.id}`}
-                                className="carousel-item"
-                                data-index={project.id % projects.length}
-                            >
-                                <ProjectCard project={project} />
-                            </Box>
-                        ))} */}
-                        {!initialized && featuredProjects.map((project) => (
+                        {!initialized && Array.isArray(featuredProjects) && featuredProjects.map((project) => (
                             <Box
                                 key={`placeholder-${project.id}`}
                                 className="carousel-item"
@@ -773,12 +763,9 @@ const HomePage: React.FC = () => {
             {/* カテゴリ */}
             <Box className="category-section">
                 <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <Typography variant="h4" className="section-title">カテゴリから探す</Typography>
-                    </Box>
-                    {/* carousel の見た目を流用するラッパーに変更 */}
+                    <Typography variant="h4" className="section-title">カテゴリから探す</Typography>
                     <Box className="category-carousel" sx={{ mt: 4 }}>
-                        {categories.map((c) => (
+                        {Array.isArray(categories) && categories.map((c) => (
                             <Box
                                 key={c.name}
                                 className="carousel-item category-item"
