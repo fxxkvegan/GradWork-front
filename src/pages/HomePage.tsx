@@ -509,8 +509,8 @@ const HomePage: React.FC = () => {
 	const [activeItemIndex, setActiveItemIndex] = useState(0);
 	//  注目プロジェクト（API or ダミー）
 	const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
-	const [featuredLoading, setFeaturedLoading] = useState(false);
-	const [featuredError, setFeaturedError] = useState<string | null>(null);
+	const [, setFeaturedLoading] = useState(false);
+	const [, setFeaturedError] = useState<string | null>(null);
 
 	// 注目プロジェクトをAPIから取得（複数対応＋フォールバック付き）
 	useEffect(() => {

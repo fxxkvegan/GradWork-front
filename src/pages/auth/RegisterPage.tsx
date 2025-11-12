@@ -86,21 +86,14 @@ const RegisterPage: React.FC = () => {
 			const response = await registerUser(registerData);
 
 			console.log("✅ RegisterPage: API呼び出し成功", {
-				success: response.success,
-				userId: response.data?.user?.id,
-				email: response.data?.user?.email,
-				tokenReceived: !!response.data?.token,
+				userId: response.user?.id,
+				email: response.user?.email,
+				tokenReceived: !!response.token,
 			});
 
-			if (response.success) {
-				// AuthContextにユーザー情報を設定
-				login(response.data.user, false);
-				console.log("🎉 RegisterPage: ユーザー登録成功、ホームページに遷移");
-				navigate("/home");
-			} else {
-				setError(response.message || "ユーザー登録に失敗しました");
-				console.log("❌ RegisterPage: 登録失敗", response.message);
-			}
+			login(response.user, false);
+			console.log("🎉 RegisterPage: ユーザー登録成功、ホームページに遷移");
+			navigate("/home");
 		} catch (error) {
 			console.error("💥 RegisterPage: API呼び出しエラー", {
 				error: error,
@@ -113,11 +106,12 @@ const RegisterPage: React.FC = () => {
 				console.log("🧪 RegisterPage: テストモードでの登録処理");
 				const testUser = {
 					id: `test-user-${Date.now()}`,
+					name: username.trim(),
 					email: email,
+					created_at: new Date().toISOString(),
+					updated_at: new Date().toISOString(),
 					username: username.trim(),
 					displayName: username.trim(),
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
 				};
 
 				console.log("✅ RegisterPage: テストユーザー作成成功", testUser);

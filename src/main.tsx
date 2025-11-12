@@ -56,6 +56,14 @@ const router = createBrowserRouter([
 		),
 	},
 	{
+		path: "/login/github-callback",
+		element: (
+			<Layout>
+				<GitHubCallbackPage />
+			</Layout>
+		),
+	},
+	{
 		path: "/Legal",
 		element: <Legal />,
 	},

@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import AppHeader from "../component/AppHeader";
+import AppHeader from "../components/AppHeader";
 import * as favorites from "../utils/favorites";
 
 interface Project {

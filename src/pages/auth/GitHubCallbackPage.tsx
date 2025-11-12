@@ -41,14 +41,15 @@ const GitHubCallbackPage: React.FC = () => {
 					// モックユーザーデータ
 					const mockUser = {
 						id: "github-123",
+						name: "GitHub User",
 						email: "github@example.com",
+						created_at: new Date().toISOString(),
+						updated_at: new Date().toISOString(),
 						username: "githubuser",
 						displayName: "GitHub User",
 						avatar:
 							"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
 						github: "https://github.com/githubuser",
-						createdAt: new Date().toISOString(),
-						updatedAt: new Date().toISOString(),
 					};
 
 					// 成功を模擬

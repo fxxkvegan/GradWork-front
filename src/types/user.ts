@@ -7,6 +7,13 @@ export interface User {
 	email_verified_at?: string | null;
 	created_at: string;
 	updated_at: string;
+	username?: string;
+	displayName?: string;
+	avatar?: string;
+	github?: string;
+	bio?: string;
+	location?: string;
+	website?: string;
 }
 
 export interface UserSettings {
