@@ -117,28 +117,6 @@ AxiosベースのAPIクライアント:
 
 すべてのルート(Legal以外)は`Layout`コンポーネントでラップされている。
 
-## 型定義の重要なポイント
-
-### User型 (`src/types/user.ts`)
-
-```typescript
-interface User {
-  id: string;
-  email: string;
-  username: string;      // 必須
-  displayName?: string;  // オプション (表示名)
-  avatar?: string;
-  bio?: string;
-  location?: string;
-  website?: string;
-  github?: string;
-  createdAt: string;     // 必須
-  updatedAt: string;     // 必須
-}
-```
-
-**注意**: `name`プロパティは存在しません。表示名には`displayName`または`username`を使用してください。
-
 ## コンポーネントパス規則
 
 - **正**: `import AppHeader from '../components/AppHeader'`

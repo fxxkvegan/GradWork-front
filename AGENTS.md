@@ -117,28 +117,6 @@ AxiosベースのAPIクライアント:
 
 すべてのルート(Legal以外)は`Layout`コンポーネントでラップされている。
 
-## 型定義の重要なポイント
-
-### User型 (`src/types/user.ts`)
-
-```typescript
-interface User {
-  id: string;
-  email: string;
-  username: string;      // 必須
-  displayName?: string;  // オプション (表示名)
-  avatar?: string;
-  bio?: string;
-  location?: string;
-  website?: string;
-  github?: string;
-  createdAt: string;     // 必須
-  updatedAt: string;     // 必須
-}
-```
-
-**注意**: `name`プロパティは存在しません。表示名には`displayName`または`username`を使用してください。
-
 ## コンポーネントパス規則
 
 - **正**: `import AppHeader from '../components/AppHeader'`
@@ -155,6 +133,29 @@ interface User {
 5. **React 19対応**: 最新のReact APIとベストプラクティスに従う
 6. **CSS Modules**: コンポーネント固有のスタイルには`.module.css`を使用
 7. **テストログイン**: `TestLogin.tsx`は開発環境でのみ表示される (PROD環境では非表示)
+
+## 品質保証 (必須)
+
+**すべての作業完了後、以下の品質チェックを必ず実行すること:**
+
+1. **型チェック** (必須):
+   ```bash
+   npx tsc --noEmit
+   ```
+   型エラーが1件でもある場合は、必ず修正してから作業完了とすること
+
+2. **Lintチェック** (必須):
+   ```bash
+   npm run lint
+   ```
+   Lintエラーや警告がある場合は、必ず修正してから作業完了とすること
+
+3. **実行順序**:
+   - 型チェック → Lintチェックの順で実行
+   - すべてのチェックがクリーンな状態になるまで修正を繰り返す
+   - エラーや警告が残っている状態で作業を完了することは厳禁
+
+**注意**: この品質チェックはすべてのコード変更作業において例外なく実施すること。新規機能追加、バグ修正、リファクタリング、ドキュメント変更に関わらず、コードを変更した場合は必ず実行する。
 
 ## API定数 (`src/constants/api.ts`)
 
