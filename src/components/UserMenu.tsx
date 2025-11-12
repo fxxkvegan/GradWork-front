@@ -1,28 +1,28 @@
-import React, { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
 import {
-	IconButton,
+	Article,
+	Login,
+	Logout,
+	Message,
+	Notifications,
+	PersonOutline,
+	Settings,
+} from "@mui/icons-material";
+import {
+	Avatar,
+	Badge,
+	Box,
+	Divider,
 	Drawer,
+	IconButton,
 	List,
 	ListItemButton,
 	ListItemIcon,
 	ListItemText,
-	Divider,
-	Badge,
-	Avatar,
-	Box,
-	Typography,
 	SvgIcon,
+	Typography,
 } from "@mui/material";
-import {
-	PersonOutline,
-	Article,
-	Message,
-	Login,
-	Logout,
-	Settings,
-	Notifications,
-} from "@mui/icons-material";
+import React, { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import styles from "./UserMenu.module.css";
 
 /* ---------- GitHub Octocat SVG ---------- */

@@ -1,18 +1,18 @@
 import axios from "axios";
 import { API_CONFIG } from "../constants/api";
 import {
-	User,
-	UserSettings,
-	UserHistoryItem,
-	UserResponse,
-	UserSettingsResponse,
-	UserHistoryResponse,
-	UpdateUserRequest,
-	UpdateUserSettingsRequest,
+	AuthResponse,
 	LoginRequest,
 	RegisterRequest,
-	AuthResponse,
 	TokenRefreshResponse,
+	UpdateUserRequest,
+	UpdateUserSettingsRequest,
+	User,
+	UserHistoryItem,
+	UserHistoryResponse,
+	UserResponse,
+	UserSettings,
+	UserSettingsResponse,
 } from "../types/user";
 
 // Axios インスタンスの設定

@@ -1,20 +1,20 @@
-import React, { useState } from "react";
-import {
-	Container,
-	Typography,
-	Box,
-	Card,
-	CardMedia,
-	CardContent,
-	Chip,
-	IconButton,
-	Button,
-	Tooltip,
-} from "@mui/material";
 import {
 	Favorite as FavoriteIcon,
 	Star as StarIcon,
 } from "@mui/icons-material";
+import {
+	Box,
+	Button,
+	Card,
+	CardContent,
+	CardMedia,
+	Chip,
+	Container,
+	IconButton,
+	Tooltip,
+	Typography,
+} from "@mui/material";
+import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import AppHeader from "../component/AppHeader";
 import * as favorites from "../utils/favorites";

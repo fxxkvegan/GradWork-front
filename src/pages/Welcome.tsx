@@ -1,4 +1,5 @@
 import React from "react";
+
 // ヘッダーのインポートを削除
 
 const Welcome: React.FC = () => {

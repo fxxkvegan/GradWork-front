@@ -1,27 +1,27 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import {
+	ArrowBack as ArrowBackIcon,
+	Download as DownloadIcon,
+	FavoriteBorder as FavoriteBorderIcon,
+	Favorite as FavoriteIcon,
+	Share as ShareIcon,
+} from "@mui/icons-material";
 import {
 	Box,
-	Container,
-	Typography,
 	Button,
-	Chip,
 	Card,
 	CardMedia,
-	Paper,
-	Stack,
-	Rating,
+	Chip,
+	Container,
 	Divider,
 	IconButton,
+	Paper,
+	Rating,
 	Skeleton,
+	Stack,
+	Typography,
 } from "@mui/material";
-import {
-	Download as DownloadIcon,
-	Favorite as FavoriteIcon,
-	FavoriteBorder as FavoriteBorderIcon,
-	Share as ShareIcon,
-	ArrowBack as ArrowBackIcon,
-} from "@mui/icons-material";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppHeader from "../components/AppHeader";
 import "./ItemDetailPage.css";
 import axios from "axios";

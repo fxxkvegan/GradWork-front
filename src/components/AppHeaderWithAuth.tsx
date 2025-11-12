@@ -1,6 +1,6 @@
 import React from "react";
-import AppHeader from "./AppHeader";
 import { useAuth } from "../context/AuthContext";
+import AppHeader from "./AppHeader";
 
 interface AppHeaderWithAuthProps {
 	activePath?: string;

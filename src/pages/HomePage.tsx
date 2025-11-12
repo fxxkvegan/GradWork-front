@@ -1,33 +1,33 @@
-import React, { useEffect, useState, useRef } from "react";
-import type { ReactNode } from "react";
-import AppHeader from "../components/AppHeader";
-import {
-	Card,
-	CardMedia,
-	CardContent,
-	Typography,
-	Button,
-	Box,
-	Container,
-	Chip,
-	IconButton,
-	CircularProgress,
-	Alert,
-} from "@mui/material";
 import {
 	Code as CodeIcon,
-	Star as StarIcon,
 	Favorite as FavoriteIcon,
+	Star as StarIcon,
 } from "@mui/icons-material";
-import * as favorites from "../utils/favorites";
+import {
+	Alert,
+	Box,
+	Button,
+	Card,
+	CardContent,
+	CardMedia,
+	Chip,
+	CircularProgress,
+	Container,
+	IconButton,
+	Typography,
+} from "@mui/material";
+import type { ReactNode } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import AppHeader from "../components/AppHeader";
 import { API_CONFIG } from "../constants/api";
+import * as favorites from "../utils/favorites";
 
 import "./HomePage.css";
 import "./carousel-extra.css";
 import "./category.css";
 
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 /* ---------- 型定義 ---------- */
 export interface Project {

@@ -1,18 +1,18 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router";
+import Layout from "./components/Layout.tsx";
+import { AuthProvider } from "./context/AuthContext";
+import AddItemsPage from "./pages/admin/AddItemsPage.tsx";
+import GitHubCallbackPage from "./pages/auth/GitHubCallbackPage.tsx";
+import LoginPage from "./pages/auth/LoginPage.tsx";
+import RegisterPage from "./pages/auth/RegisterPage.tsx";
 import HomePage from "./pages/HomePage.tsx";
-import Legal from "./pages/Legal.tsx";
 import ItemDemoPage from "./pages/ItemDemoPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
-import { AuthProvider } from "./context/AuthContext";
-import Layout from "./components/Layout.tsx";
-import RegisterPage from "./pages/auth/RegisterPage.tsx";
-import LoginPage from "./pages/auth/LoginPage.tsx";
-import GitHubCallbackPage from "./pages/auth/GitHubCallbackPage.tsx";
-import ProjectList from "./pages/ProjectList.tsx";
-import AddItemsPage from "./pages/admin/AddItemsPage.tsx";
 import ItemFormPage from "./pages/ItemFormPage.tsx";
+import Legal from "./pages/Legal.tsx";
+import ProjectList from "./pages/ProjectList.tsx";
 
 const router = createBrowserRouter([
 	{

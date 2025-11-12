@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import { User } from "../types/user";
+import { createContext, useContext, useEffect, useState } from "react";
 import { getUserProfile, logoutUser } from "../services/userApi";
+import { User } from "../types/user";
 
 // 認証コンテキストの型定義
 interface AuthContextType {

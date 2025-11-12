@@ -1,23 +1,23 @@
+import GitHubIcon from "@mui/icons-material/GitHub";
+import {
+	Alert,
+	Button,
+	Card,
+	CardContent,
+	Checkbox,
+	Container,
+	Divider,
+	FormControlLabel,
+	Link,
+	Stack,
+	TextField,
+	Typography,
+} from "@mui/material";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AppHeader from "../../components/AppHeader";
 import { useAuth } from "../../context/AuthContext";
 import { registerUser } from "../../services/userApi";
-import {
-	Container,
-	Card,
-	CardContent,
-	Typography,
-	TextField,
-	Button,
-	Alert,
-	Stack,
-	Divider,
-	Checkbox,
-	FormControlLabel,
-	Link,
-} from "@mui/material";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import { useNavigate } from "react-router-dom";
 
 const RegisterPage: React.FC = () => {
 	const [email, setEmail] = useState("");

@@ -1,23 +1,23 @@
-import React, { useState } from "react";
-import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
+import GitHubIcon from "@mui/icons-material/GitHub";
 import {
-	Container,
+	Alert,
+	Box,
+	Button,
 	Card,
 	CardContent,
-	Typography,
-	TextField,
-	Button,
-	Alert,
-	Stack,
-	Divider,
 	Checkbox,
+	CircularProgress,
+	Container,
+	Divider,
 	FormControlLabel,
 	Link as MuiLink,
-	Box,
-	CircularProgress,
+	Stack,
+	TextField,
+	Typography,
 } from "@mui/material";
-import GitHubIcon from "@mui/icons-material/GitHub";
+import React, { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
+import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../services/userApi";
 

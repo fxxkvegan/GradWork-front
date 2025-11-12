@@ -1,21 +1,21 @@
-import React, { useState } from "react";
 import {
-	Container,
+	Alert,
+	Button,
 	Card,
 	CardContent,
-	Typography,
-	TextField,
-	Button,
-	Alert,
-	Stack,
-	Divider,
 	Checkbox,
+	Container,
+	Divider,
 	FormControlLabel,
 	Link as MuiLink,
+	Stack,
+	TextField,
+	Typography,
 } from "@mui/material";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import React, { useState } from "react";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Register: React.FC = () => {
 	/* ---------- state ---------- */

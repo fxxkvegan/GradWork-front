@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import {
-	Container,
+	Alert,
 	Box,
 	CircularProgress,
-	Typography,
-	Alert,
+	Container,
 	Paper,
+	Typography,
 } from "@mui/material";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const GitHubCallbackPage: React.FC = () => {
 	const [error, setError] = useState(false);

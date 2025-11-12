@@ -1,14 +1,14 @@
-import React from "react";
+import { GitHub as GitHubIcon } from "@mui/icons-material";
 import {
 	Box,
 	Container,
-	Typography,
-	Stack,
-	Link,
 	Divider,
 	IconButton,
+	Link,
+	Stack,
+	Typography,
 } from "@mui/material";
-import { GitHub as GitHubIcon } from "@mui/icons-material";
+import React from "react";
 
 const Footer: React.FC = () => {
 	const currentYear = new Date().getFullYear();

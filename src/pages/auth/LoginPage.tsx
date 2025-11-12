@@ -1,25 +1,24 @@
+import GitHubIcon from "@mui/icons-material/GitHub";
+import {
+	Alert,
+	Box,
+	Button,
+	Card,
+	CardContent,
+	Checkbox,
+	Container,
+	Divider,
+	FormControlLabel,
+	Link,
+	Stack,
+	TextField,
+	Typography,
+} from "@mui/material";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AppHeader from "../../components/AppHeader";
 import { useAuth } from "../../context/AuthContext";
 import { loginUser } from "../../services/userApi";
-
-import {
-	Container,
-	Card,
-	CardContent,
-	Typography,
-	TextField,
-	Button,
-	Alert,
-	Stack,
-	Divider,
-	Checkbox,
-	FormControlLabel,
-	Link,
-	Box,
-} from "@mui/material";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import { useNavigate } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
 	const [email, setEmail] = useState("");
