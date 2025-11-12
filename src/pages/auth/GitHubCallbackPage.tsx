@@ -32,27 +32,22 @@ const GitHubCallbackPage: React.FC = () => {
 
 				console.log("GitHubコードを受信:", code);
 
-				// 開発環境ではモックレスポンスを使用（APIが実装されるまで）
 				if (import.meta.env.DEV) {
 					console.log("開発環境でのモック認証を使用");
-					// 1秒待って認証をシミュレート
 					await new Promise((resolve) => setTimeout(resolve, 1000));
 
-					// モックユーザーデータ
 					const mockUser = {
-						id: "github-123",
+						id: 1,
 						name: "GitHub User",
 						email: "github@example.com",
+						avatar_url:
+							"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+						locale: "ja",
+						theme: "light",
 						created_at: new Date().toISOString(),
 						updated_at: new Date().toISOString(),
-						username: "githubuser",
-						displayName: "GitHub User",
-						avatar:
-							"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
-						github: "https://github.com/githubuser",
 					};
 
-					// 成功を模擬
 					authCtx.login(mockUser, true);
 					navigate("/home");
 					return;
@@ -66,7 +61,6 @@ const GitHubCallbackPage: React.FC = () => {
 					console.log("APIレスポンス:", data);
 
 					if (data.success) {
-						// ユーザー情報をAuthContextに保存
 						authCtx.login(data.data.user, true);
 						navigate("/home");
 					} else {

@@ -44,7 +44,6 @@ const RegisterPage: React.FC = () => {
 			agree: agree,
 		});
 
-		// バリデーション
 		if (password !== confirmPassword) {
 			setError("Passwords do not match");
 			console.log("❌ RegisterPage: パスワード不一致エラー");
@@ -65,7 +64,6 @@ const RegisterPage: React.FC = () => {
 		}
 
 		try {
-			// バックエンドに送信するデータ
 			const registerData = {
 				email,
 				name: username.trim(),
@@ -82,7 +80,6 @@ const RegisterPage: React.FC = () => {
 			});
 			console.log("🌐 RegisterPage: API呼び出し開始 - POST /auth/register");
 
-			// 本番用API呼び出し
 			const response = await registerUser(registerData);
 
 			console.log("✅ RegisterPage: API呼び出し成功", {
@@ -101,17 +98,14 @@ const RegisterPage: React.FC = () => {
 				timestamp: new Date().toISOString(),
 			});
 
-			// テスト用のフォールバック
 			if (email && password && username) {
 				console.log("🧪 RegisterPage: テストモードでの登録処理");
 				const testUser = {
-					id: `test-user-${Date.now()}`,
+					id: Date.now(),
 					name: username.trim(),
 					email: email,
 					created_at: new Date().toISOString(),
 					updated_at: new Date().toISOString(),
-					username: username.trim(),
-					displayName: username.trim(),
 				};
 
 				console.log("✅ RegisterPage: テストユーザー作成成功", testUser);
@@ -133,7 +127,6 @@ const RegisterPage: React.FC = () => {
 	const handleOAuthSignUp = () => {
 		console.log("🔗 RegisterPage: GitHub OAuth登録開始");
 		console.log("🌐 RegisterPage: GitHub OAuthリダイレクト");
-		// GitHub OAuth の実装
 		window.location.href =
 			"http://app.nice-dig.com/auth/github?action=register";
 	};

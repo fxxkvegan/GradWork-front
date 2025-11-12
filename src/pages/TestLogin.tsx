@@ -23,7 +23,7 @@ import { useAuth } from "../context/AuthContext";
  */
 const TestLogin: React.FC = () => {
 	const [loading, setLoading] = useState(false);
-	const [selectedUser, setSelectedUser] = useState<string | null>(null);
+	const [selectedUser, setSelectedUser] = useState<number | null>(null);
 	const [remember, setRemember] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const { login, logout, isLoggedIn, user } = useAuth();
@@ -34,7 +34,7 @@ const TestLogin: React.FC = () => {
 	}
 	const testUsers = [
 		{
-			id: "test-user-1",
+			id: 1,
 			name: "開発者ユーザー",
 			email: "developer@example.com",
 			avatarUrl:
@@ -44,7 +44,7 @@ const TestLogin: React.FC = () => {
 			updated_at: new Date().toISOString(),
 		},
 		{
-			id: "test-user-2",
+			id: 2,
 			name: "管理者ユーザー",
 			email: "admin@example.com",
 			avatarUrl:
@@ -54,7 +54,7 @@ const TestLogin: React.FC = () => {
 			updated_at: new Date().toISOString(),
 		},
 		{
-			id: "test-user-3",
+			id: 3,
 			name: "一般ユーザー",
 			email: "user@example.com",
 			avatarUrl:
