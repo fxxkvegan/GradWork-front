@@ -1,431 +1,349 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // File: src/pages/ItemFormPage.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-
-import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
-	Avatar,
 	Box,
 	Button,
+	Card,
+	CardContent,
+	CardMedia,
+	Checkbox,
+	CircularProgress,
 	Container,
-	Divider,
 	FormControlLabel,
-	Rating,
-	Stack,
-	Switch,
 	TextField,
 	Typography,
 } from "@mui/material";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import axios from "axios";
-import { ChangeEvent, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
+import { API_CONFIG } from "../constants/api";
+import { useAuth } from "../context/AuthContext";
+import productApi from "../services/productApi";
+import type { Category } from "../types/category";
+import type { Product } from "../types/product";
 
-interface ProjectFormData {
-	title: string;
-	subtitle: string;
-	rating: number;
-	ratingCount: number;
-	price: number;
-	isFree: boolean;
-	images: File[];
-	downloadCount: number;
-	lastUpdated: string;
-	version: string;
-	authorName: string;
-	authorAvatar: File | null;
-	authorRating: number;
-	longDescription: string;
-	frameworks: string[];
-	languages: string[];
-	databases: string[];
-	tools: string[];
-	features: string[];
-	os: string;
-	browser: string;
-	memory: string;
+interface EditFormState {
+	name: string;
+	description: string;
+	categoryIds: number[];
+	imageFiles: File[];
+	imagePreviews: string[];
 }
 
-export default function ItemFormPage() {
+const toInitialState = (): EditFormState => ({
+	name: "",
+	description: "",
+	categoryIds: [],
+	imageFiles: [],
+	imagePreviews: [],
+});
+
+const ItemFormPage = () => {
 	const { itemId } = useParams<{ itemId?: string }>();
 	const navigate = useNavigate();
+	const location = useLocation();
+	const { isLoggedIn } = useAuth();
 
-	const [form, setForm] = useState<ProjectFormData>({
-		title: "",
-		subtitle: "",
-		rating: 0,
-		ratingCount: 0,
-		price: 0,
-		isFree: false,
-		images: [],
-		downloadCount: 0,
-		lastUpdated: "",
-		version: "",
-		authorName: "",
-		authorAvatar: null,
-		authorRating: 0,
-		longDescription: "",
-		frameworks: [],
-		languages: [],
-		databases: [],
-		tools: [],
-		features: [],
-		os: "",
-		browser: "",
-		memory: "",
-	});
+	const [form, setForm] = useState<EditFormState>(toInitialState);
+	const [submitting, setSubmitting] = useState(false);
+	const [categories, setCategories] = useState<Category[]>([]);
+	const [loadingCategories, setLoadingCategories] = useState(true);
+	const [loadingProduct, setLoadingProduct] = useState(Boolean(itemId));
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
-		if (itemId) {
-			axios
-				.get(`/api/products/${itemId}`)
-				.then((res) => {
-					const data = res.data;
-					setForm({
-						...form,
-						title: data.title,
-						subtitle: data.shortDescription,
-						rating: data.rating.average,
-						ratingCount: data.rating.count,
-						price: data.price,
-						isFree: data.isFree,
-						downloadCount: data.downloadCount,
-						lastUpdated: data.lastUpdated,
-						version: data.version,
-						authorName: data.author.name,
-						authorRating: data.author.rating,
-						longDescription: data.longDescription,
-						frameworks: data.technicalDetails.framework,
-						languages: data.technicalDetails.language,
-						databases: data.technicalDetails.database || [],
-						tools: data.technicalDetails.tools || [],
-						features: data.features,
-						os: data.systemRequirements.os,
-						browser: data.systemRequirements.browser,
-						memory: data.systemRequirements.memory,
-					});
-				})
-				.catch((error) => {
-					console.error("Failed to fetch item data:", error);
-					// エラーが発生してもコンポーネントは表示する
-				});
+		return () => {
+			form.imagePreviews.forEach((preview) => {
+				if (preview.startsWith("blob:")) {
+					URL.revokeObjectURL(preview);
+				}
+			});
+		};
+	}, [form.imagePreviews]);
+
+	useEffect(() => {
+		if (!isLoggedIn) {
+			navigate("/login", { replace: true, state: { from: location.pathname } });
 		}
+	}, [isLoggedIn, navigate, location.pathname]);
+
+	useEffect(() => {
+		let active = true;
+		const fetchCategories = async () => {
+			try {
+				setLoadingCategories(true);
+				const res = await fetch(`${API_CONFIG.BASE_URL}/categories`);
+				if (!res.ok) {
+					throw new Error(`カテゴリ取得に失敗しました (status: ${res.status})`);
+				}
+				const json: { items?: Category[] } = await res.json();
+				if (active) {
+					setCategories(Array.isArray(json.items) ? json.items : []);
+				}
+			} catch (fetchError) {
+				console.error(fetchError);
+				if (active) setError("カテゴリの取得に失敗しました");
+			} finally {
+				if (active) setLoadingCategories(false);
+			}
+		};
+
+		fetchCategories();
+		return () => {
+			active = false;
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!itemId) return;
+		let active = true;
+		const fetchProduct = async () => {
+			try {
+				setLoadingProduct(true);
+				const res = await fetch(`${API_CONFIG.BASE_URL}/products/${itemId}`);
+				if (!res.ok) {
+					throw new Error(
+						`プロダクト取得に失敗しました (status: ${res.status})`,
+					);
+				}
+				const data: Product = await res.json();
+				if (!active) return;
+				const images = Array.isArray(data.image_url)
+					? data.image_url.filter(
+							(url): url is string => typeof url === "string",
+						)
+					: typeof data.image_url === "string" && data.image_url !== ""
+						? [data.image_url]
+						: [];
+				setForm({
+					name: data.name ?? "",
+					description: (data.description as string | null) ?? "",
+					categoryIds: (data.categoryIds ?? [])
+						.map((value) => Number(value))
+						.filter((value) => !Number.isNaN(value)),
+					imageFiles: [],
+					imagePreviews: images,
+				});
+			} catch (fetchError) {
+				console.error(fetchError);
+				if (active) setError("プロダクトの取得に失敗しました");
+			} finally {
+				if (active) setLoadingProduct(false);
+			}
+		};
+
+		fetchProduct();
+		return () => {
+			active = false;
+		};
 	}, [itemId]);
 
-	const handleChange =
-		(key: keyof ProjectFormData) =>
-		(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-			const value =
-				e.target.type === "number" ? Number(e.target.value) : e.target.value;
-			setForm({ ...form, [key]: value });
+	const handleInputChange =
+		(key: "name" | "description") =>
+		(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+			setForm((prev) => ({ ...prev, [key]: event.target.value }));
 		};
 
-	const handleSwitch = (e: ChangeEvent<HTMLInputElement>) => {
-		setForm({ ...form, isFree: e.target.checked });
-	};
-
-	const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-		if (!e.target.files) return;
-		const files = Array.from(e.target.files);
-		setForm({ ...form, images: files });
-	};
-
-	const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
-		if (!e.target.files || e.target.files.length === 0) return;
-		setForm({ ...form, authorAvatar: e.target.files[0] });
-	};
-
-	const handleArrayChange =
-		(key: "frameworks" | "languages" | "databases" | "tools" | "features") =>
-		(e: ChangeEvent<HTMLInputElement>) => {
-			const items = e.target.value
-				.split(",")
-				.map((s) => s.trim())
-				.filter(Boolean);
-			setForm({ ...form, [key]: items });
-		};
-
-	const handleDateChange = (date: Date | null) => {
-		setForm({
-			...form,
-			lastUpdated: date ? date.toISOString().slice(0, 10) : "",
+	const toggleCategory = (categoryId: number) => () => {
+		setForm((prev) => {
+			const exists = prev.categoryIds.includes(categoryId);
+			return {
+				...prev,
+				categoryIds: exists
+					? prev.categoryIds.filter((id) => id !== categoryId)
+					: [...prev.categoryIds, categoryId],
+			};
 		});
 	};
 
-	const handleSubmit = () => {
-		const payload = new FormData();
-		Object.entries(form).forEach(([k, v]) => {
-			if (k === "images" && v instanceof Array) {
-				v.forEach((file) => payload.append("images", file));
-			} else if (k === "authorAvatar" && v) {
-				payload.append("authorAvatar", v);
+	const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+		const files = event.target.files ? Array.from(event.target.files) : [];
+		setForm((prev) => ({
+			...prev,
+			imageFiles: files,
+			imagePreviews: files.map((file) => URL.createObjectURL(file)),
+		}));
+	};
+
+	const canSubmit = useMemo(() => {
+		return form.name.trim().length > 0 && form.categoryIds.length > 0;
+	}, [form.name, form.categoryIds.length]);
+
+	const handleSubmit = async () => {
+		if (!canSubmit || submitting) return;
+		setSubmitting(true);
+		setError(null);
+
+		try {
+			if (itemId) {
+				await productApi.updateProduct(Number(itemId), {
+					name: form.name,
+					description: form.description,
+					categoryIds: form.categoryIds,
+					image_url: form.imageFiles.length ? form.imageFiles : undefined,
+				});
 			} else {
-				payload.append(k, String(v));
+				await productApi.createProduct({
+					name: form.name,
+					description: form.description,
+					categoryIds: form.categoryIds,
+					image_url: form.imageFiles,
+				});
 			}
-		});
-		const url = itemId ? `/api/products/${itemId}` : "/api/products";
-		const method = itemId ? axios.put : axios.post;
-		method(url, payload)
-			.then(() => navigate("/"))
-			.catch((error) => {
-				console.error("Failed to submit form:", error);
-				alert("保存に失敗しました。もう一度お試しください。");
-			});
+			navigate("/my-products", { replace: true });
+		} catch (submitError) {
+			console.error(submitError);
+			setError(
+				itemId ? "作品の更新に失敗しました" : "作品の投稿に失敗しました",
+			);
+		} finally {
+			setSubmitting(false);
+		}
 	};
+
+	if (!isLoggedIn) {
+		return null;
+	}
 
 	return (
-		<LocalizationProvider
-			dateAdapter={AdapterDateFns}
-			adapterLocale={undefined}
-		>
-			<div className="item-form-page">
-				<AppHeaderWithAuth
-					activePath={itemId ? `/edit/${itemId}` : "/create"}
-				/>
-				<Container maxWidth="md" sx={{ py: 4, mt: 6 }}>
-					<Button
-						startIcon={<ArrowBackIcon />}
-						onClick={() => navigate(-1)}
-						sx={{ mb: 3 }}
-					>
-						戻る
-					</Button>
+		<div className="item-form-page">
+			<AppHeaderWithAuth activePath={itemId ? `/edit/${itemId}` : "/create"} />
+			<Container maxWidth="md" sx={{ py: 4, mt: 6 }}>
+				<Typography variant="h4" gutterBottom>
+					{itemId ? "作品を編集" : "新しい作品を投稿"}
+				</Typography>
 
-					<Typography variant="h4" gutterBottom>
-						{itemId ? "作品を編集" : "新規作品を登録"}
-					</Typography>
+				{error && (
+					<Box sx={{ mb: 2 }}>
+						<Typography color="error" variant="body2">
+							{error}
+						</Typography>
+					</Box>
+				)}
 
-					<Stack spacing={3}>
-						{/* タイトル */}
-						<TextField
-							label="タイトル"
-							value={form.title}
-							onChange={handleChange("title")}
-							fullWidth
-						/>
+				<Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+					<TextField
+						label="作品名"
+						value={form.name}
+						onChange={handleInputChange("name")}
+						required
+						fullWidth
+					/>
 
-						{/* サブタイトル */}
-						<TextField
-							label="サブタイトル"
-							value={form.subtitle}
-							onChange={handleChange("subtitle")}
-							fullWidth
-						/>
+					<TextField
+						label="作品説明"
+						value={form.description}
+						onChange={handleInputChange("description")}
+						multiline
+						minRows={4}
+						fullWidth
+					/>
 
-						{/* 長文説明 */}
-						<TextField
-							label="詳細説明"
-							value={form.longDescription}
-							onChange={handleChange("longDescription")}
-							fullWidth
-							multiline
-							rows={6}
-						/>
-
-						{/* 価格 & 無料切替 */}
-						<Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-							<TextField
-								label="価格"
-								type="number"
-								value={form.price}
-								onChange={handleChange("price")}
-								disabled={form.isFree}
-							/>
-							<FormControlLabel
-								control={
-									<Switch checked={form.isFree} onChange={handleSwitch} />
-								}
-								label="無料"
-							/>
-						</Box>
-
-						{/* 評価 */}
-						<Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-							<Typography>平均評価</Typography>
-							<Rating
-								value={form.rating}
-								precision={0.1}
-								onChange={(_, v) => setForm({ ...form, rating: v || 0 })}
-							/>
-							<TextField
-								label="評価件数"
-								type="number"
-								value={form.ratingCount}
-								onChange={handleChange("ratingCount")}
-							/>
-						</Box>
-
-						{/* 画像アップロード */}
-						<Box>
-							<Typography gutterBottom>画像アップロード</Typography>
-							<Button
-								variant="contained"
-								component="label"
-								startIcon={<AddPhotoAlternateIcon />}
+					<Box>
+						<Typography variant="h6" sx={{ mb: 1 }}>
+							カテゴリ
+						</Typography>
+						{loadingCategories ? (
+							<CircularProgress size={24} />
+						) : (
+							<Box
+								sx={{
+									display: "grid",
+									gridTemplateColumns: {
+										xs: "1fr",
+										sm: "repeat(2, minmax(0, 1fr))",
+									},
+									gap: 1,
+								}}
 							>
-								選択
-								<input
-									type="file"
-									hidden
-									multiple
-									accept="image/*"
-									onChange={handleFileChange}
-								/>
-							</Button>
-							<Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-								{form.images.map((file, idx) => (
-									<Avatar
-										key={idx}
-										src={URL.createObjectURL(file)}
-										variant="rounded"
-										sx={{ width: 80, height: 80 }}
-									/>
+								{categories.map((category) => (
+									<Box key={category.id}>
+										<FormControlLabel
+											control={
+												<Checkbox
+													checked={form.categoryIds.includes(category.id)}
+													onChange={toggleCategory(category.id)}
+												/>
+											}
+											label={category.name}
+										/>
+									</Box>
 								))}
 							</Box>
-						</Box>
+						)}
+					</Box>
 
-						{/* その他数値・文字 */}
-						<Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-							<TextField
-								label="ダウンロード数"
-								type="number"
-								value={form.downloadCount}
-								onChange={handleChange("downloadCount")}
+					<Box>
+						<Typography variant="h6" sx={{ mb: 1 }}>
+							作品画像 (最大5枚)
+						</Typography>
+						<Button variant="outlined" component="label">
+							画像を選択
+							<input
+								type="file"
+								accept="image/*"
+								multiple
+								onChange={handleImageChange}
+								hidden
 							/>
-							<TextField
-								label="バージョン"
-								value={form.version}
-								onChange={handleChange("version")}
-							/>
-							<DatePicker
-								label="最終更新日"
-								value={form.lastUpdated ? new Date(form.lastUpdated) : null}
-								onChange={handleDateChange}
-								slotProps={{
-									textField: {
-										fullWidth: true,
-										size: "medium",
-									},
-								}}
-							/>
-						</Box>
+						</Button>
 
-						<Divider />
+						{(form.imagePreviews.length > 0 || loadingProduct) && (
+							<Box sx={{ mt: 1 }}>
+								{loadingProduct ? (
+									<CircularProgress size={24} />
+								) : (
+									<Box
+										sx={{
+											display: "grid",
+											gridTemplateColumns: {
+												xs: "repeat(2, minmax(0, 1fr))",
+												sm: "repeat(3, minmax(0, 1fr))",
+											},
+											gap: 2,
+										}}
+									>
+										{form.imagePreviews.map((src, index) => (
+											<Card key={src + index}>
+												<CardMedia
+													component="img"
+													height="140"
+													image={src}
+													alt={`preview-${index}`}
+												/>
+												<CardContent>
+													<Typography variant="body2" color="text.secondary">
+														プレビュー {index + 1}
+													</Typography>
+												</CardContent>
+											</Card>
+										))}
+									</Box>
+								)}
+							</Box>
+						)}
+					</Box>
 
-						{/* 作者情報 */}
-						<Typography variant="h6">作者情報</Typography>
-						<TextField
-							label="作者名"
-							value={form.authorName}
-							onChange={handleChange("authorName")}
-							fullWidth
-						/>
-
-						<Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-							<Typography>作者評価</Typography>
-							<Rating
-								value={form.authorRating}
-								precision={0.1}
-								onChange={(_, v) => setForm({ ...form, authorRating: v || 0 })}
-							/>
-						</Box>
-
-						<Box>
-							<Typography gutterBottom>作者アバター</Typography>
-							<Button
-								variant="outlined"
-								component="label"
-								startIcon={<AddPhotoAlternateIcon />}
-							>
-								アバター選択
-								<input
-									type="file"
-									hidden
-									accept="image/*"
-									onChange={handleAvatarChange}
-								/>
-							</Button>
-							{form.authorAvatar && (
-								<Box sx={{ mt: 2 }}>
-									<Avatar
-										src={URL.createObjectURL(form.authorAvatar)}
-										sx={{ width: 80, height: 80 }}
-									/>
-								</Box>
-							)}
-						</Box>
-
-						<Divider />
-
-						{/* 技術スタック & 機能 */}
-						<TextField
-							label="フレームワーク (カンマ区切り)"
-							value={form.frameworks.join(",")}
-							onChange={handleArrayChange("frameworks")}
-							fullWidth
-						/>
-						<TextField
-							label="言語 (カンマ区切り)"
-							value={form.languages.join(",")}
-							onChange={handleArrayChange("languages")}
-							fullWidth
-						/>
-						<TextField
-							label="DB (カンマ区切り)"
-							value={form.databases.join(",")}
-							onChange={handleArrayChange("databases")}
-							fullWidth
-						/>
-						<TextField
-							label="ツール (カンマ区切り)"
-							value={form.tools.join(",")}
-							onChange={handleArrayChange("tools")}
-							fullWidth
-						/>
-						<TextField
-							label="主要機能 (カンマ区切り)"
-							value={form.features.join(",")}
-							onChange={handleArrayChange("features")}
-							fullWidth
-						/>
-
-						<Divider />
-
-						{/* システム要件 */}
-						<TextField
-							label="対応OS"
-							value={form.os}
-							onChange={handleChange("os")}
-							fullWidth
-						/>
-						<TextField
-							label="対応ブラウザ"
-							value={form.browser}
-							onChange={handleChange("browser")}
-							fullWidth
-						/>
-						<TextField
-							label="推奨メモリ"
-							value={form.memory}
-							onChange={handleChange("memory")}
-							fullWidth
-						/>
-
-						<Stack direction="row" spacing={2} sx={{ pt: 2 }}>
-							<Button variant="contained" onClick={handleSubmit} fullWidth>
-								保存
-							</Button>
-							<Button variant="outlined" onClick={() => navigate(-1)} fullWidth>
-								キャンセル
-							</Button>
-						</Stack>
-					</Stack>
-				</Container>
-			</div>
-		</LocalizationProvider>
+					<Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+						<Button
+							variant="outlined"
+							disabled={submitting}
+							onClick={() => navigate(-1)}
+						>
+							キャンセル
+						</Button>
+						<Button
+							variant="contained"
+							disabled={!canSubmit || submitting}
+							onClick={handleSubmit}
+						>
+							{submitting ? "送信中..." : itemId ? "更新する" : "投稿する"}
+						</Button>
+					</Box>
+				</Box>
+			</Container>
+		</div>
 	);
-}
+};
+
+export default ItemFormPage;
