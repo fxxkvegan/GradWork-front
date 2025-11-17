@@ -1,5 +1,10 @@
 import axios from "axios";
 import { API_CONFIG } from "../constants/api";
+import type {
+	Product,
+	ProductCreateRequest,
+	ProductUpdateRequest,
+} from "../types/product";
 
 export interface RankingCategory {
 	id: number;
@@ -33,6 +38,23 @@ const client = axios.create({
 	timeout: API_CONFIG.TIMEOUT,
 });
 
+const AUTH_TOKEN_KEY = "AUTH_TOKEN";
+
+const authClient = axios.create({
+	baseURL: API_CONFIG.BASE_URL,
+	timeout: API_CONFIG.TIMEOUT,
+});
+
+authClient.interceptors.request.use((config) => {
+	const token = localStorage.getItem(AUTH_TOKEN_KEY);
+	if (token) {
+		config.headers = config.headers ?? {};
+		(config.headers as Record<string, string>).Authorization =
+			`Bearer ${token}`;
+	}
+	return config;
+});
+
 export const fetchRankingProjects = async (): Promise<{
 	items: RankingItemResponse[];
 	message: string;
@@ -61,6 +83,81 @@ export const fetchRankingProjects = async (): Promise<{
 	};
 };
 
+const appendCategoryIds = (
+	formData: FormData,
+	categoryIds: ProductCreateRequest["categoryIds"],
+) => {
+	categoryIds?.forEach((id) => {
+		formData.append("categoryIds[]", String(id));
+	});
+};
+
+const appendImages = (
+	formData: FormData,
+	images: ProductCreateRequest["image_url"],
+) => {
+	images?.forEach((file) => {
+		formData.append("image_url[]", file);
+	});
+};
+
+export const createProduct = async (
+	payload: ProductCreateRequest,
+): Promise<Product> => {
+	const formData = new FormData();
+	formData.append("name", payload.name);
+	if (payload.description) {
+		formData.append("description", payload.description);
+	}
+	appendCategoryIds(formData, payload.categoryIds);
+	appendImages(formData, payload.image_url);
+
+	const { data } = await authClient.post<Product>("/products", formData, {
+		headers: { "Content-Type": "multipart/form-data" },
+	});
+	return data;
+};
+
+export const updateProduct = async (
+	productId: number,
+	payload: ProductUpdateRequest,
+): Promise<Product> => {
+	const formData = new FormData();
+	formData.append("name", payload.name);
+	if (payload.description) {
+		formData.append("description", payload.description);
+	}
+	appendCategoryIds(formData, payload.categoryIds);
+	appendImages(formData, payload.image_url);
+	if (typeof payload.rating === "number") {
+		formData.append("rating", String(payload.rating));
+	}
+	if (typeof payload.download_count === "number") {
+		formData.append("download_count", String(payload.download_count));
+	}
+
+	const { data } = await authClient.post<Product>(
+		`/products/${productId}`,
+		formData,
+		{
+			headers: { "Content-Type": "multipart/form-data" },
+			params: { _method: "PUT" },
+		},
+	);
+
+	return data;
+};
+
+export const fetchMyProducts = async (): Promise<Product[]> => {
+	const { data } = await authClient.get<{ items?: Product[] }>(
+		"/users/me/products",
+	);
+	return Array.isArray(data?.items) ? data.items : [];
+};
+
 export default {
 	fetchRankingProjects,
+	createProduct,
+	updateProduct,
+	fetchMyProducts,
 };
