@@ -12,6 +12,7 @@ import ItemDemoPage from "./pages/ItemDemoPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 import ItemFormPage from "./pages/ItemFormPage.tsx";
 import Legal from "./pages/Legal.tsx";
+import MyProductsPage from "./pages/MyProductsPage";
 import ProjectList from "./pages/ProjectList.tsx";
 
 const router = createBrowserRouter([
@@ -96,6 +97,14 @@ const router = createBrowserRouter([
 		element: (
 			<Layout>
 				<ItemFormPage />
+			</Layout>
+		),
+	},
+	{
+		path: "/my-products",
+		element: (
+			<Layout>
+				<MyProductsPage />
 			</Layout>
 		),
 	},

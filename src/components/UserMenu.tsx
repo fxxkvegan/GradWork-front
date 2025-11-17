@@ -18,6 +18,7 @@ import {
 	ListItemButton,
 	ListItemIcon,
 	ListItemText,
+	ListSubheader,
 	SvgIcon,
 	Typography,
 } from "@mui/material";
@@ -131,9 +132,15 @@ const UserMenu: React.FC<UserMenuProps> = ({
 				<List>
 					{isLoggedIn ? (
 						<>
+							<ListSubheader
+								sx={{ bgcolor: "inherit", color: "rgba(255,255,255,0.5)" }}
+							>
+								マイメニュー
+							</ListSubheader>
+
 							<ListItemButton
 								component={RouterLink}
-								to="/my-posts"
+								to="/my-products"
 								onClick={handleClose}
 							>
 								<ListItemIcon sx={{ color: "rgba(255,255,255,0.7)" }}>
@@ -142,11 +149,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
 								<ListItemText primary="あなたの投稿一覧" />
 							</ListItemButton>
 
-							<ListItemButton
-								component={RouterLink}
-								to="/my-posts/messages"
-								onClick={handleClose}
-							>
+							<ListItemButton disabled>
 								<ListItemIcon sx={{ color: "rgba(255,255,255,0.7)" }}>
 									<Badge
 										badgeContent={messageCount}
@@ -163,6 +166,17 @@ const UserMenu: React.FC<UserMenuProps> = ({
 									}
 									secondaryTypographyProps={{ color: "error.main" }}
 								/>
+							</ListItemButton>
+
+							<ListItemButton
+								component={RouterLink}
+								to="/create"
+								onClick={handleClose}
+							>
+								<ListItemIcon sx={{ color: "rgba(255,255,255,0.7)" }}>
+									<Article />
+								</ListItemIcon>
+								<ListItemText primary="商品を投稿" />
 							</ListItemButton>
 
 							<ListItemButton
