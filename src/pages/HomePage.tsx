@@ -16,7 +16,6 @@ import {
 	IconButton,
 	Typography,
 } from "@mui/material";
-import type { ReactNode } from "react";
 import React, {
 	useCallback,
 	useEffect,
@@ -25,7 +24,7 @@ import React, {
 	useState,
 } from "react";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
-import { API_CONFIG } from "../constants/api";
+import { fetchCategories } from "../services/categoryApi";
 import * as favorites from "../utils/favorites";
 
 import "./HomePage.css";
@@ -37,6 +36,7 @@ import {
 	fetchRankingProjects,
 	type RankingItemResponse,
 } from "../services/productApi";
+import type { Category as ApiCategory } from "../types/category";
 
 /* ---------- 型定義 ---------- */
 export interface Project {
@@ -49,42 +49,6 @@ export interface Project {
 	downloads: number;
 	tags: string[];
 }
-export interface Category {
-	name: string;
-	icon: ReactNode;
-	count: number;
-}
-
-/* ---------- 汎用フェッチフック ---------- */
-const useApiData = <T,>(endpoint: string, fallback: T) => {
-	const [data, setData] = useState<T>(fallback);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
-
-	useEffect(() => {
-		let cancelled = false;
-		(async () => {
-			try {
-				const res = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`);
-				if (!res.ok) throw new Error(`HTTP ${res.status}`);
-				const json = await res.json();
-				if (!cancelled) setData(json);
-			} catch (e: unknown) {
-				console.warn(`${endpoint} failed, using fallback`, e);
-				if (!cancelled)
-					setError(e instanceof Error ? e.message : "Unknown error");
-			} finally {
-				if (!cancelled) setLoading(false);
-			}
-		})();
-		return () => {
-			cancelled = true;
-		};
-	}, [endpoint]);
-
-	return { data, loading, error };
-};
-
 /* ---------- プロジェクトカード ---------- */
 const ProjectCard: React.FC<{
 	project: Project;
@@ -192,148 +156,6 @@ const ProjectCard: React.FC<{
 /* ---------- HomePage ---------- */
 const HomePage: React.FC = () => {
 	const navigate = useNavigate();
-	const dummyCategories: Category[] = [
-		{ name: "Web開発", icon: <CodeIcon />, count: 28 },
-		{
-			name: "AI",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/artificial-intelligence.png"
-					alt="AI"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 15,
-		},
-		{
-			name: "デザイン",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/design--v1.png"
-					alt="デザイン"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 22,
-		},
-		{
-			name: "データ",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/database.png"
-					alt="データ"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 18,
-		},
-		{
-			name: "バックエンド",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/server.png"
-					alt="バックエンド"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 20,
-		},
-		{
-			name: "ビジネス",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/business.png"
-					alt="ビジネス"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 14,
-		},
-		{
-			name: "マーケティング",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/commercial.png"
-					alt="マーケティング"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 17,
-		},
-		{
-			name: "ゲーム",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/controller.png"
-					alt="ゲーム"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 12,
-		},
-		{
-			name: "AR/VR",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/virtual-reality.png"
-					alt="AR/VR"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 8,
-		},
-		{
-			name: "IoT",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/iot-sensor.png"
-					alt="IoT"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 11,
-		},
-		{
-			name: "ブロックチェーン",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/blockchain-technology.png"
-					alt="ブロックチェーン"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 9,
-		},
-		{
-			name: "セキュリティ",
-			icon: (
-				<img
-					src="https://img.icons8.com/ios/50/shield.png"
-					alt="セキュリティ"
-					width="24"
-					height="24"
-				/>
-			),
-			count: 13,
-		},
-	];
-
-	/* API 取得 - 先に取得しておくことで初期化前アクセスエラーを防ぐ */
-	const { data: categories } = useApiData<Category[]>(
-		"/categories",
-		dummyCategories,
-	);
-
 	const carouselRef = useRef<HTMLDivElement | null>(null);
 	const [rankingProjects, setRankingProjects] = useState<Project[]>([]);
 	const [rankingLoading, setRankingLoading] = useState(true);
@@ -343,6 +165,9 @@ const HomePage: React.FC = () => {
 	);
 	const [isCarouselPaused, setIsCarouselPaused] = useState(false);
 	const [activeIndex, setActiveIndex] = useState(0);
+	const [categories, setCategories] = useState<ApiCategory[]>([]);
+	const [categoryLoading, setCategoryLoading] = useState(true);
+	const [categoryError, setCategoryError] = useState<string | null>(null);
 	const handleViewProject = useCallback(
 		(projectId: number) => {
 			navigate(`/item/${projectId}`);
@@ -486,6 +311,47 @@ const HomePage: React.FC = () => {
 	}, [rankingProjects.length, repeatedProjects.length]);
 
 	useEffect(() => {
+		let cancelled = false;
+
+		const loadCategories = async () => {
+			setCategoryLoading(true);
+			setCategoryError(null);
+			try {
+				const items = await fetchCategories();
+				if (!cancelled) {
+					setCategories(
+						items.map((item) => ({
+							...item,
+							image:
+								item.image && item.image.trim().length > 0 ? item.image : null,
+						})),
+					);
+				}
+			} catch (error) {
+				console.error("カテゴリ取得失敗:", error);
+				if (!cancelled) {
+					const message =
+						error instanceof Error
+							? error.message
+							: "カテゴリの取得に失敗しました";
+					setCategoryError(message);
+					setCategories([]);
+				}
+			} finally {
+				if (!cancelled) {
+					setCategoryLoading(false);
+				}
+			}
+		};
+
+		loadCategories();
+
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+	console.log(categories);
+	useEffect(() => {
 		const track = carouselRef.current;
 		if (!track || !rankingProjects.length) return;
 
@@ -618,9 +484,21 @@ const HomePage: React.FC = () => {
 						カテゴリから探す
 					</Typography>
 					<Box className="category-carousel" sx={{ mt: 4 }}>
-						{Array.isArray(categories) &&
-							categories.map((c) => (
-								<Box key={c.name} className="carousel-item category-item">
+						{categoryLoading ? (
+							<Box className="loading-container">
+								<CircularProgress />
+							</Box>
+						) : categoryError ? (
+							<Alert severity="error" className="api-error-alert">
+								{categoryError}
+							</Alert>
+						) : categories.length === 0 ? (
+							<Alert severity="info" className="api-error-alert">
+								表示できるカテゴリがありません。
+							</Alert>
+						) : (
+							categories.map((category) => (
+								<Box key={category.id} className="carousel-item category-item">
 									<Button
 										variant="contained"
 										className="category-content"
@@ -640,24 +518,40 @@ const HomePage: React.FC = () => {
 										}}
 										onClick={() =>
 											navigate(
-												`/projects?category=${encodeURIComponent(c.name)}`,
+												`/projects?category=${encodeURIComponent(category.name)}`,
 											)
 										}
 									>
-										<Box className="category-icon-wrapper">{c.icon}</Box>
+										<Box className="category-icon-wrapper">
+											{category.image ? (
+												<img
+													src={category.image}
+													alt={category.name}
+													loading="lazy"
+													style={{
+														width: "100%",
+														height: "100%",
+														objectFit: "cover",
+													}}
+												/>
+											) : (
+												<CodeIcon fontSize="large" color="primary" />
+											)}
+										</Box>
 										<Typography variant="subtitle1" className="category-name">
-											{c.name}
+											{category.name}
 										</Typography>
 										<Typography
 											variant="caption"
 											color="text.secondary"
 											className="category-count"
 										>
-											{c.count}件
+											{category.products_count}件
 										</Typography>
 									</Button>
 								</Box>
-							))}
+							))
+						)}
 					</Box>
 				</Container>
 			</Box>

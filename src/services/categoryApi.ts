@@ -12,7 +12,7 @@ import type {
  */
 export const fetchCategories = async (): Promise<Category[]> => {
 	const response = await axios.get<CategoryListResponse>(
-		`${API_CONFIG.BASE_URL}/api/categories`,
+		`${API_CONFIG.BASE_URL}/categories`,
 	);
 	return response.data.items;
 };
@@ -22,7 +22,7 @@ export const fetchCategories = async (): Promise<Category[]> => {
  */
 export const fetchCategory = async (id: number): Promise<Category> => {
 	const response = await axios.get<Category>(
-		`${API_CONFIG.BASE_URL}/api/categories/${id}`,
+		`${API_CONFIG.BASE_URL}/categories/${id}`,
 	);
 	return response.data;
 };
@@ -40,7 +40,7 @@ export const createCategory = async (
 	}
 
 	const response = await axios.post<Category>(
-		`${API_CONFIG.BASE_URL}/api/categories`,
+		`${API_CONFIG.BASE_URL}/categories`,
 		formData,
 		{
 			headers: {
@@ -68,7 +68,7 @@ export const updateCategory = async (
 	formData.append("_method", "PUT"); // Laravel の FormData での PUT リクエスト
 
 	const response = await axios.post<Category>(
-		`${API_CONFIG.BASE_URL}/api/categories/${id}`,
+		`${API_CONFIG.BASE_URL}/categories/${id}`,
 		formData,
 		{
 			headers: {
@@ -83,7 +83,7 @@ export const updateCategory = async (
  * カテゴリを削除
  */
 export const deleteCategory = async (id: number): Promise<void> => {
-	await axios.delete(`${API_CONFIG.BASE_URL}/api/categories/${id}`);
+	await axios.delete(`${API_CONFIG.BASE_URL}/categories/${id}`);
 };
 
 export default {
