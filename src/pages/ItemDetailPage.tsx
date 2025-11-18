@@ -20,7 +20,7 @@ import {
 	Stack,
 	Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import "./ItemDetailPage.css";
@@ -44,6 +44,7 @@ interface ProjectDetail {
 	updated_at?: string;
 	lastUpdated?: string;
 	categoryIds?: number[];
+	categories?: Array<{ id: number; name: string }>;
 	price?: number;
 	isFree?: boolean;
 	features?: string[];
@@ -131,6 +132,7 @@ export default function ItemDetailPage({
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [isFavorite, setIsFavorite] = useState(false);
+	const [activeImageIndex, setActiveImageIndex] = useState(0);
 
 	useEffect(() => {
 		if (isDemoMode && itemId) {
@@ -200,7 +202,38 @@ export default function ItemDetailPage({
 
 		fetchProject();
 	}, [itemId, isDemoMode]);
-	console.log("Project Data:", project);
+
+	const imageList = useMemo(() => {
+		if (!project) {
+			return [] as string[];
+		}
+		const fromImages = Array.isArray(project.images)
+			? project.images.filter(
+					(value): value is string =>
+						typeof value === "string" && value.length > 0,
+				)
+			: [];
+		if (fromImages.length > 0) {
+			return fromImages;
+		}
+		return Array.isArray(project.image_url)
+			? project.image_url.filter(
+					(value): value is string =>
+						typeof value === "string" && value.length > 0,
+				)
+			: [];
+	}, [project]);
+
+	useEffect(() => {
+		setActiveImageIndex(0);
+	}, [project?.id]);
+
+	useEffect(() => {
+		if (activeImageIndex >= imageList.length && imageList.length > 0) {
+			setActiveImageIndex(imageList.length - 1);
+		}
+	}, [activeImageIndex, imageList]);
+
 	const handleDownload = () => {
 		alert("ダウンロード機能はデモ版のため利用できません");
 	};
@@ -293,24 +326,44 @@ export default function ItemDetailPage({
 					{/* 左側：メイン */}
 					<Box sx={{ flex: 2, minWidth: 0 }}>
 						<Card sx={{ mb: 3 }}>
-							<CardMedia
-								component="img"
-								height="400"
-								image={(project.images || project.image_url)[0]}
-								alt={project.title || project.name}
-								sx={{ objectFit: "cover" }}
-							/>
+							{imageList[activeImageIndex] ? (
+								<CardMedia
+									component="img"
+									height="400"
+									image={imageList[activeImageIndex]}
+									alt={project.title || project.name}
+									sx={{ objectFit: "cover" }}
+								/>
+							) : (
+								<Box
+									sx={{
+										height: 400,
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										color: "text.secondary",
+									}}
+								>
+									<Typography variant="body2">
+										画像が登録されていません
+									</Typography>
+								</Box>
+							)}
 						</Card>
 						<Box sx={{ display: "flex", gap: 1, mb: 3, overflowX: "auto" }}>
-							{(project.images || project.image_url).map((img, i) => (
+							{imageList.map((img, i) => (
 								<Box
 									key={i}
+									onClick={() => setActiveImageIndex(i)}
 									sx={{
 										minWidth: 120,
 										height: 80,
 										borderRadius: 1,
 										overflow: "hidden",
 										cursor: "pointer",
+										border: i === activeImageIndex ? "2px solid" : "1px solid",
+										borderColor:
+											i === activeImageIndex ? "primary.main" : "grey.300",
 									}}
 								>
 									<img
@@ -463,6 +516,37 @@ export default function ItemDetailPage({
 							<Typography variant="body2" color="text.secondary" paragraph>
 								{project.shortDescription || project.description}
 							</Typography>
+							{((project.categories && project.categories.length > 0) ||
+								(project.categoryIds && project.categoryIds.length > 0)) && (
+								<Box sx={{ mb: 2 }}>
+									<Typography
+										variant="body2"
+										color="text.secondary"
+										sx={{ mb: 0.5 }}
+									>
+										カテゴリー
+									</Typography>
+									<Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+										{project.categories?.map((category) => (
+											<Chip
+												key={category.id}
+												label={category.name}
+												size="small"
+												variant="outlined"
+											/>
+										))}
+										{!project.categories?.length &&
+											project.categoryIds?.map((id) => (
+												<Chip
+													key={id}
+													label={`カテゴリID: ${id}`}
+													size="small"
+													variant="outlined"
+												/>
+											))}
+									</Box>
+								</Box>
+							)}
 							<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
 								<Rating
 									value={
