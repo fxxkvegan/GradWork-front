@@ -38,8 +38,42 @@ const MyProductsPage = () => {
 			try {
 				setLoading(true);
 				const items = await productApi.fetchMyProducts();
+				const processedItems = items.map((item) => {
+					// image_url を配列に変換
+					let imageUrls: string[] = [];
+
+					if (typeof item.image_url === "string") {
+						try {
+							// JSON文字列の場合はパース
+							imageUrls = JSON.parse(item.image_url);
+						} catch (e) {
+							console.error("image_url のパースに失敗:", e);
+							// パース失敗時は文字列をそのまま配列に
+							imageUrls = item.image_url ? [item.image_url] : [];
+						}
+					} else if (Array.isArray(item.image_url)) {
+						// すでに配列の場合はそのまま使用
+						imageUrls = item.image_url;
+					}
+
+					// ✅ 各URLに BASE_URL を付与（相対パスの場合）
+					const fullImageUrls = imageUrls.map((url) => {
+						// すでに完全なURLの場合はそのまま返す
+						if (url.startsWith("http://") || url.startsWith("https://")) {
+							return url;
+						}
+						// 相対パスの場合は BASE_URL を付与
+						return `https://app.nice-dig.com${url}`;
+					});
+
+					return {
+						...item,
+						image_url: fullImageUrls,
+						images: fullImageUrls,
+					};
+				});
 				if (active) {
-					setProducts(items);
+					setProducts(processedItems);
 				}
 			} catch (fetchError) {
 				console.error(fetchError);
