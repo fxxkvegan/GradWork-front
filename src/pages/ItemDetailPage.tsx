@@ -25,6 +25,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import "./ItemDetailPage.css";
 import axios from "axios";
+import { API_CONFIG } from "../constants/api";
 
 // プロジェクト詳細の型定義
 interface ProjectDetail {
@@ -151,7 +152,7 @@ export default function ItemDetailPage({
 				setLoading(true);
 				setError(null);
 				const res = await axios.get<ProjectDetail>(
-					`https://app.nice-dig.com/api/products/${itemId}`,
+					`${API_CONFIG.BASE_URL}/products/${itemId}`,
 				);
 				if (res.data) {
 					const processedData = {
@@ -165,6 +166,16 @@ export default function ItemDetailPage({
 								? JSON.parse(res.data.image_url)
 								: res.data.image_url,
 					};
+					const fullImageUrls = res.data.image_url.map((url) => {
+						// すでに完全なURLの場合はそのまま返す
+						if (url.startsWith("http://") || url.startsWith("https://")) {
+							return url;
+						}
+						// 相対パスの場合は BASE_URL を付与
+						return `https://app.nice-dig.com${url}`;
+					});
+					processedData.image_url = fullImageUrls;
+					processedData.images = fullImageUrls;
 					setProject(processedData);
 				} else {
 					setError("プロジェクトデータが見つかりませんでした");
