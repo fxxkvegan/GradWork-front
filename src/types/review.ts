@@ -1,9 +1,8 @@
-import type { ApiResponse } from "./api";
-
 export interface Review {
 	id: number;
 	product_id: number;
-	author_id: number;
+	author_id: number | null;
+	author_name?: string | null;
 	title: string;
 	body: string;
 	rating: number;
@@ -21,10 +20,24 @@ export interface ReviewResponse {
 	updated_at: string;
 }
 
-export interface ReviewListResponse extends ApiResponse<Review[]> {}
+export interface ReviewListResponse {
+	message?: string;
+	data: Review[];
+	average_rating: number;
+	review_count: number;
+}
 
-export interface ReviewResponseListResponse
-	extends ApiResponse<ReviewResponse[]> {}
+export interface ReviewMutationResponse {
+	message?: string;
+	data?: Review;
+	average_rating: number;
+	review_count: number;
+}
+
+export interface ReviewResponseListResponse {
+	message?: string;
+	data: ReviewResponse[];
+}
 
 export interface ReviewCreateRequest {
 	title: string;

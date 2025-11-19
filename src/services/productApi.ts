@@ -5,6 +5,11 @@ import type {
 	ProductCreateRequest,
 	ProductUpdateRequest,
 } from "../types/product";
+import type {
+	ReviewCreateRequest,
+	ReviewListResponse,
+	ReviewMutationResponse,
+} from "../types/review";
 
 export interface RankingCategory {
 	id: number;
@@ -39,6 +44,27 @@ const client = axios.create({
 });
 
 const AUTH_TOKEN_KEY = "AUTH_TOKEN";
+const normalizeReviewListResponse = (
+	source: ReviewListResponse | undefined,
+): ReviewListResponse => ({
+	message: source?.message,
+	data: Array.isArray(source?.data) ? source!.data : [],
+	average_rating:
+		typeof source?.average_rating === "number" ? source.average_rating : 0,
+	review_count:
+		typeof source?.review_count === "number" ? source.review_count : 0,
+});
+
+const normalizeReviewMutationResponse = (
+	source: ReviewMutationResponse | undefined,
+): ReviewMutationResponse => ({
+	message: source?.message,
+	data: source?.data,
+	average_rating:
+		typeof source?.average_rating === "number" ? source.average_rating : 0,
+	review_count:
+		typeof source?.review_count === "number" ? source.review_count : 0,
+});
 
 const authClient = axios.create({
 	baseURL: API_CONFIG.BASE_URL,
@@ -169,10 +195,32 @@ export const deleteProduct = async (productId: number): Promise<void> => {
 	await authClient.delete(`/products/${productId}`);
 };
 
+export const fetchProductReviews = async (
+	productId: number,
+): Promise<ReviewListResponse> => {
+	const { data } = await client.get<ReviewListResponse>(
+		`/products/${productId}/reviews`,
+	);
+	return normalizeReviewListResponse(data);
+};
+
+export const createProductReview = async (
+	productId: number,
+	payload: ReviewCreateRequest,
+): Promise<ReviewMutationResponse> => {
+	const { data } = await authClient.post<ReviewMutationResponse>(
+		`/products/${productId}/reviews`,
+		payload,
+	);
+	return normalizeReviewMutationResponse(data);
+};
+
 export default {
 	fetchRankingProjects,
 	createProduct,
 	updateProduct,
 	fetchMyProducts,
 	deleteProduct,
+	fetchProductReviews,
+	createProductReview,
 };
