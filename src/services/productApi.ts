@@ -101,6 +101,15 @@ const appendImages = (
 	});
 };
 
+const appendRemoveImageUrls = (
+	formData: FormData,
+	removeImageUrls: ProductUpdateRequest["remove_image_urls"],
+) => {
+	removeImageUrls?.forEach((url) => {
+		formData.append("remove_image_urls[]", url);
+	});
+};
+
 export const createProduct = async (
 	payload: ProductCreateRequest,
 ): Promise<Product> => {
@@ -129,6 +138,7 @@ export const updateProduct = async (
 	}
 	appendCategoryIds(formData, payload.categoryIds);
 	appendImages(formData, payload.image_url);
+	appendRemoveImageUrls(formData, payload.remove_image_urls);
 	if (typeof payload.rating === "number") {
 		formData.append("rating", String(payload.rating));
 	}
@@ -155,9 +165,14 @@ export const fetchMyProducts = async (): Promise<Product[]> => {
 	return Array.isArray(data?.items) ? data.items : [];
 };
 
+export const deleteProduct = async (productId: number): Promise<void> => {
+	await authClient.delete(`/products/${productId}`);
+};
+
 export default {
 	fetchRankingProjects,
 	createProduct,
 	updateProduct,
 	fetchMyProducts,
+	deleteProduct,
 };
