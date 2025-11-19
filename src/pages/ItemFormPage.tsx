@@ -1,5 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // File: src/pages/ItemFormPage.tsx
+
+import CloseIcon from "@mui/icons-material/Close";
 import {
 	Alert,
 	Box,
@@ -12,6 +14,7 @@ import {
 	Container,
 	Divider,
 	FormControlLabel,
+	IconButton,
 	Paper,
 	Stack,
 	TextField,
@@ -32,16 +35,20 @@ interface EditFormState {
 	name: string;
 	description: string;
 	categoryIds: number[];
-	imageFiles: File[];
-	imagePreviews: string[];
+	existingImageUrls: string[];
+	newImageFiles: File[];
+	newImagePreviews: string[];
+	removeImageUrls: string[];
 }
 
 const toInitialState = (): EditFormState => ({
 	name: "",
 	description: "",
 	categoryIds: [],
-	imageFiles: [],
-	imagePreviews: [],
+	existingImageUrls: [],
+	newImageFiles: [],
+	newImagePreviews: [],
+	removeImageUrls: [],
 });
 
 const ItemFormPage = () => {
@@ -134,14 +141,21 @@ const ItemFormPage = () => {
 						? [data.image_url]
 						: [];
 
+				objectURLRef.current.forEach((url) => {
+					URL.revokeObjectURL(url);
+				});
+				objectURLRef.current = [];
+
 				setForm({
 					name: data.name ?? "",
 					description: (data.description as string | null) ?? "",
 					categoryIds: (data.categoryIds ?? [])
 						.map((value) => Number(value))
 						.filter((value) => !Number.isNaN(value)),
-					imageFiles: [],
-					imagePreviews: images,
+					existingImageUrls: images,
+					newImageFiles: [],
+					newImagePreviews: [],
+					removeImageUrls: [],
 				});
 				setActiveImageIndex(images.length > 0 ? 0 : 0);
 				setImageNotice(null);
@@ -188,7 +202,8 @@ const ItemFormPage = () => {
 		}
 
 		setForm((prev) => {
-			const currentCount = prev.imagePreviews.length;
+			const currentCount =
+				prev.existingImageUrls.length + prev.newImagePreviews.length;
 			const availableSlots = MAX_IMAGES - currentCount;
 
 			if (availableSlots <= 0) {
@@ -208,12 +223,12 @@ const ItemFormPage = () => {
 				return url;
 			});
 
-			const nextFiles = [...prev.imageFiles, ...acceptedFiles];
-			const nextPreviews = [...prev.imagePreviews, ...newUrls];
+			const nextFiles = [...prev.newImageFiles, ...acceptedFiles];
+			const nextPreviews = [...prev.newImagePreviews, ...newUrls];
 
 			if (
 				files.length > acceptedFiles.length ||
-				nextPreviews.length >= MAX_IMAGES
+				prev.existingImageUrls.length + nextPreviews.length >= MAX_IMAGES
 			) {
 				setImageNotice(`画像は最大${MAX_IMAGES}枚まで追加できます。`);
 			} else {
@@ -226,23 +241,63 @@ const ItemFormPage = () => {
 
 			return {
 				...prev,
-				imageFiles: nextFiles,
-				imagePreviews: nextPreviews,
+				newImageFiles: nextFiles,
+				newImagePreviews: nextPreviews,
 			};
 		});
 
 		event.target.value = "";
 	};
 
+	const handleRemoveImage = (index: number) => {
+		setForm((prev) => {
+			const totalExisting = prev.existingImageUrls.length;
+			if (index < totalExisting) {
+				const targetUrl = prev.existingImageUrls[index];
+				return {
+					...prev,
+					existingImageUrls: prev.existingImageUrls.filter(
+						(_, i) => i !== index,
+					),
+					removeImageUrls: [...prev.removeImageUrls, targetUrl],
+				};
+			}
+
+			const newIndex = index - totalExisting;
+			const targetPreview = prev.newImagePreviews[newIndex];
+			if (targetPreview) {
+				const refIndex = objectURLRef.current.indexOf(targetPreview);
+				if (refIndex !== -1) {
+					URL.revokeObjectURL(objectURLRef.current[refIndex]);
+					objectURLRef.current.splice(refIndex, 1);
+				}
+			}
+
+			return {
+				...prev,
+				newImageFiles: prev.newImageFiles.filter((_, i) => i !== newIndex),
+				newImagePreviews: prev.newImagePreviews.filter(
+					(_, i) => i !== newIndex,
+				),
+			};
+		});
+		setImageNotice(itemId ? "削除は保存すると反映されます" : null);
+	};
+
+	const combinedImages = useMemo(
+		() => [...form.existingImageUrls, ...form.newImagePreviews],
+		[form.existingImageUrls, form.newImagePreviews],
+	);
+
 	useEffect(() => {
 		setActiveImageIndex((prev) => {
-			if (form.imagePreviews.length === 0) {
+			if (combinedImages.length === 0) {
 				return 0;
 			}
-			const maxIndex = form.imagePreviews.length - 1;
+			const maxIndex = combinedImages.length - 1;
 			return Math.min(prev, maxIndex);
 		});
-	}, [form.imagePreviews]);
+	}, [combinedImages]);
 
 	const canSubmit = useMemo(() => {
 		return form.name.trim().length > 0 && form.categoryIds.length > 0;
@@ -262,14 +317,17 @@ const ItemFormPage = () => {
 					name: form.name,
 					description: form.description,
 					categoryIds: form.categoryIds,
-					image_url: form.imageFiles.length ? form.imageFiles : undefined,
+					image_url: form.newImageFiles.length ? form.newImageFiles : undefined,
+					remove_image_urls: form.removeImageUrls.length
+						? form.removeImageUrls
+						: undefined,
 				});
 			} else {
 				await productApi.createProduct({
 					name: form.name,
 					description: form.description,
 					categoryIds: form.categoryIds,
-					image_url: form.imageFiles,
+					image_url: form.newImageFiles,
 				});
 			}
 			navigate("/my-products", { replace: true });
@@ -283,7 +341,7 @@ const ItemFormPage = () => {
 		}
 	};
 
-	const activePreview = form.imagePreviews[activeImageIndex] ?? null;
+	const activePreview = combinedImages[activeImageIndex] ?? null;
 
 	return (
 		<div className="item-form-page">
@@ -346,13 +404,13 @@ const ItemFormPage = () => {
 											作品画像 (最大{MAX_IMAGES}枚)
 										</Typography>
 										<Typography variant="caption" color="text.secondary">
-											{form.imagePreviews.length}/{MAX_IMAGES} 枚
+											{combinedImages.length}/{MAX_IMAGES} 枚
 										</Typography>
 									</Box>
 									<Button
 										variant="outlined"
 										component="label"
-										disabled={form.imagePreviews.length >= MAX_IMAGES}
+										disabled={combinedImages.length >= MAX_IMAGES}
 									>
 										画像を選択
 										<input
@@ -374,7 +432,7 @@ const ItemFormPage = () => {
 										>
 											<CircularProgress size={24} />
 										</Box>
-									) : form.imagePreviews.length > 0 ? (
+									) : combinedImages.length > 0 ? (
 										<Box
 											sx={{
 												display: "grid",
@@ -385,32 +443,56 @@ const ItemFormPage = () => {
 												},
 											}}
 										>
-											{form.imagePreviews.map((src, index) => (
-												<CardActionArea
+											{combinedImages.map((src, index) => (
+												<Box
 													key={`${src}-${index}`}
-													onClick={() => setActiveImageIndex(index)}
+													sx={{ position: "relative" }}
 												>
-													<Card
+													<CardActionArea
+														onClick={() => setActiveImageIndex(index)}
+													>
+														<Card
+															sx={{
+																border:
+																	index === activeImageIndex
+																		? "2px solid"
+																		: "1px solid",
+																borderColor:
+																	index === activeImageIndex
+																		? "primary.main"
+																		: "grey.200",
+															}}
+														>
+															<CardMedia
+																component="img"
+																height="90"
+																image={src}
+																alt={`preview-${index}`}
+																loading="lazy"
+															/>
+														</Card>
+													</CardActionArea>
+													<IconButton
+														size="small"
+														aria-label="画像を削除"
+														onClick={(event) => {
+															event.stopPropagation();
+															handleRemoveImage(index);
+														}}
 														sx={{
-															border:
-																index === activeImageIndex
-																	? "2px solid"
-																	: "1px solid",
-															borderColor:
-																index === activeImageIndex
-																	? "primary.main"
-																	: "grey.200",
+															position: "absolute",
+															top: 4,
+															right: 4,
+															backgroundColor: "rgba(0, 0, 0, 0.45)",
+															color: "common.white",
+															"&:hover": {
+																backgroundColor: "rgba(0, 0, 0, 0.65)",
+															},
 														}}
 													>
-														<CardMedia
-															component="img"
-															height="90"
-															image={src}
-															alt={`preview-${index}`}
-															loading="lazy"
-														/>
-													</Card>
-												</CardActionArea>
+														<CloseIcon fontSize="small" />
+													</IconButton>
+												</Box>
 											))}
 										</Box>
 									) : (

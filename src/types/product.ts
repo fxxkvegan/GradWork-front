@@ -44,4 +44,5 @@ export interface ProductUpdateRequest {
 	image_url?: File[];
 	rating?: number;
 	download_count?: number;
+	remove_image_urls?: string[];
 }
