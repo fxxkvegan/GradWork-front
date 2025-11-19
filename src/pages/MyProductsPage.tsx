@@ -1,3 +1,4 @@
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
 	Alert,
 	Box,
@@ -8,6 +9,7 @@ import {
 	CardMedia,
 	CircularProgress,
 	Container,
+	Stack,
 	Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
@@ -23,6 +25,9 @@ const MyProductsPage = () => {
 	const [products, setProducts] = useState<Product[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [selectionMode, setSelectionMode] = useState(false);
+	const [selectedIds, setSelectedIds] = useState<number[]>([]);
+	const [deleting, setDeleting] = useState(false);
 
 	useEffect(() => {
 		if (!isLoggedIn) {
@@ -38,42 +43,8 @@ const MyProductsPage = () => {
 			try {
 				setLoading(true);
 				const items = await productApi.fetchMyProducts();
-				const processedItems = items.map((item) => {
-					// image_url を配列に変換
-					let imageUrls: string[] = [];
-
-					if (typeof item.image_url === "string") {
-						try {
-							// JSON文字列の場合はパース
-							imageUrls = JSON.parse(item.image_url);
-						} catch (e) {
-							console.error("image_url のパースに失敗:", e);
-							// パース失敗時は文字列をそのまま配列に
-							imageUrls = item.image_url ? [item.image_url] : [];
-						}
-					} else if (Array.isArray(item.image_url)) {
-						// すでに配列の場合はそのまま使用
-						imageUrls = item.image_url;
-					}
-
-					// ✅ 各URLに BASE_URL を付与（相対パスの場合）
-					const fullImageUrls = imageUrls.map((url) => {
-						// すでに完全なURLの場合はそのまま返す
-						if (url.startsWith("http://") || url.startsWith("https://")) {
-							return url;
-						}
-						// 相対パスの場合は BASE_URL を付与
-						return `https://app.nice-dig.com${url}`;
-					});
-
-					return {
-						...item,
-						image_url: fullImageUrls,
-						images: fullImageUrls,
-					};
-				});
 				if (active) {
-					setProducts(processedItems);
+					setProducts(items);
 				}
 			} catch (fetchError) {
 				console.error(fetchError);
@@ -90,6 +61,60 @@ const MyProductsPage = () => {
 	}, [isLoggedIn]);
 
 	const hasProducts = useMemo(() => products.length > 0, [products.length]);
+	const hasSelection = selectedIds.length > 0;
+
+	const handleCardClick = (productId: number) => () => {
+		if (!selectionMode) {
+			return;
+		}
+		toggleSelection(productId)();
+	};
+
+	const toggleSelectionMode = () => {
+		setSelectionMode((prev) => {
+			if (prev) {
+				setSelectedIds([]);
+			}
+			return !prev;
+		});
+	};
+
+	const toggleSelection = (productId: number) => () => {
+		setSelectedIds((prev) =>
+			prev.includes(productId)
+				? prev.filter((id) => id !== productId)
+				: [...prev, productId],
+		);
+	};
+
+	const handleDeleteSelected = async () => {
+		if (!hasSelection || deleting) {
+			return;
+		}
+
+		const confirmed = window.confirm(
+			`選択した${selectedIds.length}件の作品を削除します。よろしいですか？`,
+		);
+		if (!confirmed) {
+			return;
+		}
+
+		try {
+			setDeleting(true);
+			setError(null);
+			await Promise.all(selectedIds.map((id) => productApi.deleteProduct(id)));
+			setProducts((prev) =>
+				prev.filter((product) => !selectedIds.includes(product.id)),
+			);
+			setSelectedIds([]);
+			setSelectionMode(false);
+		} catch (deleteError) {
+			console.error(deleteError);
+			setError("作品の削除に失敗しました");
+		} finally {
+			setDeleting(false);
+		}
+	};
 
 	if (!isLoggedIn) {
 		return null;
@@ -99,11 +124,38 @@ const MyProductsPage = () => {
 		<div>
 			<AppHeaderWithAuth activePath="/my-products" />
 			<Container maxWidth="lg" sx={{ py: 4, mt: 6 }}>
-				<Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+				<Box
+					sx={{
+						display: "flex",
+						flexWrap: "wrap",
+						alignItems: { xs: "flex-start", sm: "center" },
+						justifyContent: "space-between",
+						gap: 2,
+						mb: 3,
+					}}
+				>
 					<Typography variant="h4">あなたの投稿</Typography>
-					<Button variant="contained" onClick={() => navigate("/create")}>
-						新しい作品を投稿
-					</Button>
+					<Stack direction="row" spacing={1} alignItems="center">
+						<Button variant="contained" onClick={() => navigate("/create")}>
+							新しい作品を投稿
+						</Button>
+						<Button
+							variant={selectionMode ? "contained" : "outlined"}
+							onClick={toggleSelectionMode}
+						>
+							{selectionMode ? "選択モードを終了" : "選択して削除"}
+						</Button>
+						{selectionMode && hasSelection && (
+							<Button
+								variant="contained"
+								color="error"
+								disabled={deleting}
+								onClick={handleDeleteSelected}
+							>
+								{deleting ? "削除中..." : `削除 (${selectedIds.length})`}
+							</Button>
+						)}
+					</Stack>
 				</Box>
 
 				{loading && (
@@ -139,8 +191,37 @@ const MyProductsPage = () => {
 										product.image_url !== ""
 									? [product.image_url]
 									: [];
+							const isSelected = selectedIds.includes(product.id);
 							return (
-								<Card key={product.id}>
+								<Card
+									key={product.id}
+									sx={{
+										position: "relative",
+										border: isSelected ? "2px solid" : undefined,
+										borderColor: isSelected ? "primary.main" : "transparent",
+										cursor: selectionMode ? "pointer" : "default",
+										boxShadow: isSelected ? 6 : 1,
+										backgroundColor: isSelected
+											? "rgba(25,118,210,0.08)"
+											: "background.paper",
+										transition:
+											"border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease",
+									}}
+									onClick={handleCardClick(product.id)}
+								>
+									{selectionMode && (
+										<Box
+											sx={{
+												position: "absolute",
+												top: 12,
+												right: 12,
+												zIndex: 1,
+												color: isSelected ? "primary.main" : "rgba(0,0,0,0.45)",
+											}}
+										>
+											<CheckCircleIcon fontSize="medium" />
+										</Box>
+									)}
 									{images[0] && (
 										<CardMedia
 											component="img"
@@ -161,14 +242,28 @@ const MyProductsPage = () => {
 									<CardActions sx={{ justifyContent: "flex-end" }}>
 										<Button
 											size="small"
-											onClick={() => navigate(`/item/${product.id}`)}
+											onClick={(event) => {
+												event.stopPropagation();
+												if (selectionMode) {
+													return;
+												}
+												navigate(`/item/${product.id}`);
+											}}
+											disabled={selectionMode}
 										>
 											詳細へ
 										</Button>
 										<Button
 											size="small"
 											variant="outlined"
-											onClick={() => navigate(`/edit/${product.id}`)}
+											onClick={(event) => {
+												event.stopPropagation();
+												if (selectionMode) {
+													return;
+												}
+												navigate(`/edit/${product.id}`);
+											}}
+											disabled={selectionMode}
 										>
 											編集
 										</Button>
