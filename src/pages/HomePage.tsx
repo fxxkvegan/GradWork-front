@@ -409,8 +409,8 @@ const HomePage: React.FC = () => {
 			<Box className="hero-section">
 				<Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: 5 }}>
 					<Box className="hero-content">
-						<Typography variant="h2" className="hero-title">
-							開発ちゅ♡
+						<Typography variant="h1" className="hero-title">
+							Nice dig
 						</Typography>
 					</Box>
 				</Container>
