@@ -5,7 +5,6 @@ import type {
 	LoginRequest,
 	RegisterRequest,
 	TokenRefreshResponse,
-	UpdateUserRequest,
 	UpdateUserSettingsRequest,
 	UserHistoryItem,
 	UserHistoryResponse,
@@ -159,12 +158,17 @@ export const getUserProfile = async (): Promise<UserProfile> => {
 };
 
 export const updateUserProfile = async (
-	userData: UpdateUserRequest,
+	formData: FormData,
 ): Promise<UserProfile> => {
 	try {
 		const { data } = await api.put<UserResponse>(
 			API_ENDPOINTS.USERS.PROFILE,
-			userData,
+			formData,
+			{
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			},
 		);
 		return data.data;
 	} catch (error) {
