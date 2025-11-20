@@ -50,7 +50,7 @@ const demoProjects = [
 	},
 ];
 
-const ItemDemoPage: React.FC = () => {
+const ItemListPage: React.FC = () => {
 	const navigate = useNavigate();
 
 	const handleViewDetails = (projectId: number) => {
@@ -155,4 +155,4 @@ const ItemDemoPage: React.FC = () => {
 	);
 };
 
-export default ItemDemoPage;
+export default ItemListPage;

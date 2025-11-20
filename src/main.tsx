@@ -8,9 +8,9 @@ import GitHubCallbackPage from "./pages/auth/GitHubCallbackPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import HomePage from "./pages/HomePage";
-import ItemDemoPage from "./pages/ItemDemoPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 import ItemFormPage from "./pages/ItemFormPage";
+import ItemListPage from "./pages/ItemListPage";
 import Legal from "./pages/Legal";
 import MyProductsPage from "./pages/MyProductsPage";
 import ProjectList from "./pages/ProjectList";
@@ -35,7 +35,7 @@ const router = createBrowserRouter([
 			{ path: "login", element: <LoginPage /> },
 			{ path: "login/github-callback", element: <GitHubCallbackPage /> },
 			{ path: "Legal", element: <Legal /> },
-			{ path: "item", element: <ItemDemoPage /> },
+			{ path: "item", element: <ItemListPage /> },
 			{ path: "item/:itemId", element: <ItemDetailPage /> },
 			{ path: "local/item/:itemId", element: <ItemDetailPage /> },
 			{ path: "admin/add-items", element: <AddItemsPage /> },
