@@ -5,6 +5,7 @@ import {
 } from "@mui/icons-material";
 import {
 	Alert,
+	Avatar,
 	Box,
 	Button,
 	Card,
@@ -48,6 +49,12 @@ export interface Project {
 	rating: number;
 	downloads: number;
 	tags: string[];
+	owner?: {
+		id: number;
+		name: string;
+		displayName?: string | null;
+		avatarUrl?: string | null;
+	} | null;
 }
 /* ---------- プロジェクトカード ---------- */
 const ProjectCard: React.FC<{
@@ -70,6 +77,10 @@ const ProjectCard: React.FC<{
 		event.preventDefault();
 		onView?.(project.id);
 	};
+
+	const ownerName =
+		project.owner?.displayName?.trim() || project.owner?.name?.trim() || "";
+	const ownerInitial = ownerName ? ownerName.charAt(0).toUpperCase() : "U";
 
 	return (
 		<Card className="project-card">
@@ -107,6 +118,22 @@ const ProjectCard: React.FC<{
 			</Box>
 
 			<CardContent className="card-content">
+				{project.owner && (
+					<Box
+						sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}
+					>
+						<Avatar
+							src={project.owner.avatarUrl ?? undefined}
+							alt={ownerName || project.owner.name || "投稿者"}
+							sx={{ width: 32, height: 32 }}
+						>
+							{ownerInitial}
+						</Avatar>
+						<Typography variant="body2" fontWeight="medium">
+							{ownerName || project.owner?.name || "投稿者"}
+						</Typography>
+					</Box>
+				)}
 				<Box className="card-header">
 					<Typography variant="subtitle2">{project.downloads} DL</Typography>
 					<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -227,6 +254,16 @@ const HomePage: React.FC = () => {
 			).slice(0, 6);
 			const firstCategory = categoryNames[0] ?? "カテゴリー";
 
+			const ownerPayload = item?.owner;
+			const owner = ownerPayload
+				? {
+						id: Number(ownerPayload.id) || 0,
+						name: ownerPayload.name ?? "",
+						displayName: ownerPayload.displayName ?? null,
+						avatarUrl: ownerPayload.avatarUrl ?? null,
+					}
+				: null;
+
 			return {
 				id: Number(item?.id) || 0,
 				title: item?.name ?? "無題",
@@ -242,6 +279,7 @@ const HomePage: React.FC = () => {
 						? item.download_count
 						: Number((item?.download_count as unknown) ?? 0) || 0,
 				tags: tags.length ? tags : [firstCategory],
+				owner,
 			};
 		};
 

@@ -9,6 +9,7 @@ import {
 } from "@mui/icons-material";
 import {
 	Alert,
+	Avatar,
 	Box,
 	Button,
 	Card,
@@ -43,6 +44,17 @@ import productApi from "../services/productApi";
 import type { Review } from "../types/review";
 
 // プロジェクト詳細の型定義
+interface ProjectOwner {
+	id: number;
+	name: string;
+	displayName?: string | null;
+	avatarUrl?: string | null;
+	headerUrl?: string | null;
+	bio?: string | null;
+	location?: string | null;
+	website?: string | null;
+}
+
 interface ProjectDetail {
 	id: number;
 	name: string;
@@ -74,6 +86,7 @@ interface ProjectDetail {
 		browser: string;
 		memory: string;
 	};
+	owner?: ProjectOwner | null;
 	author?: { name: string; avatar: string; rating: number };
 	version?: string;
 }
@@ -121,6 +134,16 @@ const getDemoProjectDetail = (id: string): ProjectDetail => ({
 		os: "Windows 10+, macOS 10.15+, Linux Ubuntu 18+",
 		browser: "Chrome 90+, Firefox 88+, Safari 14+",
 		memory: "8GB RAM 推奨",
+	},
+	owner: {
+		id: 0,
+		name: "TechDeveloper",
+		displayName: "TechDeveloper",
+		avatarUrl: "/nice_dig.png",
+		headerUrl: null,
+		bio: null,
+		location: null,
+		website: null,
 	},
 	author: { name: "TechDeveloper", avatar: "/nice_dig.png", rating: 4.8 },
 	downloadCount: 1250,
@@ -201,6 +224,9 @@ const clampToStep = (value: number) =>
 
 const clampRatingValue = (value: number) =>
 	Math.min(MAX_RATING, Math.max(MIN_RATING, clampToStep(value) || MIN_RATING));
+
+const trimString = (value?: string | null): string =>
+	typeof value === "string" ? value.trim() : "";
 
 interface StarRatingProps {
 	value: number;
@@ -477,27 +503,70 @@ export default function ItemDetailPage({
 					`${API_CONFIG.BASE_URL}/products/${itemId}`,
 				);
 				if (res.data) {
-					const processedData = {
-						...res.data,
-						image_url:
-							typeof res.data.image_url === "string"
-								? JSON.parse(res.data.image_url)
-								: res.data.image_url,
-						images:
-							typeof res.data.image_url === "string"
-								? JSON.parse(res.data.image_url)
-								: res.data.image_url,
-					};
-					const fullImageUrls = res.data.image_url.map((url) => {
-						// すでに完全なURLの場合はそのまま返す
-						if (url.startsWith("http://") || url.startsWith("https://")) {
-							return url;
+					const initialImages = (() => {
+						if (Array.isArray(res.data.image_url)) {
+							return res.data.image_url;
 						}
-						// 相対パスの場合は BASE_URL を付与
-						return `https://app.nice-dig.com${url}`;
-					});
-					processedData.image_url = fullImageUrls;
-					processedData.images = fullImageUrls;
+						if (
+							typeof res.data.image_url === "string" &&
+							res.data.image_url !== ""
+						) {
+							try {
+								const parsed = JSON.parse(res.data.image_url);
+								return Array.isArray(parsed) ? parsed : [parsed];
+							} catch {
+								return [res.data.image_url];
+							}
+						}
+						return [] as string[];
+					})();
+
+					const apiOrigin = API_CONFIG.BASE_URL.replace(/\/api$/i, "");
+
+					const fullImageUrls = initialImages
+						.map((value) => (typeof value === "string" ? value : ""))
+						.filter((value): value is string => value.length > 0)
+						.map((url) => {
+							if (url.startsWith("http://") || url.startsWith("https://")) {
+								return url;
+							}
+							return `${apiOrigin}${url}`;
+						});
+
+					const ownerPayload = res.data.owner;
+					const owner = ownerPayload
+						? {
+								id: Number(ownerPayload.id) || 0,
+								name: ownerPayload.name ?? "",
+								displayName: ownerPayload.displayName ?? null,
+								avatarUrl: ownerPayload.avatarUrl ?? null,
+								headerUrl: ownerPayload.headerUrl ?? null,
+								bio: ownerPayload.bio ?? null,
+								location: ownerPayload.location ?? null,
+								website: ownerPayload.website ?? null,
+							}
+						: null;
+
+					const processedData: ProjectDetail = {
+						...res.data,
+						image_url: fullImageUrls,
+						images: fullImageUrls,
+						owner,
+					};
+
+					if (!processedData.owner && res.data.author) {
+						processedData.owner = {
+							id: 0,
+							name: res.data.author.name,
+							displayName: res.data.author.name,
+							avatarUrl: res.data.author.avatar,
+							headerUrl: null,
+							bio: null,
+							location: null,
+							website: null,
+						};
+					}
+
 					setProject(processedData);
 				} else {
 					setError("プロジェクトデータが見つかりませんでした");
@@ -629,6 +698,18 @@ export default function ItemDetailPage({
 		}
 		return project.rating.count ?? 0;
 	}, [project, reviewSummary]);
+
+	const ownerDisplayNameRaw = trimString(project?.owner?.displayName);
+	const ownerNameRaw = trimString(project?.owner?.name);
+	const ownerDisplayName = ownerDisplayNameRaw || ownerNameRaw || null;
+	const ownerInitialSource = ownerDisplayName ?? "";
+	const ownerInitial =
+		ownerInitialSource.length > 0
+			? ownerInitialSource.charAt(0).toUpperCase()
+			: "U";
+	const ownerAvatarUrl = project?.owner?.avatarUrl ?? null;
+	const ownerBioValue = trimString(project?.owner?.bio);
+	const ownerBio = ownerBioValue.length > 0 ? ownerBioValue : null;
 
 	const handleDownload = () => {
 		alert("ダウンロード機能はデモ版のため利用できません");
@@ -1237,26 +1318,26 @@ export default function ItemDetailPage({
 									<Typography variant="body1">{project.version}</Typography>
 								</Box>
 							)}
-							{project.author && (
+							{project.owner && (
 								<>
 									<Divider sx={{ my: 2 }} />
-									<Box sx={{ display: "flex", alignItems: "center" }}>
-										<Box
-											component="img"
-											src={project.author.avatar}
-											alt={project.author.name}
-											sx={{ width: 40, height: 40, borderRadius: "50%", mr: 2 }}
-										/>
+									<Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+										<Avatar
+											src={ownerAvatarUrl ?? undefined}
+											alt={(ownerDisplayName ?? ownerNameRaw) || "投稿者"}
+											sx={{ width: 48, height: 48 }}
+										>
+											{ownerInitial}
+										</Avatar>
 										<Box>
 											<Typography variant="body2" fontWeight="medium">
-												{project.author.name}
+												{(ownerDisplayName ?? ownerNameRaw) || "投稿者"}
 											</Typography>
-											<StarRating
-												value={project.author.rating ?? 0}
-												readOnly
-												size={18}
-												ariaLabel="作者の評価"
-											/>
+											{ownerBio && (
+												<Typography variant="caption" color="text.secondary">
+													{ownerBio}
+												</Typography>
+											)}
 										</Box>
 									</Box>
 								</>
