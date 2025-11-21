@@ -1,6 +1,7 @@
 import {
 	ArrowBack as ArrowBackIcon,
 	Download as DownloadIcon,
+	ExpandMore as ExpandMoreIcon,
 	FavoriteBorder as FavoriteBorderIcon,
 	Favorite as FavoriteIcon,
 	Share as ShareIcon,
@@ -15,6 +16,7 @@ import {
 	Card,
 	Chip,
 	CircularProgress,
+	Collapse,
 	Container,
 	Divider,
 	IconButton,
@@ -442,6 +444,7 @@ export default function ItemDetailPage({
 		null,
 	);
 	const [submittingReview, setSubmittingReview] = useState(false);
+	const [isReviewSectionOpen, setReviewSectionOpen] = useState(true);
 
 	const applyReviewSummary = useCallback(
 		(average: number, count: number) => {
@@ -723,6 +726,10 @@ export default function ItemDetailPage({
 		alert("URLをクリップボードにコピーしました");
 	};
 
+	const handleToggleReviews = () => {
+		setReviewSectionOpen((previous) => !previous);
+	};
+
 	const handleBack = () => {
 		navigate(-1);
 	};
@@ -809,7 +816,10 @@ export default function ItemDetailPage({
 		return (
 			<div className="item-detail-page">
 				<AppHeaderWithAuth activePath={`/item/${itemId}`} />
-				<Container maxWidth="lg" sx={{ py: 4, mt: 6 }}>
+				<Container
+					maxWidth="lg"
+					sx={{ py: { xs: 3, md: 4 }, mt: { xs: 4, md: 6 } }}
+				>
 					<Skeleton variant="rectangular" width="100%" height={400} />
 					<Box sx={{ mt: 3 }}>
 						<Skeleton variant="text" sx={{ fontSize: "2rem" }} />
@@ -825,7 +835,10 @@ export default function ItemDetailPage({
 		return (
 			<div className="item-detail-page">
 				<AppHeaderWithAuth activePath={`/item/${itemId}`} />
-				<Container maxWidth="lg" sx={{ py: 4, mt: 6 }}>
+				<Container
+					maxWidth="lg"
+					sx={{ py: { xs: 3, md: 4 }, mt: { xs: 4, md: 6 } }}
+				>
 					<Typography variant="h5" align="center" color="error">
 						{error}
 					</Typography>
@@ -843,7 +856,10 @@ export default function ItemDetailPage({
 		return (
 			<div className="item-detail-page">
 				<AppHeaderWithAuth activePath={`/item/${itemId}`} />
-				<Container maxWidth="lg" sx={{ py: 4, mt: 6 }}>
+				<Container
+					maxWidth="lg"
+					sx={{ py: { xs: 3, md: 4 }, mt: { xs: 4, md: 6 } }}
+				>
 					<Typography variant="h5" align="center">
 						プロジェクトが見つかりませんでした
 					</Typography>
@@ -860,7 +876,10 @@ export default function ItemDetailPage({
 	return (
 		<div className="item-detail-page">
 			<AppHeaderWithAuth activePath={`/item/${itemId}`} />
-			<Container maxWidth="lg" sx={{ py: 4, mt: 6 }}>
+			<Container
+				maxWidth="lg"
+				sx={{ py: { xs: 3, md: 4 }, mt: { xs: 4, md: 6 } }}
+			>
 				<Box sx={{ mb: 3 }}>
 					<Button
 						startIcon={<ArrowBackIcon />}
@@ -873,7 +892,7 @@ export default function ItemDetailPage({
 				<Box
 					sx={{
 						display: "flex",
-						gap: 4,
+						gap: { xs: 3, lg: 4 },
 						flexDirection: { xs: "column", lg: "row" },
 					}}
 				>
@@ -919,20 +938,30 @@ export default function ItemDetailPage({
 								</Box>
 							)}
 						</Card>
-						<Box sx={{ display: "flex", gap: 1, mb: 3, overflowX: "auto" }}>
+						<Box
+							sx={{
+								display: "flex",
+								gap: 1,
+								mb: 3,
+								overflowX: "auto",
+								pb: 0.5,
+								scrollSnapType: "x proximity",
+							}}
+						>
 							{imageList.map((img, i) => (
 								<Box
 									key={i}
 									onClick={() => setActiveImageIndex(i)}
 									sx={{
-										minWidth: 120,
-										height: 80,
+										minWidth: { xs: 80, sm: 120 },
+										height: { xs: 64, sm: 80 },
 										borderRadius: 1,
 										overflow: "hidden",
 										cursor: "pointer",
 										border: i === activeImageIndex ? "2px solid" : "1px solid",
 										borderColor:
 											i === activeImageIndex ? "primary.main" : "grey.300",
+										scrollSnapAlign: "center",
 									}}
 								>
 									<img
@@ -947,7 +976,7 @@ export default function ItemDetailPage({
 								</Box>
 							))}
 						</Box>
-						<Paper sx={{ p: 3, mb: 3 }}>
+						<Paper sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
 							<Typography variant="h6" gutterBottom>
 								プロジェクト詳細
 							</Typography>
@@ -958,7 +987,7 @@ export default function ItemDetailPage({
 								{project.longDescription || project.description}
 							</Typography>
 						</Paper>
-						<Paper sx={{ p: 3 }}>
+						<Paper sx={{ p: { xs: 2, md: 3 } }}>
 							<Typography variant="h6" gutterBottom>
 								使用技術・主要機能・システム要件
 							</Typography>
@@ -1075,172 +1104,221 @@ export default function ItemDetailPage({
 								</>
 							)}
 						</Paper>
-						<Paper sx={{ p: 3, mt: 3 }}>
-							<Stack direction="row" alignItems="center" spacing={1}>
-								<Typography variant="h6">レビュー</Typography>
-							</Stack>
-							<Box
-								sx={{ mt: 1.5, display: "flex", alignItems: "center", gap: 1 }}
+						<Paper sx={{ p: { xs: 2, md: 3 }, mt: 3 }}>
+							<Stack
+								direction={{ xs: "column", sm: "row" }}
+								alignItems={{ xs: "flex-start", sm: "center" }}
+								justifyContent="space-between"
+								spacing={{ xs: 1, sm: 2 }}
 							>
-								<StarRating
-									value={displayedAverageRating}
-									readOnly
-									size={22}
-									ariaLabel="平均評価"
-								/>
-								<Typography variant="body2" fontWeight={600}>
-									{formattedAverageRating} / {MAX_RATING}
-								</Typography>
-								<Typography variant="body2" color="text.secondary">
-									（{displayedReviewCount}件）
-								</Typography>
-							</Box>
-							{isLoggedIn ? (
-								<Box
-									component="form"
-									onSubmit={handleReviewSubmit}
-									sx={{ mt: 3 }}
-									noValidate
+								<Stack
+									direction={{ xs: "column", sm: "row" }}
+									alignItems={{ xs: "flex-start", sm: "center" }}
+									spacing={{ xs: 0.75, sm: 1.5 }}
 								>
-									<Stack spacing={2}>
-										<Box>
-											<Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-												あなたの評価
-											</Typography>
-											<StarRating
-												value={reviewForm.rating}
-												onChange={handleReviewRatingChange}
-												size={28}
-												ariaLabel="レビュー評価を選択"
-											/>
-										</Box>
-										<TextField
-											label="タイトル"
-											value={reviewForm.title}
-											onChange={handleReviewFieldChange("title")}
-											required
-											fullWidth
+									<Typography variant="h6">レビュー</Typography>
+									<Stack
+										direction="row"
+										alignItems="center"
+										spacing={1}
+										sx={{ flexWrap: "wrap", rowGap: 0.5 }}
+									>
+										<StarRating
+											value={displayedAverageRating}
+											readOnly
+											size={20}
+											ariaLabel="平均評価"
 										/>
-										<TextField
-											label="レビュー内容"
-											value={reviewForm.body}
-											onChange={handleReviewFieldChange("body")}
-											fullWidth
-											required
-											multiline
-											minRows={4}
-										/>
-										{reviewSubmitError && (
-											<Alert severity="error">{reviewSubmitError}</Alert>
-										)}
-										<Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-											<Button
-												type="submit"
-												variant="contained"
-												disabled={submittingReview}
-											>
-												{submittingReview ? "送信中..." : "レビューを投稿"}
-											</Button>
-										</Box>
+										<Typography variant="body2" fontWeight={600}>
+											{formattedAverageRating} / {MAX_RATING}
+										</Typography>
+										<Typography variant="body2" color="text.secondary">
+											（{displayedReviewCount}件）
+										</Typography>
 									</Stack>
-								</Box>
-							) : (
-								<Alert severity="info" sx={{ mt: 3 }}>
-									レビューを書くにはログインしてください。
-								</Alert>
-							)}
-							<Divider sx={{ my: 3 }} />
-							{reviewsLoading ? (
-								<Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-									<CircularProgress size={28} />
-								</Box>
-							) : reviewsError ? (
-								<Alert severity="error">{reviewsError}</Alert>
-							) : reviews.length === 0 ? (
-								<Typography variant="body2" color="text.secondary">
-									まだレビューは投稿されていません。
-								</Typography>
-							) : (
-								<Stack spacing={2}>
-									{reviews.map((review) => {
-										const authorName = review.author_name?.trim().length
-											? review.author_name.trim()
-											: "匿名ユーザー";
-										const authorInitial = authorName.charAt(0).toUpperCase();
-										const authorAvatarUrl = review.author_avatar_url ?? null;
-
-										return (
-											<Box
-												key={review.id}
-												sx={{
-													border: "1px solid",
-													borderColor: "divider",
-													borderRadius: 2,
-													p: 2,
-												}}
-											>
-												<Stack
-													direction="row"
-													alignItems="center"
-													justifyContent="space-between"
-													spacing={2}
-												>
-													<Stack
-														direction="row"
-														spacing={1.5}
-														alignItems="center"
-													>
-														<Avatar
-															src={authorAvatarUrl ?? undefined}
-															alt={authorName}
-															sx={{ width: 36, height: 36 }}
-														>
-															{authorInitial}
-														</Avatar>
-														<Box>
-															<Typography variant="subtitle2">
-																{authorName}
-															</Typography>
-															<Typography
-																variant="caption"
-																color="text.secondary"
-															>
-																{formatReviewTimestamp(review.created_at)}
-															</Typography>
-														</Box>
-													</Stack>
-													<StarRating
-														value={review.rating}
-														readOnly
-														size={18}
-														ariaLabel="ユーザーレビュー評価"
-													/>
-												</Stack>
-												{review.title && (
-													<Typography variant="subtitle1" sx={{ mt: 1 }}>
-														{review.title}
-													</Typography>
-												)}
-												<Typography
-													variant="body2"
-													sx={{
-														mt: review.title ? 0.5 : 1,
-														whiteSpace: "pre-line",
-														lineHeight: 1.7,
-													}}
-												>
-													{review.body}
-												</Typography>
-											</Box>
-										);
-									})}
 								</Stack>
-							)}
+								<Button
+									variant="text"
+									size="small"
+									onClick={handleToggleReviews}
+									endIcon={
+										<ExpandMoreIcon
+											sx={{
+												transform: isReviewSectionOpen
+													? "rotate(180deg)"
+													: "rotate(0deg)",
+												transition: "transform 0.2s ease",
+											}}
+										/>
+									}
+									sx={{
+										alignSelf: { xs: "flex-start", sm: "center" },
+										fontWeight: 600,
+										px: 1.5,
+									}}
+									aria-expanded={isReviewSectionOpen}
+									aria-controls="review-section-content"
+								>
+									{isReviewSectionOpen ? "閉じる" : "開く"}
+								</Button>
+							</Stack>
+							<Collapse in={isReviewSectionOpen}>
+								<Box id="review-section-content" sx={{ mt: 2 }}>
+									{isLoggedIn ? (
+										<Box
+											component="form"
+											onSubmit={handleReviewSubmit}
+											sx={{ mt: 1.5 }}
+											noValidate
+										>
+											<Stack spacing={2}>
+												<Box>
+													<Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+														あなたの評価
+													</Typography>
+													<StarRating
+														value={reviewForm.rating}
+														onChange={handleReviewRatingChange}
+														size={28}
+														ariaLabel="レビュー評価を選択"
+													/>
+												</Box>
+												<TextField
+													label="タイトル"
+													value={reviewForm.title}
+													onChange={handleReviewFieldChange("title")}
+													required
+													fullWidth
+												/>
+												<TextField
+													label="レビュー内容"
+													value={reviewForm.body}
+													onChange={handleReviewFieldChange("body")}
+													fullWidth
+													required
+													multiline
+													minRows={4}
+												/>
+												{reviewSubmitError && (
+													<Alert severity="error">{reviewSubmitError}</Alert>
+												)}
+												<Box
+													sx={{ display: "flex", justifyContent: "flex-end" }}
+												>
+													<Button
+														type="submit"
+														variant="contained"
+														disabled={submittingReview}
+													>
+														{submittingReview ? "送信中..." : "レビューを投稿"}
+													</Button>
+												</Box>
+											</Stack>
+										</Box>
+									) : (
+										<Alert severity="info" sx={{ mt: 1.5 }}>
+											レビューを書くにはログインしてください。
+										</Alert>
+									)}
+									<Divider sx={{ my: { xs: 2, md: 3 } }} />
+									{reviewsLoading ? (
+										<Box
+											sx={{ display: "flex", justifyContent: "center", py: 2 }}
+										>
+											<CircularProgress size={28} />
+										</Box>
+									) : reviewsError ? (
+										<Alert severity="error">{reviewsError}</Alert>
+									) : reviews.length === 0 ? (
+										<Typography variant="body2" color="text.secondary">
+											まだレビューは投稿されていません。
+										</Typography>
+									) : (
+										<Stack spacing={2}>
+											{reviews.map((review) => {
+												const authorName = review.author_name?.trim().length
+													? review.author_name.trim()
+													: "匿名ユーザー";
+												const authorInitial = authorName
+													.charAt(0)
+													.toUpperCase();
+												const authorAvatarUrl =
+													review.author_avatar_url ?? null;
+
+												return (
+													<Box
+														key={review.id}
+														sx={{
+															border: "1px solid",
+															borderColor: "divider",
+															borderRadius: 2,
+															p: { xs: 1.75, md: 2 },
+														}}
+													>
+														<Stack
+															direction={{ xs: "column", sm: "row" }}
+															alignItems={{ xs: "flex-start", sm: "center" }}
+															justifyContent="space-between"
+															spacing={{ xs: 1, sm: 2 }}
+														>
+															<Stack
+																direction="row"
+																spacing={1.5}
+																alignItems="center"
+															>
+																<Avatar
+																	src={authorAvatarUrl ?? undefined}
+																	alt={authorName}
+																	sx={{ width: 36, height: 36 }}
+																>
+																	{authorInitial}
+																</Avatar>
+																<Box>
+																	<Typography variant="subtitle2">
+																		{authorName}
+																	</Typography>
+																	<Typography
+																		variant="caption"
+																		color="text.secondary"
+																	>
+																		{formatReviewTimestamp(review.created_at)}
+																	</Typography>
+																</Box>
+															</Stack>
+															<StarRating
+																value={review.rating}
+																readOnly
+																size={18}
+																ariaLabel="ユーザーレビュー評価"
+															/>
+														</Stack>
+														{review.title && (
+															<Typography variant="subtitle1" sx={{ mt: 1 }}>
+																{review.title}
+															</Typography>
+														)}
+														<Typography
+															variant="body2"
+															sx={{
+																mt: review.title ? 0.5 : 1,
+																whiteSpace: "pre-line",
+																lineHeight: 1.7,
+															}}
+														>
+															{review.body}
+														</Typography>
+													</Box>
+												);
+											})}
+										</Stack>
+									)}
+								</Box>
+							</Collapse>
 						</Paper>
 					</Box>
 					{/* 右側：サイド */}
-					<Box sx={{ flex: 1, minWidth: 300 }}>
-						<Paper className="sticky-sidebar" sx={{ p: 3 }}>
+					<Box sx={{ flex: 1, minWidth: { xs: "100%", md: 300 } }}>
+						<Paper className="sticky-sidebar" sx={{ p: { xs: 2.5, md: 3 } }}>
 							<Typography variant="h5" gutterBottom>
 								{project.title || project.name}
 							</Typography>
