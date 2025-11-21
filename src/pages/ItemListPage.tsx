@@ -55,6 +55,13 @@ const ItemListPage: FC = () => {
 	const [categoryError, setCategoryError] = useState<string | null>(null);
 	const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
 
+	const categoryMap = useMemo(() => {
+		return categories.reduce((map, category) => {
+			map.set(String(category.id), category);
+			return map;
+		}, new Map<string, Category>());
+	}, [categories]);
+
 	useEffect(() => {
 		let isMounted = true;
 		const loadProducts = async () => {
@@ -272,96 +279,107 @@ const ItemListPage: FC = () => {
 						</Box>
 					) : (
 						<Grid container spacing={3} sx={{ mt: 1 }}>
-							{products.map((product) => (
-								<Grid size={{ xs: 12, sm: 6, md: 4 }} key={product.id}>
-									<Card
-										sx={{
-											height: "100%",
-											display: "flex",
-											flexDirection: "column",
-											transition:
-												"transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-											"&:hover": {
-												transform: "translateY(-4px)",
-												boxShadow: 4,
-											},
-										}}
-									>
-										<CardMedia
-											component="img"
-											height="200"
-											image={resolveImageUrl(product.image_url)}
-											alt={product.name}
-											sx={{ objectFit: "cover" }}
-										/>
-										<CardContent
+							{products.map((product) => {
+								const productCategories = (product.categoryIds ?? [])
+									.map((categoryId) => categoryMap.get(categoryId))
+									.filter((category): category is Category => Boolean(category))
+									.slice(0, 3);
+
+								return (
+									<Grid size={{ xs: 12, sm: 6, md: 4 }} key={product.id}>
+										<Card
 											sx={{
-												flexGrow: 1,
+												height: "100%",
 												display: "flex",
 												flexDirection: "column",
+												transition:
+													"transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+												"&:hover": {
+													transform: "translateY(-4px)",
+													boxShadow: 4,
+												},
 											}}
 										>
-											<Typography
-												variant="h6"
-												component="h2"
-												gutterBottom
-												noWrap
+											<CardMedia
+												component="img"
+												height="200"
+												image={resolveImageUrl(product.image_url)}
+												alt={product.name}
+												sx={{ objectFit: "cover" }}
+											/>
+											<CardContent
+												sx={{
+													flexGrow: 1,
+													display: "flex",
+													flexDirection: "column",
+												}}
 											>
-												{product.name}
-											</Typography>
-											<Typography
-												variant="body2"
-												color="text.secondary"
-												paragraph
-											>
-												{product.description ?? "説明は登録されていません"}
-											</Typography>
-
-											{/* 評価 */}
-											<Box
-												sx={{ display: "flex", alignItems: "center", mb: 2 }}
-											>
-												<Rating
-													value={Number(product.rating) || 0}
-													precision={0.1}
-													readOnly
-													size="small"
-												/>
-												<Typography variant="caption" sx={{ ml: 1 }}>
-													DL {product.download_count ?? 0}
-												</Typography>
-											</Box>
-
-											{/* カテゴリ */}
-											<Box sx={{ mb: 2 }}>
-												{product.categories?.slice(0, 3).map((category) => (
-													<Chip
-														key={category.id}
-														label={category.name}
-														size="small"
-														sx={{ mr: 0.5, mb: 0.5 }}
-													/>
-												))}
-												{!product.categories?.length ? (
-													<Typography variant="caption" color="text.secondary">
-														カテゴリ未設定
-													</Typography>
-												) : null}
-											</Box>
-
-											<Box sx={{ mt: "auto" }}>
-												<Button
-													variant="contained"
-													fullWidth
-													onClick={() => handleViewDetails(product.id)}
+												<Typography
+													variant="h6"
+													component="h2"
+													gutterBottom
+													noWrap
 												>
-													詳細を見る
-												</Button>
-											</Box>
-										</CardContent>
-									</Card>
-								</Grid>
-							))}
+													{product.name}
+												</Typography>
+												<Typography
+													variant="body2"
+													color="text.secondary"
+													paragraph
+												>
+													{product.description ?? "説明は登録されていません"}
+												</Typography>
+
+												{/* 評価 */}
+												<Box
+													sx={{ display: "flex", alignItems: "center", mb: 2 }}
+												>
+													<Rating
+														value={Number(product.rating) || 0}
+														precision={0.1}
+														readOnly
+														size="small"
+													/>
+													<Typography variant="caption" sx={{ ml: 1 }}>
+														DL {product.download_count ?? 0}
+													</Typography>
+												</Box>
+
+												{/* カテゴリ */}
+												<Box sx={{ mb: 2 }}>
+													{productCategories.length > 0 ? (
+														productCategories.map((category) => (
+															<Chip
+																key={category.id}
+																label={category.name}
+																size="small"
+																sx={{ mr: 0.5, mb: 0.5 }}
+															/>
+														))
+													) : (
+														<Typography
+															variant="caption"
+															color="text.secondary"
+														>
+															カテゴリ未設定
+														</Typography>
+													)}
+												</Box>
+
+												<Box sx={{ mt: "auto" }}>
+													<Button
+														variant="contained"
+														fullWidth
+														onClick={() => handleViewDetails(product.id)}
+													>
+														詳細を見る
+													</Button>
+												</Box>
+											</CardContent>
+										</Card>
+									</Grid>
+								);
+							})}
 							{products.length === 0 ? (
 								<Grid size={{ xs: 12 }}>
 									<Typography align="center" color="text.secondary">
