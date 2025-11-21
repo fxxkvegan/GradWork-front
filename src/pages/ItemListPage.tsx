@@ -5,18 +5,25 @@ import {
 	Card,
 	CardContent,
 	CardMedia,
+	Checkbox,
 	Chip,
 	CircularProgress,
 	Container,
+	FormControlLabel,
+	FormGroup,
 	Grid,
 	Pagination,
+	Paper,
 	Rating,
+	Stack,
 	Typography,
 } from "@mui/material";
 import { type ChangeEvent, type FC, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
+import { fetchCategories } from "../services/categoryApi";
 import { fetchProducts } from "../services/productApi";
+import type { Category } from "../types/category";
 import type { Product } from "../types/product";
 import "./ItemListPage.css";
 
@@ -43,6 +50,10 @@ const ItemListPage: FC = () => {
 	const [totalItems, setTotalItems] = useState(0);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [categories, setCategories] = useState<Category[]>([]);
+	const [categoryLoading, setCategoryLoading] = useState(false);
+	const [categoryError, setCategoryError] = useState<string | null>(null);
+	const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -53,6 +64,7 @@ const ItemListPage: FC = () => {
 				const { items, pagination } = await fetchProducts({
 					page,
 					limit: ITEMS_PER_PAGE,
+					categoryIds: selectedCategoryIds,
 				});
 				if (!isMounted) return;
 				setProducts(items);
@@ -76,7 +88,34 @@ const ItemListPage: FC = () => {
 		return () => {
 			isMounted = false;
 		};
-	}, [page]);
+	}, [page, selectedCategoryIds]);
+
+	useEffect(() => {
+		let isMounted = true;
+		const loadCategories = async () => {
+			setCategoryLoading(true);
+			setCategoryError(null);
+			try {
+				const items = await fetchCategories();
+				if (!isMounted) return;
+				setCategories(items);
+			} catch (err) {
+				if (!isMounted) return;
+				setCategoryError(
+					err instanceof Error ? err.message : "カテゴリの取得に失敗しました",
+				);
+				setCategories([]);
+			} finally {
+				if (isMounted) {
+					setCategoryLoading(false);
+				}
+			}
+		};
+		loadCategories();
+		return () => {
+			isMounted = false;
+		};
+	}, []);
 
 	const handleViewDetails = (productId: number) => {
 		navigate(`/item/${productId}`);
@@ -87,14 +126,48 @@ const ItemListPage: FC = () => {
 		window.scrollTo({ top: 0, behavior: "smooth" });
 	};
 
+	const handleCategoryToggle =
+		(categoryId: number) => (event: ChangeEvent<HTMLInputElement>) => {
+			const isChecked = event.target.checked;
+			setSelectedCategoryIds((prev) => {
+				if (isChecked) {
+					return prev.includes(categoryId) ? prev : [...prev, categoryId];
+				}
+				return prev.includes(categoryId)
+					? prev.filter((id) => id !== categoryId)
+					: prev;
+			});
+			setPage(1);
+		};
+
+	const handleClearCategories = () => {
+		setSelectedCategoryIds([]);
+		setPage(1);
+	};
+
 	const headingMessage = useMemo(() => {
 		if (loading) {
 			return "読み込み中...";
 		}
-		return totalItems > 0
-			? `全${totalItems}件のプロジェクト`
-			: "公開中のプロジェクトはまだありません";
-	}, [loading, totalItems]);
+		if (totalItems > 0) {
+			return `全${totalItems}件のプロジェクト`;
+		}
+		if (selectedCategoryIds.length > 0) {
+			return "選択したカテゴリに該当するプロジェクトはありません";
+		}
+		return "公開中のプロジェクトはまだありません";
+	}, [loading, totalItems, selectedCategoryIds.length]);
+
+	const selectedCategoryNames = useMemo(() => {
+		if (selectedCategoryIds.length === 0) {
+			return [] as string[];
+		}
+		return categories
+			.filter((category) => selectedCategoryIds.includes(category.id))
+			.map((category) => category.name);
+	}, [categories, selectedCategoryIds]);
+
+	const isFiltering = selectedCategoryIds.length > 0;
 
 	return (
 		<>
@@ -112,6 +185,80 @@ const ItemListPage: FC = () => {
 					>
 						{headingMessage}
 					</Typography>
+
+					<Paper sx={{ p: 2, mb: 3 }} variant="outlined">
+						<Stack
+							direction={{ xs: "column", sm: "row" }}
+							spacing={1.5}
+							alignItems={{ xs: "flex-start", sm: "center" }}
+							justifyContent="space-between"
+						>
+							<Box>
+								<Typography variant="subtitle1" component="h2">
+									カテゴリで絞り込む
+								</Typography>
+								<Typography variant="body2" color="text.secondary">
+									気になるカテゴリを複数選択できます
+								</Typography>
+							</Box>
+							{isFiltering ? (
+								<Button size="small" onClick={handleClearCategories}>
+									選択をクリア
+								</Button>
+							) : null}
+						</Stack>
+						<Box sx={{ mt: 2 }}>
+							{categoryLoading ? (
+								<Stack direction="row" spacing={1} alignItems="center">
+									<CircularProgress size={20} />
+									<Typography variant="body2" color="text.secondary">
+										カテゴリを読み込み中です
+									</Typography>
+								</Stack>
+							) : categoryError ? (
+								<Alert severity="warning">{categoryError}</Alert>
+							) : categories.length === 0 ? (
+								<Typography variant="body2" color="text.secondary">
+									表示できるカテゴリがありません
+								</Typography>
+							) : (
+								<FormGroup row sx={{ gap: 1 }}>
+									{categories.map((category) => (
+										<FormControlLabel
+											key={category.id}
+											control={
+												<Checkbox
+													size="small"
+													checked={selectedCategoryIds.includes(category.id)}
+													onChange={handleCategoryToggle(category.id)}
+												/>
+											}
+											label={`${category.name} (${category.products_count})`}
+											sx={{ mr: 0 }}
+										/>
+									))}
+								</FormGroup>
+							)}
+						</Box>
+						{selectedCategoryNames.length > 0 ? (
+							<Stack
+								direction="row"
+								spacing={1}
+								useFlexGap
+								flexWrap="wrap"
+								sx={{ mt: 2 }}
+							>
+								{selectedCategoryNames.map((name) => (
+									<Chip
+										key={name}
+										label={name}
+										size="small"
+										variant="outlined"
+									/>
+								))}
+							</Stack>
+						) : null}
+					</Paper>
 
 					{error ? (
 						<Alert severity="error" sx={{ mb: 3 }}>
