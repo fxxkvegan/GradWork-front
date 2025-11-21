@@ -1,9 +1,22 @@
 import type { ReactNode } from "react";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import type { User } from "../types/user";
 
 type StoredUser = Pick<User, "id" | "name" | "email"> & {
 	avatarUrl?: string | null;
+	headerUrl?: string | null;
+	displayName?: string | null;
+	bio?: string | null;
+	location?: string | null;
+	website?: string | null;
+	birthday?: string | null;
 	locale?: string | null;
 	theme?: string | null;
 };
@@ -14,6 +27,7 @@ interface AuthContextType {
 	isLoggedIn: boolean;
 	login: (userData: User, remember?: boolean) => void;
 	logout: () => void;
+	updateUser: (payload: Partial<StoredUser>) => void;
 }
 
 const AUTH_USER_KEY = "AUTH_USER";
@@ -42,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		setUser(readStoredUser());
 	}, []);
 
-	const login = (userData: User, _remember: boolean = false) => {
+	const login = useCallback((userData: User, _remember: boolean = false) => {
 		const tokenFromResponse = userData.token;
 		if (!tokenFromResponse || typeof tokenFromResponse !== "string") {
 			console.warn("AuthContext.login called without token");
@@ -54,6 +68,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 			name: userData.name,
 			email: userData.email,
 			avatarUrl: userData.avatar_url ?? null,
+			headerUrl: userData.header_url ?? null,
+			displayName: userData.displayName ?? null,
+			bio: userData.bio ?? null,
+			location: userData.location ?? null,
+			website: userData.website ?? null,
+			birthday: userData.birthday ?? null,
 			locale: userData.locale ?? null,
 			theme: userData.theme ?? null,
 		};
@@ -63,15 +83,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 		setToken(tokenFromResponse);
 		setUser(sanitizedUser);
-	};
+	}, []);
 
-	const logout = () => {
+	const logout = useCallback(() => {
 		setToken(null);
 		setUser(null);
 		localStorage.removeItem(AUTH_TOKEN_KEY);
 		localStorage.removeItem(AUTH_USER_KEY);
 		window.location.assign("/login");
-	};
+	}, []);
+
+	const updateUser = useCallback((payload: Partial<StoredUser>) => {
+		setUser((previous) => {
+			if (!previous) {
+				return previous;
+			}
+			const nextUser: StoredUser = { ...previous, ...payload };
+			localStorage.setItem(AUTH_USER_KEY, JSON.stringify(nextUser));
+			return nextUser;
+		});
+	}, []);
 
 	const value = useMemo(
 		() => ({
@@ -80,8 +111,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 			isLoggedIn: Boolean(token),
 			login,
 			logout,
+			updateUser,
 		}),
-		[user, token],
+		[user, token, login, logout, updateUser],
 	);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -4,6 +4,12 @@ export interface User {
 	email: string;
 	token?: string;
 	avatar_url?: string | null;
+	header_url?: string | null;
+	displayName?: string | null;
+	bio?: string | null;
+	location?: string | null;
+	website?: string | null;
+	birthday?: string | null;
 	locale?: string | null;
 	theme?: string | null;
 	email_verified_at?: string | null;
@@ -14,8 +20,14 @@ export interface User {
 export interface UserProfile {
 	id: number;
 	name: string;
+	displayName?: string | null;
 	email: string;
 	avatarUrl?: string | null;
+	headerUrl?: string | null;
+	bio?: string | null;
+	location?: string | null;
+	website?: string | null;
+	birthday?: string | null;
 	locale?: string | null;
 	theme?: string | null;
 }
@@ -57,8 +69,14 @@ export interface UserHistoryResponse {
 
 export interface UpdateUserRequest {
 	name?: string;
+	displayName?: string;
 	email?: string;
 	avatarUrl?: string;
+	headerUrl?: string;
+	bio?: string;
+	location?: string;
+	website?: string;
+	birthday?: string;
 	locale?: string;
 	theme?: string;
 }

@@ -3,6 +3,7 @@ import { API_CONFIG } from "../constants/api";
 import type {
 	Product,
 	ProductCreateRequest,
+	ProductOwner,
 	ProductUpdateRequest,
 } from "../types/product";
 import type {
@@ -28,6 +29,7 @@ export interface RankingItemResponse {
 	categories?: RankingCategory[] | null;
 	tags?: string[] | null;
 	price?: number | null;
+	owner?: ProductOwner | null;
 }
 
 export interface RankingResponse {

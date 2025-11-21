@@ -14,6 +14,7 @@ import ItemListPage from "./pages/itemListPage";
 import Legal from "./pages/Legal";
 import MyProductsPage from "./pages/MyProductsPage";
 import ProjectList from "./pages/ProjectList";
+import SettingsPage from "./pages/SettingsPage";
 
 const NotFoundPage = () => (
 	<div style={{ padding: "2rem", textAlign: "center" }}>
@@ -41,6 +42,7 @@ const router = createBrowserRouter([
 			{ path: "admin/add-items", element: <AddItemsPage /> },
 			{ path: "create", element: <ItemFormPage /> },
 			{ path: "my-products", element: <MyProductsPage /> },
+			{ path: "settings", element: <SettingsPage /> },
 			{ path: "edit/:itemId", element: <ItemFormPage /> },
 			{ path: "*", element: <NotFoundPage /> },
 		],
