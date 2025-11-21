@@ -38,6 +38,38 @@ export interface RankingResponse {
 	total?: number;
 }
 
+export interface ProductListResponse {
+	message?: string;
+	items?: Product[];
+	total?: number;
+	currentPage?: number;
+	lastPage?: number;
+	perPage?: number;
+	nextPageUrl?: string | null;
+	prevPageUrl?: string | null;
+}
+
+export interface FetchProductsParams {
+	page?: number;
+	limit?: number;
+	q?: string;
+	sort?: "name" | "rating" | "download_count" | "created_at";
+	categoryIds?: number[];
+}
+
+export interface FetchProductsResult {
+	items: Product[];
+	pagination: {
+		total: number;
+		currentPage: number;
+		lastPage: number;
+		perPage: number;
+		nextPageUrl: string | null;
+		prevPageUrl: string | null;
+		message: string;
+	};
+}
+
 const client = axios.create({
 	baseURL: API_CONFIG.BASE_URL,
 	timeout: API_CONFIG.TIMEOUT,
@@ -115,6 +147,27 @@ const appendCategoryIds = (
 ) => {
 	categoryIds?.forEach((id) => {
 		formData.append("categoryIds[]", String(id));
+	});
+};
+
+const normalizeProductItems = (items: Product[] | undefined): Product[] => {
+	if (!Array.isArray(items)) {
+		return [];
+	}
+
+	return items.map((item) => {
+		if (Array.isArray(item.image_url)) {
+			return item;
+		}
+
+		if (typeof item.image_url === "string" && item.image_url !== "") {
+			return item;
+		}
+
+		return {
+			...item,
+			image_url: [],
+		};
 	});
 };
 
@@ -215,6 +268,51 @@ export const createProductReview = async (
 	return normalizeReviewMutationResponse(data);
 };
 
+export const fetchProducts = async (
+	params: FetchProductsParams = {},
+): Promise<FetchProductsResult> => {
+	const queryParams: Record<string, string | number | string[] | undefined> = {
+		page: typeof params.page === "number" ? params.page : undefined,
+		limit: typeof params.limit === "number" ? params.limit : undefined,
+		q: params.q,
+		sort: params.sort,
+		categoryIds:
+			Array.isArray(params.categoryIds) && params.categoryIds.length > 0
+				? params.categoryIds.map((id) => String(id))
+				: undefined,
+	};
+
+	const { data } = await client.get<ProductListResponse>("/products", {
+		params: queryParams,
+	});
+
+	const items = normalizeProductItems(data?.items);
+	const total = typeof data?.total === "number" ? data.total : items.length;
+	const currentPage =
+		typeof data?.currentPage === "number" && data.currentPage > 0
+			? data.currentPage
+			: 1;
+	const lastPage =
+		typeof data?.lastPage === "number" && data.lastPage > 0 ? data.lastPage : 1;
+	const perPage =
+		typeof data?.perPage === "number" && data.perPage > 0
+			? data.perPage
+			: (params.limit ?? items.length);
+
+	return {
+		items,
+		pagination: {
+			total,
+			currentPage,
+			lastPage,
+			perPage,
+			nextPageUrl: data?.nextPageUrl ?? null,
+			prevPageUrl: data?.prevPageUrl ?? null,
+			message: data?.message ?? "",
+		},
+	};
+};
+
 export default {
 	fetchRankingProjects,
 	createProduct,
@@ -223,4 +321,5 @@ export default {
 	deleteProduct,
 	fetchProductReviews,
 	createProductReview,
+	fetchProducts,
 };

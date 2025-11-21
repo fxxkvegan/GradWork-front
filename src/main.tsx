@@ -10,7 +10,7 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import HomePage from "./pages/HomePage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 import ItemFormPage from "./pages/ItemFormPage";
-import ItemListPage from "./pages/ItemListPage";
+import ItemListPage from "./pages/itemListPage";
 import Legal from "./pages/Legal";
 import MyProductsPage from "./pages/MyProductsPage";
 import ProjectList from "./pages/ProjectList";
