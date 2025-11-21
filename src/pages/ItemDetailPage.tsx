@@ -13,7 +13,6 @@ import {
 	Box,
 	Button,
 	Card,
-	CardMedia,
 	Chip,
 	CircularProgress,
 	Container,
@@ -882,21 +881,36 @@ export default function ItemDetailPage({
 					<Box sx={{ flex: 2, minWidth: 0 }}>
 						<Card sx={{ mb: 3 }}>
 							{imageList[activeImageIndex] ? (
-								<CardMedia
-									component="img"
-									height="400"
-									image={imageList[activeImageIndex]}
-									alt={project.title || project.name}
-									sx={{ objectFit: "cover" }}
-								/>
+								<Box
+									sx={{
+										width: "100%",
+										aspectRatio: { xs: "4 / 3", md: "16 / 9" },
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										backgroundColor: (theme) => theme.palette.grey[100],
+									}}
+								>
+									<Box
+										component="img"
+										src={imageList[activeImageIndex]}
+										alt={project.title || project.name}
+										sx={{
+											width: "100%",
+											height: "100%",
+											objectFit: "contain",
+										}}
+									/>
+								</Box>
 							) : (
 								<Box
 									sx={{
-										height: 400,
+										aspectRatio: { xs: "4 / 3", md: "16 / 9" },
 										display: "flex",
 										alignItems: "center",
 										justifyContent: "center",
 										color: "text.secondary",
+										backgroundColor: (theme) => theme.palette.grey[100],
 									}}
 								>
 									<Typography variant="body2">
@@ -1148,54 +1162,78 @@ export default function ItemDetailPage({
 								</Typography>
 							) : (
 								<Stack spacing={2}>
-									{reviews.map((review) => (
-										<Box
-											key={review.id}
-											sx={{
-												border: "1px solid",
-												borderColor: "divider",
-												borderRadius: 2,
-												p: 2,
-											}}
-										>
-											<Stack
-												direction="row"
-												alignItems="center"
-												justifyContent="space-between"
-												spacing={2}
-											>
-												<Box>
-													<Typography variant="subtitle2">
-														{review.author_name || "匿名ユーザー"}
-													</Typography>
-													<Typography variant="caption" color="text.secondary">
-														{formatReviewTimestamp(review.created_at)}
-													</Typography>
-												</Box>
-												<StarRating
-													value={review.rating}
-													readOnly
-													size={18}
-													ariaLabel="ユーザーレビュー評価"
-												/>
-											</Stack>
-											{review.title && (
-												<Typography variant="subtitle1" sx={{ mt: 1 }}>
-													{review.title}
-												</Typography>
-											)}
-											<Typography
-												variant="body2"
+									{reviews.map((review) => {
+										const authorName = review.author_name?.trim().length
+											? review.author_name.trim()
+											: "匿名ユーザー";
+										const authorInitial = authorName.charAt(0).toUpperCase();
+										const authorAvatarUrl = review.author_avatar_url ?? null;
+
+										return (
+											<Box
+												key={review.id}
 												sx={{
-													mt: review.title ? 0.5 : 1,
-													whiteSpace: "pre-line",
-													lineHeight: 1.7,
+													border: "1px solid",
+													borderColor: "divider",
+													borderRadius: 2,
+													p: 2,
 												}}
 											>
-												{review.body}
-											</Typography>
-										</Box>
-									))}
+												<Stack
+													direction="row"
+													alignItems="center"
+													justifyContent="space-between"
+													spacing={2}
+												>
+													<Stack
+														direction="row"
+														spacing={1.5}
+														alignItems="center"
+													>
+														<Avatar
+															src={authorAvatarUrl ?? undefined}
+															alt={authorName}
+															sx={{ width: 36, height: 36 }}
+														>
+															{authorInitial}
+														</Avatar>
+														<Box>
+															<Typography variant="subtitle2">
+																{authorName}
+															</Typography>
+															<Typography
+																variant="caption"
+																color="text.secondary"
+															>
+																{formatReviewTimestamp(review.created_at)}
+															</Typography>
+														</Box>
+													</Stack>
+													<StarRating
+														value={review.rating}
+														readOnly
+														size={18}
+														ariaLabel="ユーザーレビュー評価"
+													/>
+												</Stack>
+												{review.title && (
+													<Typography variant="subtitle1" sx={{ mt: 1 }}>
+														{review.title}
+													</Typography>
+												)}
+												<Typography
+													variant="body2"
+													sx={{
+														mt: review.title ? 0.5 : 1,
+														whiteSpace: "pre-line",
+														lineHeight: 1.7,
+													}}
+												>
+													{review.body}
+												</Typography>
+											</Box>
+										);
+									})}
 								</Stack>
 							)}
 						</Paper>
