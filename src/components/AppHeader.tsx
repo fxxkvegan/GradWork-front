@@ -65,7 +65,7 @@ const MenuIcon = () => (
 // ナビゲーションリンク
 const navItems = [
 	{ label: "HOME", path: "/home" },
-	{ label: "Web 開発", path: "/projects?category=Web開発" },
+	{ label: "プロジェクト一覧", path: "/item" },
 	{ label: "iOS 開発", path: "/projects?category=iOS開発" },
 	{ label: "Android 開発", path: "/projects?category=Android開発" },
 	{
