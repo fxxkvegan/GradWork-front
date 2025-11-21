@@ -15,8 +15,10 @@ import {
 } from "@mui/material";
 import { type ChangeEvent, type FC, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import { fetchProducts } from "../services/productApi";
 import type { Product } from "../types/product";
+import "./ItemListPage.css";
 
 const ITEMS_PER_PAGE = 9;
 const FALLBACK_IMAGE = "/nice_dig.png";
@@ -95,126 +97,146 @@ const ItemListPage: FC = () => {
 	}, [loading, totalItems]);
 
 	return (
-		<Container maxWidth="lg" sx={{ py: 4 }}>
-			<Typography variant="h4" component="h1" gutterBottom align="center">
-				プロジェクト一覧
-			</Typography>
-			<Typography
-				variant="body1"
-				align="center"
-				color="text.secondary"
-				paragraph
-			>
-				{headingMessage}
-			</Typography>
+		<>
+			<AppHeaderWithAuth />
+			<Box component="main" className="item-list-page">
+				<Container maxWidth="lg" sx={{ py: 4 }}>
+					<Typography variant="h4" component="h1" gutterBottom align="center">
+						プロジェクト一覧
+					</Typography>
+					<Typography
+						variant="body1"
+						align="center"
+						color="text.secondary"
+						paragraph
+					>
+						{headingMessage}
+					</Typography>
 
-			{error ? (
-				<Alert severity="error" sx={{ mb: 3 }}>
-					{error}
-				</Alert>
-			) : null}
-
-			{loading ? (
-				<Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-					<CircularProgress />
-				</Box>
-			) : (
-				<Grid container spacing={3} sx={{ mt: 1 }}>
-					{products.map((product) => (
-						<Grid size={{ xs: 12, sm: 6, md: 4 }} key={product.id}>
-							<Card
-								sx={{
-									height: "100%",
-									display: "flex",
-									flexDirection: "column",
-									transition:
-										"transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-									"&:hover": {
-										transform: "translateY(-4px)",
-										boxShadow: 4,
-									},
-								}}
-							>
-								<CardMedia
-									component="img"
-									height="200"
-									image={resolveImageUrl(product.image_url)}
-									alt={product.name}
-									sx={{ objectFit: "cover" }}
-								/>
-								<CardContent
-									sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
-								>
-									<Typography variant="h6" component="h2" gutterBottom noWrap>
-										{product.name}
-									</Typography>
-									<Typography variant="body2" color="text.secondary" paragraph>
-										{product.description ?? "説明は登録されていません"}
-									</Typography>
-
-									{/* 評価 */}
-									<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-										<Rating
-											value={Number(product.rating) || 0}
-											precision={0.1}
-											readOnly
-											size="small"
-										/>
-										<Typography variant="caption" sx={{ ml: 1 }}>
-											DL {product.download_count ?? 0}
-										</Typography>
-									</Box>
-
-									{/* カテゴリ */}
-									<Box sx={{ mb: 2 }}>
-										{product.categories?.slice(0, 3).map((category) => (
-											<Chip
-												key={category.id}
-												label={category.name}
-												size="small"
-												sx={{ mr: 0.5, mb: 0.5 }}
-											/>
-										))}
-										{!product.categories?.length ? (
-											<Typography variant="caption" color="text.secondary">
-												カテゴリ未設定
-											</Typography>
-										) : null}
-									</Box>
-
-									<Box sx={{ mt: "auto" }}>
-										<Button
-											variant="contained"
-											fullWidth
-											onClick={() => handleViewDetails(product.id)}
-										>
-											詳細を見る
-										</Button>
-									</Box>
-								</CardContent>
-							</Card>
-						</Grid>
-					))}
-					{products.length === 0 ? (
-						<Grid size={{ xs: 12 }}>
-							<Typography align="center" color="text.secondary">
-								表示できるプロジェクトがありません
-							</Typography>
-						</Grid>
+					{error ? (
+						<Alert severity="error" sx={{ mb: 3 }}>
+							{error}
+						</Alert>
 					) : null}
-				</Grid>
-			)}
 
-			<Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-				<Pagination
-					count={Math.max(totalPages, 1)}
-					page={page}
-					onChange={handlePageChange}
-					color="primary"
-					disabled={loading || totalPages <= 1}
-				/>
+					{loading ? (
+						<Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+							<CircularProgress />
+						</Box>
+					) : (
+						<Grid container spacing={3} sx={{ mt: 1 }}>
+							{products.map((product) => (
+								<Grid size={{ xs: 12, sm: 6, md: 4 }} key={product.id}>
+									<Card
+										sx={{
+											height: "100%",
+											display: "flex",
+											flexDirection: "column",
+											transition:
+												"transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+											"&:hover": {
+												transform: "translateY(-4px)",
+												boxShadow: 4,
+											},
+										}}
+									>
+										<CardMedia
+											component="img"
+											height="200"
+											image={resolveImageUrl(product.image_url)}
+											alt={product.name}
+											sx={{ objectFit: "cover" }}
+										/>
+										<CardContent
+											sx={{
+												flexGrow: 1,
+												display: "flex",
+												flexDirection: "column",
+											}}
+										>
+											<Typography
+												variant="h6"
+												component="h2"
+												gutterBottom
+												noWrap
+											>
+												{product.name}
+											</Typography>
+											<Typography
+												variant="body2"
+												color="text.secondary"
+												paragraph
+											>
+												{product.description ?? "説明は登録されていません"}
+											</Typography>
+
+											{/* 評価 */}
+											<Box
+												sx={{ display: "flex", alignItems: "center", mb: 2 }}
+											>
+												<Rating
+													value={Number(product.rating) || 0}
+													precision={0.1}
+													readOnly
+													size="small"
+												/>
+												<Typography variant="caption" sx={{ ml: 1 }}>
+													DL {product.download_count ?? 0}
+												</Typography>
+											</Box>
+
+											{/* カテゴリ */}
+											<Box sx={{ mb: 2 }}>
+												{product.categories?.slice(0, 3).map((category) => (
+													<Chip
+														key={category.id}
+														label={category.name}
+														size="small"
+														sx={{ mr: 0.5, mb: 0.5 }}
+													/>
+												))}
+												{!product.categories?.length ? (
+													<Typography variant="caption" color="text.secondary">
+														カテゴリ未設定
+													</Typography>
+												) : null}
+											</Box>
+
+											<Box sx={{ mt: "auto" }}>
+												<Button
+													variant="contained"
+													fullWidth
+													onClick={() => handleViewDetails(product.id)}
+												>
+													詳細を見る
+												</Button>
+											</Box>
+										</CardContent>
+									</Card>
+								</Grid>
+							))}
+							{products.length === 0 ? (
+								<Grid size={{ xs: 12 }}>
+									<Typography align="center" color="text.secondary">
+										表示できるプロジェクトがありません
+									</Typography>
+								</Grid>
+							) : null}
+						</Grid>
+					)}
+
+					<Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+						<Pagination
+							count={Math.max(totalPages, 1)}
+							page={page}
+							onChange={handlePageChange}
+							color="primary"
+							disabled={loading || totalPages <= 1}
+						/>
+					</Box>
+				</Container>
 			</Box>
-		</Container>
+		</>
 	);
 };
 
