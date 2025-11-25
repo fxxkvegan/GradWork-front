@@ -388,7 +388,7 @@ const HomePage: React.FC = () => {
 			cancelled = true;
 		};
 	}, []);
-	console.log(categories);
+
 	useEffect(() => {
 		const track = carouselRef.current;
 		if (!track || !rankingProjects.length) return;
