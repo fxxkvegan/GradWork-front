@@ -554,11 +554,17 @@ const HomePage: React.FC = () => {
 											backgroundColor: "white",
 											color: "text.primary",
 										}}
-										onClick={() =>
-											navigate(
-												`/projects?category=${encodeURIComponent(category.name)}`,
-											)
-										}
+										onClick={() => {
+											const query = new URLSearchParams();
+											const categoryId = Number(category.id);
+											if (Number.isFinite(categoryId) && categoryId > 0) {
+												query.set("categoryId", String(categoryId));
+											}
+											if (category.name?.trim()) {
+												query.set("category", category.name.trim());
+											}
+											navigate(`/item?${query.toString()}`);
+										}}
 									>
 										<Box className="category-icon-wrapper">
 											{category.image ? (

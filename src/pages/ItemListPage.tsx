@@ -19,7 +19,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { type ChangeEvent, type FC, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import { fetchCategories } from "../services/categoryApi";
 import { fetchProducts } from "../services/productApi";
@@ -29,6 +29,48 @@ import "./ItemListPage.css";
 
 const ITEMS_PER_PAGE = 9;
 const FALLBACK_IMAGE = "/nice_dig.png";
+const CATEGORY_ID_PARAM = "categoryId";
+const CATEGORY_IDS_PARAM = "categoryIds";
+
+const normalizeCategoryIds = (ids: number[]): number[] => {
+	const seen = new Set<number>();
+	const normalized: number[] = [];
+	ids.forEach((id) => {
+		const numericId = Number(id);
+		if (Number.isFinite(numericId) && numericId > 0 && !seen.has(numericId)) {
+			seen.add(numericId);
+			normalized.push(numericId);
+		}
+	});
+	return normalized.sort((a, b) => a - b);
+};
+
+const parseCategoryIdsFromParams = (params: URLSearchParams): number[] => {
+	const collected: number[] = [];
+	const appendFromValue = (value: string | null) => {
+		if (!value) return;
+		value
+			.split(",")
+			.map((v) => v.trim())
+			.filter((v) => v !== "")
+			.forEach((segment) => {
+				const parsed = Number(segment);
+				if (Number.isFinite(parsed) && parsed > 0) {
+					collected.push(parsed);
+				}
+			});
+	};
+
+	params.getAll(CATEGORY_ID_PARAM).forEach(appendFromValue);
+	params.getAll(CATEGORY_IDS_PARAM).forEach(appendFromValue);
+
+	return normalizeCategoryIds(collected);
+};
+
+const arraysEqual = (a: number[], b: number[]): boolean => {
+	if (a.length !== b.length) return false;
+	return a.every((value, index) => value === b[index]);
+};
 
 const resolveImageUrl = (image: Product["image_url"]) => {
 	if (Array.isArray(image)) {
@@ -44,6 +86,7 @@ const resolveImageUrl = (image: Product["image_url"]) => {
 
 const ItemListPage: FC = () => {
 	const navigate = useNavigate();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [products, setProducts] = useState<Product[]>([]);
 	const [page, setPage] = useState(1);
 	const [totalPages, setTotalPages] = useState(1);
@@ -53,7 +96,37 @@ const ItemListPage: FC = () => {
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [categoryLoading, setCategoryLoading] = useState(false);
 	const [categoryError, setCategoryError] = useState<string | null>(null);
-	const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+	const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>(() =>
+		parseCategoryIdsFromParams(searchParams),
+	);
+
+	const updateCategoryQuery = (nextIds: number[]) => {
+		const params = new URLSearchParams(searchParams.toString());
+		params.delete(CATEGORY_ID_PARAM);
+		params.delete(CATEGORY_IDS_PARAM);
+		params.delete("category");
+		params.delete("page");
+		if (nextIds.length) {
+			nextIds.forEach((id) => params.append(CATEGORY_ID_PARAM, String(id)));
+			params.set("page", "1");
+		}
+		setSearchParams(params);
+	};
+
+	useEffect(() => {
+		const queryCategoryIds = parseCategoryIdsFromParams(searchParams);
+		let changed = false;
+		setSelectedCategoryIds((prev) => {
+			if (arraysEqual(prev, queryCategoryIds)) {
+				return prev;
+			}
+			changed = true;
+			return queryCategoryIds;
+		});
+		if (changed) {
+			setPage(1);
+		}
+	}, [searchParams]);
 
 	const categoryMap = useMemo(() => {
 		return categories.reduce((map, category) => {
@@ -136,20 +209,26 @@ const ItemListPage: FC = () => {
 	const handleCategoryToggle =
 		(categoryId: number) => (event: ChangeEvent<HTMLInputElement>) => {
 			const isChecked = event.target.checked;
-			setSelectedCategoryIds((prev) => {
-				if (isChecked) {
-					return prev.includes(categoryId) ? prev : [...prev, categoryId];
-				}
-				return prev.includes(categoryId)
-					? prev.filter((id) => id !== categoryId)
-					: prev;
-			});
+			const nextIds = normalizeCategoryIds(
+				isChecked
+					? [...selectedCategoryIds, categoryId]
+					: selectedCategoryIds.filter((id) => id !== categoryId),
+			);
+			if (arraysEqual(selectedCategoryIds, nextIds)) {
+				return;
+			}
+			setSelectedCategoryIds(nextIds);
 			setPage(1);
+			updateCategoryQuery(nextIds);
 		};
 
 	const handleClearCategories = () => {
+		if (selectedCategoryIds.length === 0) {
+			return;
+		}
 		setSelectedCategoryIds([]);
 		setPage(1);
+		updateCategoryQuery([]);
 	};
 
 	const headingMessage = useMemo(() => {
