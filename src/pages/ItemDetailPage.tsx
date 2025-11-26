@@ -12,6 +12,7 @@ import {
 	Alert,
 	Avatar,
 	Box,
+	Breadcrumbs,
 	Button,
 	Card,
 	Chip,
@@ -20,6 +21,7 @@ import {
 	Container,
 	Divider,
 	IconButton,
+	Link as MuiLink,
 	Paper,
 	Skeleton,
 	Stack,
@@ -35,7 +37,12 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import {
+	Link as RouterLink,
+	useLocation,
+	useNavigate,
+	useParams,
+} from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import "./ItemDetailPage.css";
 import axios from "axios";
@@ -713,6 +720,37 @@ export default function ItemDetailPage({
 	const ownerBioValue = trimString(project?.owner?.bio);
 	const ownerBio = ownerBioValue.length > 0 ? ownerBioValue : null;
 
+	const primaryCategory = useMemo(() => {
+		if (
+			!Array.isArray(project?.categories) ||
+			project.categories.length === 0
+		) {
+			return null;
+		}
+		const validCategory = project.categories.find(
+			(category): category is { id: number; name: string } =>
+				category !== null &&
+				typeof category?.id === "number" &&
+				Number.isFinite(category.id),
+		);
+		return validCategory ?? null;
+	}, [project?.categories]);
+
+	const categoryBreadcrumbLabel =
+		primaryCategory?.name?.trim() || "プロジェクト一覧";
+
+	const categoryBreadcrumbHref = useMemo(() => {
+		if (!primaryCategory) {
+			return "/item";
+		}
+		const params = new URLSearchParams();
+		params.set("categoryId", String(primaryCategory.id));
+		if (primaryCategory.name?.trim()) {
+			params.set("category", primaryCategory.name.trim());
+		}
+		return `/item?${params.toString()}`;
+	}, [primaryCategory]);
+
 	const handleDownload = () => {
 		alert("ダウンロード機能はデモ版のため利用できません");
 	};
@@ -880,6 +918,31 @@ export default function ItemDetailPage({
 				maxWidth="lg"
 				sx={{ py: { xs: 3, md: 4 }, mt: { xs: 4, md: 6 } }}
 			>
+				<Breadcrumbs
+					aria-label="breadcrumb"
+					sx={{ mb: { xs: 2, md: 3 } }}
+					separator="/"
+				>
+					<MuiLink
+						component={RouterLink}
+						color="inherit"
+						underline="hover"
+						to="/"
+					>
+						Home
+					</MuiLink>
+					<MuiLink
+						component={RouterLink}
+						color="inherit"
+						underline="hover"
+						to={categoryBreadcrumbHref}
+					>
+						{categoryBreadcrumbLabel}
+					</MuiLink>
+					<Typography color="text.primary" noWrap>
+						{project.title || project.name}
+					</Typography>
+				</Breadcrumbs>
 				<Box sx={{ mb: 3 }}>
 					<Button
 						startIcon={<ArrowBackIcon />}
