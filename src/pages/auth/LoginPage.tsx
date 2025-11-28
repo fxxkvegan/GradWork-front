@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import AppHeader from "../../components/AppHeader";
+import AppHeaderWithAuth from "../../components/AppHeaderWithAuth";
 import { useAuth } from "../../context/AuthContext";
 import { loginUser } from "../../services/userApi";
 
@@ -64,7 +64,7 @@ const LoginPage: React.FC = () => {
 				tokenReceived: !!response.token,
 			});
 
-			login(response.user, remember);
+			login({ ...response.user, token: response.token }, remember);
 			console.log("🎉 LoginPage: ログイン成功、ホームページに遷移");
 			navigate("/home");
 		} catch (error) {
@@ -96,7 +96,7 @@ const LoginPage: React.FC = () => {
 
 	return (
 		<>
-			<AppHeader />
+			<AppHeaderWithAuth activePath="/login" />
 			<Container maxWidth="xs" sx={{ mt: 8 }}>
 				<Card elevation={3}>
 					<CardContent>

@@ -65,7 +65,7 @@ const MenuIcon = () => (
 // ナビゲーションリンク
 const navItems = [
 	{ label: "HOME", path: "/home" },
-	{ label: "Web 開発", path: "/projects?category=Web開発" },
+	{ label: "プロジェクト一覧", path: "/item" },
 	{ label: "iOS 開発", path: "/projects?category=iOS開発" },
 	{ label: "Android 開発", path: "/projects?category=Android開発" },
 	{
@@ -98,6 +98,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const scrollDirection = useScrollDirection();
 	const [isScrolled, setIsScrolled] = useState(false);
+	const [searchTerm, setSearchTerm] = useState("");
+	const [suggestions, setSuggestions] = useState<any[]>([]);
+	const [allProducts, setAllProducts] = useState<any[]>([]);
 
 	// スクロール検出
 	useEffect(() => {
@@ -117,6 +120,46 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 			searchInputRef.current.focus();
 		}
 	}, [isSearchOpen]);
+
+	useEffect(() => {
+		const fetchAllProducts = async () => {
+			try {
+				const res = await fetch("https://app.nice-dig.com/api/products");
+				const data = await res.json();
+
+				console.log("API data:", data); // 確認用
+
+				// items の中に本体が入っている
+				setAllProducts(data.items || []);
+			} catch (err) {
+				console.error("Failed to fetch products", err);
+				setAllProducts([]); // エラーでも配列にしておく
+			}
+		};
+
+		fetchAllProducts();
+	}, []);
+
+	// ▼ 入力が変わった時にフィルタしてサジェスト更新
+	useEffect(() => {
+		if (!searchTerm) {
+			setSuggestions([]);
+			return;
+		}
+
+		const q = searchTerm.toLowerCase();
+
+		// 部分一致でフィルタ
+		const filtered = allProducts.filter((item: any) => {
+			const name = (item.name || "").toLowerCase();
+			const desc = (item.description || "").toLowerCase();
+
+			return name.includes(q) || desc.includes(q);
+		});
+
+		// 上位5件を出す
+		setSuggestions(filtered.slice(0, 5));
+	}, [searchTerm, allProducts]);
 
 	// 検索フォームを閉じるときのアニメーション処理
 	const handleCloseSearch = () => {
@@ -213,6 +256,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 								placeholder="検索..."
 								ref={searchInputRef}
 								aria-label="検索ワード"
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
 							/>
 							<button
 								type="submit"
@@ -222,6 +267,48 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 								<SearchIcon />
 							</button>
 						</form>
+						{/* ▼ サジェスト結果 */}
+						{searchTerm && suggestions.length > 0 && (
+							<ul className={styles.suggestionList}>
+								{suggestions.map((item, index) => {
+									const img = JSON.parse(item.image_url || "[]")[0];
+
+									return (
+										<li key={index} className={styles.suggestionCard}>
+											{/* 画像 */}
+											<img
+												src={img}
+												alt=""
+												className={styles.suggestionThumb}
+											/>
+
+											{/* カテゴリ */}
+											{item.categoryIds?.length > 0 && (
+												<div className={styles.suggestionCategory}>
+													カテゴリ {item.categoryIds[0]}
+												</div>
+											)}
+
+											{/* 評価・DL */}
+											<div className={styles.suggestionMeta}>
+												{item.download_count} DL　★ {item.rating}
+											</div>
+
+											{/* タイトル */}
+											<div className={styles.suggestionTitle}>{item.name}</div>
+
+											{/* 説明 */}
+											<div className={styles.suggestionDesc}>
+												{item.description}
+											</div>
+
+											{/* 詳細ボタン */}
+											<div className={styles.suggestionButton}>詳細を見る</div>
+										</li>
+									);
+								})}
+							</ul>
+						)}
 					</div>,
 					document.body,
 				)}

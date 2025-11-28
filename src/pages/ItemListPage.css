@@ -1,0 +1,15 @@
+:root {
+	--item-list-page-padding: calc(var(--header-height, 48px) + 24px);
+}
+
+.item-list-page {
+	padding-top: var(--item-list-page-padding);
+	min-height: 100vh;
+	background-color: #fafafa;
+}
+
+@media (max-width: 599px) {
+	:root {
+		--item-list-page-padding: calc(var(--header-height, 48px) + 24px);
+	}
+}

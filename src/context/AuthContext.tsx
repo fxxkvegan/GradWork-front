@@ -1,161 +1,127 @@
 import type { ReactNode } from "react";
-import { createContext, useContext, useEffect, useState } from "react";
-import { getUserProfile, logoutUser } from "../services/userApi";
-import type { User, UserProfile } from "../types/user";
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
+import type { User } from "../types/user";
 
-interface AuthContextType {
-	user: UserProfile | null;
-	isLoggedIn: boolean;
-	login: (userData: User, remember?: boolean) => void;
-	logout: () => Promise<void>;
-	loading: boolean;
-	refreshUser: () => Promise<void>;
-}
-
-const convertUserToProfile = (user: User): UserProfile => ({
-	id: user.id,
-	name: user.name,
-	email: user.email,
-	avatarUrl: user.avatar_url ?? null,
-	locale: user.locale ?? null,
-	theme: user.theme ?? null,
-});
-
-// ストレージキー
-const USER_STORAGE_KEY = "user";
-
-// デフォルト値
-const defaultContext: AuthContextType = {
-	user: null,
-	isLoggedIn: false,
-	login: () => {},
-	logout: async () => {},
-	loading: true,
-	refreshUser: async () => {},
+type StoredUser = Pick<User, "id" | "name" | "email"> & {
+	avatarUrl?: string | null;
+	headerUrl?: string | null;
+	displayName?: string | null;
+	bio?: string | null;
+	location?: string | null;
+	website?: string | null;
+	birthday?: string | null;
+	locale?: string | null;
+	theme?: string | null;
 };
 
-// コンテキストの作成
-const AuthContext = createContext<AuthContextType>(defaultContext);
+interface AuthContextType {
+	user: StoredUser | null;
+	token: string | null;
+	isLoggedIn: boolean;
+	login: (userData: User, remember?: boolean) => void;
+	logout: () => void;
+	updateUser: (payload: Partial<StoredUser>) => void;
+}
+
+const AUTH_USER_KEY = "AUTH_USER";
+const AUTH_TOKEN_KEY = "AUTH_TOKEN";
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const readStoredUser = (): StoredUser | null => {
+	const raw = localStorage.getItem(AUTH_USER_KEY);
+	if (!raw) return null;
+	try {
+		return JSON.parse(raw) as StoredUser;
+	} catch (error) {
+		console.warn("AuthContext: failed to parse stored user", error);
+		localStorage.removeItem(AUTH_USER_KEY);
+		return null;
+	}
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-	const [user, setUser] = useState<UserProfile | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [user, setUser] = useState<StoredUser | null>(null);
+	const [token, setToken] = useState<string | null>(null);
 
-	// ユーザー情報を更新する関数
-	const refreshUser = async () => {
-		const token =
-			localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-		if (token) {
-			try {
-				const userData = await getUserProfile();
-				setUser(userData);
-			} catch (error) {
-				console.error("Failed to refresh user data:", error);
-				// トークンが無効な場合はログアウト
-				await handleLogout();
-			}
-		}
-	};
-
-	// 初期化時にユーザー情報を取得
 	useEffect(() => {
-		const initializeAuth = async () => {
-			const token =
-				localStorage.getItem("authToken") ||
-				sessionStorage.getItem("authToken");
-
-			if (token) {
-				try {
-					// トークンがある場合はAPIからユーザー情報を取得
-					const userData = await getUserProfile();
-					setUser(userData);
-				} catch (error) {
-					console.error("Failed to load user from API:", error);
-					// APIエラーの場合はトークンを削除
-					localStorage.removeItem("authToken");
-					sessionStorage.removeItem("authToken");
-					localStorage.removeItem("refreshToken");
-				}
-			} else {
-				// トークンがない場合はローカルストレージから取得（フォールバック）
-				const storedUserLocal = localStorage.getItem(USER_STORAGE_KEY);
-				const storedUserSession = sessionStorage.getItem(USER_STORAGE_KEY);
-
-				if (storedUserLocal) {
-					try {
-						const parsedUser = JSON.parse(storedUserLocal);
-						setUser(parsedUser);
-					} catch (error) {
-						console.error(
-							"Failed to parse user data from localStorage:",
-							error,
-						);
-						localStorage.removeItem(USER_STORAGE_KEY);
-					}
-				} else if (storedUserSession) {
-					try {
-						const parsedUser = JSON.parse(storedUserSession);
-						setUser(parsedUser);
-					} catch (error) {
-						console.error(
-							"Failed to parse user data from sessionStorage:",
-							error,
-						);
-						sessionStorage.removeItem(USER_STORAGE_KEY);
-					}
-				}
-			}
-
-			setLoading(false);
-		};
-
-		initializeAuth();
+		setToken(localStorage.getItem(AUTH_TOKEN_KEY));
+		setUser(readStoredUser());
 	}, []);
 
-	const login = (userData: User, remember: boolean = false) => {
-		const userProfile = convertUserToProfile(userData);
-		setUser(userProfile);
-
-		if (remember) {
-			localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userProfile));
-		} else {
-			sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userProfile));
+	const login = useCallback((userData: User, _remember: boolean = false) => {
+		const tokenFromResponse = userData.token;
+		if (!tokenFromResponse || typeof tokenFromResponse !== "string") {
+			console.warn("AuthContext.login called without token");
+			return;
 		}
-	};
 
-	// ログアウト処理
-	const handleLogout = async () => {
-		try {
-			await logoutUser();
-		} catch (error) {
-			console.error("Logout API error:", error);
-		} finally {
-			setUser(null);
-			// すべてのストレージからユーザー情報を削除
-			localStorage.removeItem(USER_STORAGE_KEY);
-			sessionStorage.removeItem(USER_STORAGE_KEY);
-			localStorage.removeItem("authToken");
-			sessionStorage.removeItem("authToken");
-			localStorage.removeItem("refreshToken");
-		}
-	};
+		const sanitizedUser: StoredUser = {
+			id: userData.id,
+			name: userData.name,
+			email: userData.email,
+			avatarUrl: userData.avatar_url ?? null,
+			headerUrl: userData.header_url ?? null,
+			displayName: userData.displayName ?? null,
+			bio: userData.bio ?? null,
+			location: userData.location ?? null,
+			website: userData.website ?? null,
+			birthday: userData.birthday ?? null,
+			locale: userData.locale ?? null,
+			theme: userData.theme ?? null,
+		};
 
-	const value = {
-		user,
-		isLoggedIn: !!user,
-		login,
-		logout: handleLogout,
-		loading,
-		refreshUser,
-	};
+		localStorage.setItem(AUTH_TOKEN_KEY, tokenFromResponse);
+		localStorage.setItem(AUTH_USER_KEY, JSON.stringify(sanitizedUser));
+
+		setToken(tokenFromResponse);
+		setUser(sanitizedUser);
+	}, []);
+
+	const logout = useCallback(() => {
+		setToken(null);
+		setUser(null);
+		localStorage.removeItem(AUTH_TOKEN_KEY);
+		localStorage.removeItem(AUTH_USER_KEY);
+		window.location.assign("/login");
+	}, []);
+
+	const updateUser = useCallback((payload: Partial<StoredUser>) => {
+		setUser((previous) => {
+			if (!previous) {
+				return previous;
+			}
+			const nextUser: StoredUser = { ...previous, ...payload };
+			localStorage.setItem(AUTH_USER_KEY, JSON.stringify(nextUser));
+			return nextUser;
+		});
+	}, []);
+
+	const value = useMemo(
+		() => ({
+			user,
+			token,
+			isLoggedIn: Boolean(token),
+			login,
+			logout,
+			updateUser,
+		}),
+		[user, token, login, logout, updateUser],
+	);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// 認証情報を使用するためのカスタムフック
 export const useAuth = () => {
 	const context = useContext(AuthContext);
-	if (context === undefined) {
+	if (!context) {
 		throw new Error("useAuth must be used within an AuthProvider");
 	}
 	return context;

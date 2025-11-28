@@ -1,11 +1,10 @@
 import axios from "axios";
-import { API_CONFIG } from "../constants/api";
+import { API_CONFIG, API_ENDPOINTS, ERROR_MESSAGES } from "../constants/api";
 import type {
 	AuthResponse,
 	LoginRequest,
 	RegisterRequest,
 	TokenRefreshResponse,
-	UpdateUserRequest,
 	UpdateUserSettingsRequest,
 	UserHistoryItem,
 	UserHistoryResponse,
@@ -15,7 +14,10 @@ import type {
 	UserSettingsResponse,
 } from "../types/user";
 
-// Axios インスタンスの設定
+const AUTH_TOKEN_KEY = "AUTH_TOKEN";
+const AUTH_USER_KEY = "AUTH_USER";
+const REFRESH_TOKEN_KEY = "refreshToken";
+
 const api = axios.create({
 	baseURL: API_CONFIG.BASE_URL,
 	timeout: API_CONFIG.TIMEOUT,
@@ -24,162 +26,75 @@ const api = axios.create({
 	},
 });
 
-// リクエストインターセプター（認証トークンを自動追加）
-api.interceptors.request.use(
-	(config) => {
-		const token =
-			localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-
-		console.log("userApi.interceptor: リクエスト開始", {
-			method: config.method?.toUpperCase(),
-			url: config.url,
-			baseURL: config.baseURL,
-			hasToken: !!token,
-			tokenSource: localStorage.getItem("authToken")
-				? "localStorage"
-				: sessionStorage.getItem("authToken")
-					? "sessionStorage"
-					: "none",
-			timestamp: new Date().toISOString(),
-		});
-
-		if (token) {
-			config.headers.Authorization = `Bearer ${token}`;
-			console.log("userApi.interceptor: 認証トークン追加済み");
-		}
-		return config;
+const mapAuthResponse = (data: AuthResponse): AuthResponse => ({
+	token: data.token,
+	user: {
+		...data.user,
+		token: data.token,
 	},
-	(error) => {
-		console.error("userApi.interceptor: リクエストエラー", error);
-		return Promise.reject(error);
-	},
-);
+});
 
-// レスポンスインターセプター（エラーハンドリング）
-api.interceptors.response.use(
-	(response) => {
-		console.log("✅ userApi.interceptor: レスポンス受信成功", {
-			status: response.status,
-			statusText: response.statusText,
-			url: response.config.url,
-			dataReceived: !!response.data,
-			timestamp: new Date().toISOString(),
-		});
-		return response;
-	},
-	async (error) => {
-		console.error("userApi.interceptor: レスポンスエラー", {
-			status: error.response?.status,
-			statusText: error.response?.statusText,
-			url: error.config?.url,
-			message: error.response?.data?.message,
-			timestamp: new Date().toISOString(),
-		});
+const clearStoredAuth = () => {
+	localStorage.removeItem(AUTH_TOKEN_KEY);
+	localStorage.removeItem(AUTH_USER_KEY);
+	localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
 
-		const originalRequest = error.config;
+const handleAxiosError = (error: unknown, fallbackMessage: string): never => {
+	if (axios.isAxiosError(error) && error.response) {
+		const payload = error.response.data as { message?: string } | undefined;
+		throw new Error(payload?.message || fallbackMessage);
+	}
+	throw new Error(ERROR_MESSAGES.NETWORK.CONNECTION_ERROR);
+};
 
-		if (error.response?.status === 401 && !originalRequest._retry) {
-			originalRequest._retry = true;
-
-			console.log(
-				"🔄 userApi.interceptor: 401エラー - トークンリフレッシュ試行",
+api.interceptors.request.use((config) => {
+	const token = localStorage.getItem(AUTH_TOKEN_KEY);
+	if (token) {
+		const headers = config.headers ?? {};
+		if (typeof (headers as { set?: unknown }).set === "function") {
+			(headers as { set: (key: string, value: string) => void }).set(
+				"Authorization",
+				`Bearer ${token}`,
 			);
+		} else {
+			(headers as Record<string, string>).Authorization = `Bearer ${token}`;
+		}
+		config.headers = headers;
+	}
+	return config;
+});
 
-			try {
-				await refreshToken();
-				const token =
-					localStorage.getItem("authToken") ||
-					sessionStorage.getItem("authToken");
-				if (token) {
-					originalRequest.headers.Authorization = `Bearer ${token}`;
-					console.log(
-						"✅ userApi.interceptor: トークンリフレッシュ成功 - リクエスト再実行",
-					);
-					return api(originalRequest);
-				}
-			} catch (refreshError) {
-				console.error(
-					"💥 userApi.interceptor: リフレッシュトークンエラー",
-					refreshError,
-				);
-				// リフレッシュトークンも無効な場合、ログアウト処理
-				localStorage.removeItem("authToken");
-				sessionStorage.removeItem("authToken");
-				localStorage.removeItem("refreshToken");
-				console.log(
-					"🚪 userApi.interceptor: 強制ログアウト - ログインページにリダイレクト",
-				);
-				window.location.href = "/login";
+api.interceptors.response.use(
+	(response) => response,
+	(error) => {
+		if (error.response?.status === 401) {
+			clearStoredAuth();
+			if (window.location.pathname !== "/login") {
+				window.location.assign("/login");
 			}
 		}
-
 		return Promise.reject(error);
 	},
 );
 
-// ===== 認証関連 API =====
-
-/**
- * ユーザーログイン
- */
 export const loginUser = async (
 	credentials: LoginRequest,
 ): Promise<AuthResponse> => {
-	console.log("🌐 userApi.loginUser: API呼び出し開始");
-	console.log("📤 userApi.loginUser: 送信データ", {
-		email: credentials.email,
-		passwordProvided: !!credentials.password,
-		remember: credentials.remember,
-		url: `${api.defaults.baseURL}/auth/login`,
-		timestamp: new Date().toISOString(),
-	});
-
 	try {
-		const response = await api.post<AuthResponse>("/auth/login", credentials);
-
-		console.log("✅ userApi.loginUser: API成功レスポンス", {
-			status: response.status,
-			userId: response.data.user?.id,
-			tokenReceived: !!response.data.token,
-		});
-
-		if (response.data.token) {
-			const storage = credentials.remember ? localStorage : sessionStorage;
-			storage.setItem("authToken", response.data.token);
-
-			console.log("💾 userApi.loginUser: トークン保存完了", {
-				storage: credentials.remember ? "localStorage" : "sessionStorage",
-				tokenLength: response.data.token.length,
-			});
-		}
-
-		return response.data;
+		const { data } = await api.post<AuthResponse>(
+			API_ENDPOINTS.AUTH.LOGIN,
+			credentials,
+		);
+		return mapAuthResponse(data);
 	} catch (error) {
-		console.error("💥 userApi.loginUser: API呼び出しエラー", {
-			error: error,
-			status: axios.isAxiosError(error) ? error.response?.status : "unknown",
-			message: axios.isAxiosError(error)
-				? error.response?.data?.message
-				: error,
-			url: `${api.defaults.baseURL}/auth/login`,
-			timestamp: new Date().toISOString(),
-		});
-
-		if (axios.isAxiosError(error) && error.response) {
-			throw new Error(error.response.data?.message || "ログインに失敗しました");
-		}
-		throw new Error("ネットワークエラーが発生しました");
+		return handleAxiosError(error, ERROR_MESSAGES.AUTH.LOGIN_FAILED);
 	}
 };
 
-/**
- * ユーザー登録
- */
 export const registerUser = async (
 	userData: RegisterRequest,
 ): Promise<AuthResponse> => {
-	console.log("🌐 userApi.registerUser: API呼び出し開始");
-
 	const payload = {
 		email: userData.email,
 		name: userData.name,
@@ -187,194 +102,105 @@ export const registerUser = async (
 		password_confirmation: userData.password_confirmation,
 	};
 
-	console.log("📤 userApi.registerUser: 送信データ", {
-		email: payload.email,
-		name: payload.name,
-		passwordProvided: !!payload.password,
-		passwordConfirmationProvided: !!payload.password_confirmation,
-		url: `${api.defaults.baseURL}/auth/signup`,
-		timestamp: new Date().toISOString(),
-	});
-
 	try {
-		const response = await api.post<AuthResponse>("/auth/signup", payload);
-
-		console.log("✅ userApi.registerUser: API成功レスポンス", {
-			status: response.status,
-			userId: response.data.user?.id,
-			email: response.data.user?.email,
-			tokenReceived: !!response.data.token,
-		});
-
-		if (response.data.token) {
-			sessionStorage.setItem("authToken", response.data.token);
-
-			console.log("💾 userApi.registerUser: トークン保存完了 (sessionStorage)");
-		}
-
-		return response.data;
+		const { data } = await api.post<AuthResponse>(
+			API_ENDPOINTS.AUTH.REGISTER,
+			payload,
+		);
+		return mapAuthResponse(data);
 	} catch (error) {
-		console.error(" userApi.registerUser: API呼び出しエラー", {
-			error: error,
-			status: axios.isAxiosError(error) ? error.response?.status : "unknown",
-			message: axios.isAxiosError(error)
-				? error.response?.data?.message
-				: error,
-			url: `${api.defaults.baseURL}/auth/signup`,
-			timestamp: new Date().toISOString(),
-		});
-
-		if (axios.isAxiosError(error) && error.response) {
-			throw new Error(
-				error.response.data?.message || "ユーザー登録に失敗しました",
-			);
-		}
-		throw new Error("ネットワークエラーが発生しました");
+		return handleAxiosError(error, ERROR_MESSAGES.AUTH.REGISTER_FAILED);
 	}
 };
 
-/**
- * トークンリフレッシュ
- */
 export const refreshToken = async (): Promise<TokenRefreshResponse> => {
+	const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+	if (!refreshToken) {
+		throw new Error(ERROR_MESSAGES.AUTH.NO_REFRESH_TOKEN);
+	}
+
 	try {
-		const refreshToken = localStorage.getItem("refreshToken");
-		if (!refreshToken) {
-			throw new Error("リフレッシュトークンがありません");
-		}
+		const { data } = await api.post<TokenRefreshResponse>(
+			API_ENDPOINTS.AUTH.REFRESH,
+			{ refreshToken },
+		);
 
-		const response = await api.post<TokenRefreshResponse>("/auth/refresh", {
-			refreshToken,
-		});
-
-		if (response.data.success && response.data.data.token) {
-			const storage = localStorage.getItem("authToken")
-				? localStorage
-				: sessionStorage;
-			storage.setItem("authToken", response.data.data.token);
-
-			if (response.data.data.refreshToken) {
-				localStorage.setItem("refreshToken", response.data.data.refreshToken);
+		if (data.success && data.data.token) {
+			localStorage.setItem(AUTH_TOKEN_KEY, data.data.token);
+			if (data.data.refreshToken) {
+				localStorage.setItem(REFRESH_TOKEN_KEY, data.data.refreshToken);
 			}
 		}
 
-		return response.data;
+		return data;
 	} catch (error) {
-		if (axios.isAxiosError(error) && error.response) {
-			throw new Error(
-				error.response.data?.message || "トークンの更新に失敗しました",
-			);
-		}
-		throw new Error("ネットワークエラーが発生しました");
+		return handleAxiosError(error, ERROR_MESSAGES.AUTH.TOKEN_REFRESH_FAILED);
 	}
 };
 
-/**
- * ログアウト
- */
 export const logoutUser = async (): Promise<void> => {
 	try {
-		await api.post("/auth/logout");
+		await api.post(API_ENDPOINTS.AUTH.LOGOUT);
 	} catch (error) {
-		console.warn(
-			"ログアウトAPIでエラーが発生しましたが、ローカルトークンを削除します",
-			error,
-		);
+		console.warn("logoutUser: API request failed", error);
 	} finally {
-		localStorage.removeItem("authToken");
-		sessionStorage.removeItem("authToken");
-		localStorage.removeItem("refreshToken");
+		clearStoredAuth();
 	}
 };
 
-// ===== ユーザープロフィール API =====
-
-/**
- * 現在のユーザー情報を取得
- */
 export const getUserProfile = async (): Promise<UserProfile> => {
 	try {
-		const response = await api.get<UserResponse>("/users/me");
-
-		return response.data.data;
+		const { data } = await api.get<UserResponse>(API_ENDPOINTS.USERS.PROFILE);
+		return data.data;
 	} catch (error) {
-		if (axios.isAxiosError(error) && error.response) {
-			throw new Error(
-				error.response.data?.message || "ユーザー情報の取得に失敗しました",
-			);
-		}
-		throw new Error("ネットワークエラーが発生しました");
+		return handleAxiosError(error, ERROR_MESSAGES.USER.PROFILE_FETCH_FAILED);
 	}
 };
 
-/**
- * ユーザー情報を更新
- */
 export const updateUserProfile = async (
-	userData: UpdateUserRequest,
+	formData: FormData,
 ): Promise<UserProfile> => {
 	try {
-		const response = await api.put<UserResponse>("/users/me", userData);
-
-		return response.data.data;
+		const { data } = await api.put<UserResponse>(
+			API_ENDPOINTS.USERS.PROFILE,
+			formData,
+			{
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			},
+		);
+		return data.data;
 	} catch (error) {
-		if (axios.isAxiosError(error) && error.response) {
-			throw new Error(
-				error.response.data?.message || "ユーザー情報の更新に失敗しました",
-			);
-		}
-		throw new Error("ネットワークエラーが発生しました");
+		return handleAxiosError(error, ERROR_MESSAGES.USER.PROFILE_UPDATE_FAILED);
 	}
 };
 
-// ===== ユーザー設定 API =====
-
-/**
- * ユーザー設定を取得
- */
 export const getUserSettings = async (): Promise<UserSettings> => {
 	try {
-		const response = await api.get<UserSettingsResponse>("/users/me/settings");
-
-		return response.data.data;
+		const { data } = await api.get<UserSettingsResponse>(
+			API_ENDPOINTS.USERS.SETTINGS,
+		);
+		return data.data;
 	} catch (error) {
-		if (axios.isAxiosError(error) && error.response) {
-			throw new Error(
-				error.response.data?.message || "設定情報の取得に失敗しました",
-			);
-		}
-		throw new Error("ネットワークエラーが発生しました");
+		return handleAxiosError(error, ERROR_MESSAGES.USER.SETTINGS_FETCH_FAILED);
 	}
 };
 
-/**
- * ユーザー設定を更新
- */
 export const updateUserSettings = async (
 	settings: UpdateUserSettingsRequest,
 ): Promise<UserSettings> => {
 	try {
-		const response = await api.put<UserSettingsResponse>(
-			"/users/me/settings",
+		const { data } = await api.put<UserSettingsResponse>(
+			API_ENDPOINTS.USERS.SETTINGS,
 			settings,
 		);
-
-		return response.data.data;
+		return data.data;
 	} catch (error) {
-		if (axios.isAxiosError(error) && error.response) {
-			throw new Error(
-				error.response.data?.message || "設定の更新に失敗しました",
-			);
-		}
-		throw new Error("ネットワークエラーが発生しました");
+		return handleAxiosError(error, ERROR_MESSAGES.USER.SETTINGS_UPDATE_FAILED);
 	}
 };
 
-// ===== ユーザー履歴 API =====
-
-/**
- * ユーザーの履歴を取得
- */
 export const getUserHistory = async (
 	page: number = 1,
 	limit: number = 20,
@@ -390,67 +216,46 @@ export const getUserHistory = async (
 			params.append("action", action);
 		}
 
-		const response = await api.get<UserHistoryResponse>(
-			`/users/me/history?${params}`,
+		const { data } = await api.get<UserHistoryResponse>(
+			`${API_ENDPOINTS.USERS.HISTORY}?${params.toString()}`,
 		);
 
-		return response.data.data;
+		return data.data;
 	} catch (error) {
-		if (axios.isAxiosError(error) && error.response) {
-			throw new Error(
-				error.response.data?.message || "履歴の取得に失敗しました",
-			);
-		}
-		throw new Error("ネットワークエラーが発生しました");
+		return handleAxiosError(error, ERROR_MESSAGES.USER.HISTORY_FETCH_FAILED);
 	}
 };
 
-/**
- * 履歴アイテムを追加
- */
 export const addHistoryItem = async (
 	itemId: string,
 	action: "view" | "favorite" | "unfavorite" | "share" | "download",
 	metadata?: Record<string, unknown>,
 ): Promise<UserHistoryItem> => {
 	try {
-		const response = await api.post<{
+		const { data } = await api.post<{
 			message: string;
 			data: UserHistoryItem;
-		}>("/users/me/history", {
+		}>(API_ENDPOINTS.USERS.HISTORY, {
 			itemId,
 			action,
 			metadata,
 		});
 
-		return response.data.data;
+		return data.data;
 	} catch (error) {
-		if (axios.isAxiosError(error) && error.response) {
-			throw new Error(
-				error.response.data?.message || "履歴の追加に失敗しました",
-			);
-		}
-		throw new Error("ネットワークエラーが発生しました");
+		return handleAxiosError(error, ERROR_MESSAGES.USER.HISTORY_ADD_FAILED);
 	}
 };
 
-// エクスポートされた API関数のデフォルトオブジェクト
 export const userApi = {
-	// 認証
 	login: loginUser,
 	register: registerUser,
 	logout: logoutUser,
 	refreshToken,
-
-	// プロフィール
 	getProfile: getUserProfile,
 	updateProfile: updateUserProfile,
-
-	// 設定
 	getSettings: getUserSettings,
 	updateSettings: updateUserSettings,
-
-	// 履歴
 	getHistory: getUserHistory,
 	addHistory: addHistoryItem,
 };
