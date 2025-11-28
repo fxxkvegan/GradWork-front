@@ -14,7 +14,7 @@ import {
 	Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import AppHeader from "../../components/AppHeader";
 import { useAuth } from "../../context/AuthContext";
 import { registerUser } from "../../services/userApi";
@@ -237,7 +237,7 @@ const RegisterPage: React.FC = () => {
 
 						<Typography variant="body2" align="center" sx={{ mt: 2 }}>
 							Already have an account?{" "}
-							<Link href="/login" variant="body2">
+							<Link component={RouterLink} to="/login" variant="body2">
 								Sign in
 							</Link>
 						</Typography>
