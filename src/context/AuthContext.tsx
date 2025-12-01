@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		setUser(null);
 		localStorage.removeItem(AUTH_TOKEN_KEY);
 		localStorage.removeItem(AUTH_USER_KEY);
-		window.location.assign("/login");
+		window.location.assign("/home");
 	}, []);
 
 	const updateUser = useCallback((payload: Partial<StoredUser>) => {
