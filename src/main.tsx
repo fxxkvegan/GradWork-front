@@ -24,10 +24,16 @@ const NotFoundPage = () => (
 	</div>
 );
 
+const RootLayout = () => (
+	<AuthProvider>
+		<Layout />
+	</AuthProvider>
+);
+
 const router = createBrowserRouter([
 	{
 		path: "/",
-		element: <Layout />,
+		element: <RootLayout />,
 		children: [
 			{ index: true, element: <HomePage /> },
 			{ path: "home", element: <HomePage /> },
@@ -50,7 +56,5 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById("root")!).render(
-	<AuthProvider>
-		<RouterProvider router={router} />
-	</AuthProvider>,
+	<RouterProvider router={router} />,
 );
