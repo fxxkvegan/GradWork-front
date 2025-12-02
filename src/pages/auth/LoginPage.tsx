@@ -65,23 +65,21 @@ const LoginPage: React.FC = () => {
 				<Card elevation={3}>
 					<CardContent>
 						<Typography variant="h6" align="center" gutterBottom>
-							Sign In
+							ログイン
 						</Typography>
 						<Typography
 							variant="body2"
 							align="center"
 							color="text.secondary"
 							gutterBottom
-						>
-							Welcome, please sign in to continue
-						</Typography>
+						></Typography>
 
 						<form onSubmit={handleSubmit}>
 							<Stack spacing={2} mt={2}>
 								<TextField
-									label="Email"
+									label="メールアドレス"
 									type="email"
-									placeholder="your@email.com"
+									placeholder="sample@example.com"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 									required
@@ -89,7 +87,7 @@ const LoginPage: React.FC = () => {
 									disabled={loading}
 								/>
 								<TextField
-									label="Password"
+									label="パスワード"
 									type="password"
 									placeholder="******"
 									value={password}
@@ -114,10 +112,11 @@ const LoginPage: React.FC = () => {
 												disabled={loading}
 											/>
 										}
-										label="Remember me"
+										label="ログインを維持"
+										sx={{ whiteSpace: "nowrap" }}
 									/>
-									<Link href="#" variant="body2">
-										Forgot password?
+									<Link href="#" variant="body2" sx={{ whiteSpace: "nowrap" }}>
+										パスワードをお忘れの方はこちら
 									</Link>
 								</Box>
 
@@ -130,24 +129,16 @@ const LoginPage: React.FC = () => {
 									sx={{ fontWeight: "bold" }}
 									disabled={loading}
 								>
-									{loading ? "Signing In..." : "Sign In"}
+									{loading ? "ログイン中..." : "ログイン"}
 								</Button>
 							</Stack>
 						</form>
 
 						<Typography variant="body2" align="center" sx={{ mt: 2 }}>
-							Don't have an account?{" "}
+							アカウントをお持ちでない方は{" "}
 							<Link component={RouterLink} to="/register" variant="body2">
-								Sign up
+								新規登録
 							</Link>
-						</Typography>
-
-						<Typography
-							variant="caption"
-							align="center"
-							sx={{ mt: 2, display: "block", color: "text.secondary" }}
-						>
-							Test credentials: test@example.com / password
 						</Typography>
 					</CardContent>
 				</Card>
