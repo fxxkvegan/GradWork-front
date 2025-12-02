@@ -72,7 +72,6 @@ const navItems = [
 		label: "プログラミング 学習",
 		path: "/projects?category=プログラミング学習",
 	},
-	{ label: "サポート", path: "/support" },
 ];
 
 interface AppHeaderProps {
