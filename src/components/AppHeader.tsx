@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import useScrollDirection from "../hooks/useScrollDirection";
 import styles from "./AppHeader.module.css";
 import UserMenu from "./UserMenu";
@@ -91,6 +91,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 	userName,
 	avatarUrl,
 }) => {
+	const navigate = useNavigate();
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isSearchClosing, setIsSearchClosing] = useState(false);
@@ -171,6 +172,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 	const handleSearchSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		handleCloseSearch();
+	};
+
+	// 詳細ページへ遷移する関数を追加
+	const handleNavigateToDetail = (productId: number) => {
+		handleCloseSearch(); // 検索窓を閉じる
+		navigate(`/item/${productId}`); // 詳細ページへ遷移
 	};
 
 	return (
@@ -267,15 +274,39 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 						{searchTerm && suggestions.length > 0 && (
 							<ul className={styles.suggestionList}>
 								{suggestions.map((item, index) => {
-									const img = JSON.parse(item.image_url || "[]")[0];
+									// 画像処理: fetchProductsは配列か文字列を返す可能性があるため安全に処理
+									let img = "";
+									if (
+										Array.isArray(item.image_url) &&
+										item.image_url.length > 0
+									) {
+										img = item.image_url[0];
+									} else if (typeof item.image_url === "string") {
+										try {
+											// JSON文字列の場合のパース
+											const parsed = JSON.parse(item.image_url || "[]");
+											img = Array.isArray(parsed) ? parsed[0] : item.image_url;
+										} catch {
+											// JSONパース失敗ならそのまま文字列として扱う
+											img = item.image_url;
+										}
+									}
 
 									return (
-										<li key={index} className={styles.suggestionCard}>
+										<li
+											key={index}
+											className={styles.suggestionCard}
+											onClick={() => handleNavigateToDetail(item.id)}
+											style={{ cursor: "pointer" }}
+										>
 											{/* 画像 */}
 											<img
-												src={img}
+												src={img || "/nice_dig.png"}
 												alt=""
 												className={styles.suggestionThumb}
+												onError={(e) => {
+													(e.target as HTMLImageElement).src = "/nice_dig.png";
+												}}
 											/>
 
 											{/* カテゴリ */}
