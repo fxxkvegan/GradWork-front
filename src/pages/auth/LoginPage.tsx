@@ -61,88 +61,108 @@ const LoginPage: React.FC = () => {
 	return (
 		<>
 			<AppHeaderWithAuth activePath="/login" />
-			<Container maxWidth="xs" sx={{ mt: 8 }}>
-				<Card elevation={3}>
-					<CardContent>
-						<Typography variant="h6" align="center" gutterBottom>
-							ログイン
-						</Typography>
-						<Typography
-							variant="body2"
-							align="center"
-							color="text.secondary"
-							gutterBottom
-						></Typography>
-
-						<form onSubmit={handleSubmit}>
-							<Stack spacing={2} mt={2}>
-								<TextField
-									label="メールアドレス"
-									type="email"
-									placeholder="sample@example.com"
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									required
-									fullWidth
-									disabled={loading}
-								/>
-								<TextField
-									label="パスワード"
-									type="password"
-									placeholder="******"
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									required
-									fullWidth
-									disabled={loading}
-								/>
-
-								<Box
-									sx={{
-										display: "flex",
-										justifyContent: "space-between",
-										alignItems: "center",
-									}}
-								>
-									<FormControlLabel
-										control={
-											<Checkbox
-												checked={remember}
-												onChange={(e) => setRemember(e.target.checked)}
-												disabled={loading}
-											/>
-										}
-										label="ログインを維持"
-										sx={{ whiteSpace: "nowrap" }}
-									/>
-									<Link href="#" variant="body2" sx={{ whiteSpace: "nowrap" }}>
-										パスワードをお忘れの方はこちら
-									</Link>
+			<Box
+				component="section"
+				sx={{
+					backgroundColor: "#f5f5f7",
+					minHeight: { xs: "calc(100vh - 64px)", md: "calc(100vh - 88px)" },
+					display: "flex",
+					alignItems: "stretch",
+					py: { xs: 6, md: 10 },
+				}}
+			>
+				<Container maxWidth="sm">
+					<Card
+						elevation={4}
+						sx={{
+							borderRadius: 3,
+							boxShadow: "0 20px 45px rgba(15,23,42,0.12)",
+						}}
+					>
+						<CardContent sx={{ p: { xs: 4, md: 6 } }}>
+							<Stack spacing={3}>
+								<Box textAlign="center">
+									<Typography variant="h5" fontWeight="bold">
+										ログイン
+									</Typography>
+									<Typography variant="body2" color="text.secondary" mt={1}>
+										メールアドレスとパスワードを入力してください
+									</Typography>
 								</Box>
 
 								{error && <Alert severity="error">{error}</Alert>}
 
-								<Button
-									type="submit"
-									variant="contained"
-									fullWidth
-									sx={{ fontWeight: "bold" }}
-									disabled={loading}
-								>
-									{loading ? "ログイン中..." : "ログイン"}
-								</Button>
-							</Stack>
-						</form>
+								<form onSubmit={handleSubmit}>
+									<Stack spacing={2.5}>
+										<TextField
+											label="メールアドレス"
+											type="email"
+											placeholder="sample@example.com"
+											value={email}
+											onChange={(e) => setEmail(e.target.value)}
+											required
+											fullWidth
+											disabled={loading}
+										/>
+										<TextField
+											label="パスワード"
+											type="password"
+											placeholder="******"
+											value={password}
+											onChange={(e) => setPassword(e.target.value)}
+											required
+											fullWidth
+											disabled={loading}
+										/>
 
-						<Typography variant="body2" align="center" sx={{ mt: 2 }}>
-							アカウントをお持ちでない方は{" "}
-							<Link component={RouterLink} to="/register" variant="body2">
-								新規登録
-							</Link>
-						</Typography>
-					</CardContent>
-				</Card>
-			</Container>
+										<Box
+											sx={{
+												display: "flex",
+												flexDirection: { xs: "column", sm: "row" },
+												justifyContent: "space-between",
+												alignItems: { xs: "flex-start", sm: "center" },
+												gap: 1,
+											}}
+										>
+											<FormControlLabel
+												control={
+													<Checkbox
+														checked={remember}
+														onChange={(e) => setRemember(e.target.checked)}
+														color="primary"
+														disabled={loading}
+													/>
+												}
+												label="ログイン情報を保存する"
+											/>
+											<Link href="#" underline="hover" variant="body2">
+												パスワードをお忘れの方はこちら
+											</Link>
+										</Box>
+
+										<Button
+											type="submit"
+											variant="contained"
+											fullWidth
+											sx={{ fontWeight: "bold", py: 1.25 }}
+											disabled={loading}
+										>
+											{loading ? "ログイン中..." : "ログイン"}
+										</Button>
+									</Stack>
+								</form>
+
+								<Typography variant="body2" align="center">
+									アカウントをお持ちでない方は{" "}
+									<Link component={RouterLink} to="/register" variant="body2">
+										新規登録
+									</Link>
+								</Typography>
+							</Stack>
+						</CardContent>
+					</Card>
+				</Container>
+			</Box>
 		</>
 	);
 };
