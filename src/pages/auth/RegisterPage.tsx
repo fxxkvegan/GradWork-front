@@ -1,5 +1,6 @@
 import {
 	Alert,
+	Box,
 	Button,
 	Card,
 	CardContent,
@@ -95,105 +96,123 @@ const RegisterPage: React.FC = () => {
 	return (
 		<>
 			<AppHeaderWithAuth activePath="/register" />
-			<Container maxWidth="xs" sx={{ mt: 8 }}>
-				<Card elevation={3}>
-					<CardContent>
-						<Typography variant="h6" align="center" gutterBottom>
-							アカウントを作成
-						</Typography>
-						<Typography
-							variant="body2"
-							align="center"
-							color="text.secondary"
-							gutterBottom
-						>
-							必要な情報を入力してください
-						</Typography>
+			<Box
+				component="section"
+				sx={{
+					backgroundColor: "#f5f5f7",
+					minHeight: { xs: "calc(100vh - 64px)", md: "calc(100vh - 88px)" },
+					display: "flex",
+					alignItems: "stretch",
+					py: { xs: 6, md: 10 },
+				}}
+			>
+				<Container maxWidth="sm">
+					<Card
+						elevation={4}
+						sx={{
+							borderRadius: 3,
+							boxShadow: "0 20px 45px rgba(15,23,42,0.12)",
+						}}
+					>
+						<CardContent sx={{ p: { xs: 4, md: 6 } }}>
+							<Stack spacing={3}>
+								<Box textAlign="center">
+									<Typography variant="h5" fontWeight="bold">
+										アカウントを作成
+									</Typography>
+									<Typography variant="body2" color="text.secondary" mt={1}>
+										必要な情報を入力してください
+									</Typography>
+								</Box>
 
-						<form onSubmit={handleSubmit}>
-							<Stack spacing={2} mt={2}>
-								<TextField
-									label="ユーザー名"
-									type="text"
-									placeholder="nice_digger"
-									value={username}
-									onChange={(e) => setUsername(e.target.value)}
-									required
-									fullWidth
-									disabled={loading}
-								/>
-								<TextField
-									label="メールアドレス"
-									type="email"
-									placeholder="your@email.com"
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									required
-									fullWidth
-									disabled={loading}
-								/>
-								<TextField
-									label="パスワード"
-									type="password"
-									placeholder="******"
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									required
-									fullWidth
-									disabled={loading}
-								/>
-								<TextField
-									label="パスワード（確認）"
-									type="password"
-									placeholder="******"
-									value={confirmPassword}
-									onChange={(e) => setConfirmPassword(e.target.value)}
-									required
-									fullWidth
-									disabled={loading}
-								/>
-								<FormControlLabel
-									control={
-										<Checkbox
-											checked={agree}
-											onChange={(e) => setAgree(e.target.checked)}
-											required
-											disabled={loading}
-										/>
-									}
-									label={
-										<>
-											利用規約に同意します（
-											<Link href="#" target="_blank" rel="noopener">
-												詳細を確認
-											</Link>
-											）
-										</>
-									}
-								/>
 								{error && <Alert severity="error">{error}</Alert>}
 
-								<Button
-									type="submit"
-									variant="contained"
-									fullWidth
-									sx={{ fontWeight: "bold" }}
-									disabled={loading}
-								>
-									{loading ? "登録処理中..." : "登録"}
-								</Button>
-							</Stack>
-						</form>
+								<form onSubmit={handleSubmit}>
+									<Stack spacing={2.5}>
+										<TextField
+											label="ユーザー名"
+											type="text"
+											placeholder="nice_digger"
+											value={username}
+											onChange={(e) => setUsername(e.target.value)}
+											required
+											fullWidth
+											disabled={loading}
+										/>
+										<TextField
+											label="メールアドレス"
+											type="email"
+											placeholder="your@email.com"
+											value={email}
+											onChange={(e) => setEmail(e.target.value)}
+											required
+											fullWidth
+											disabled={loading}
+										/>
+										<TextField
+											label="パスワード"
+											type="password"
+											placeholder="******"
+											value={password}
+											onChange={(e) => setPassword(e.target.value)}
+											required
+											fullWidth
+											disabled={loading}
+										/>
+										<TextField
+											label="パスワード（確認）"
+											type="password"
+											placeholder="******"
+											value={confirmPassword}
+											onChange={(e) => setConfirmPassword(e.target.value)}
+											required
+											fullWidth
+											disabled={loading}
+										/>
 
-						<Typography variant="body2" align="center" sx={{ mt: 2 }}>
-							既にアカウントをお持ちの方は{" "}
-							<Link component={RouterLink} to="/login" variant="body2">
-								こちらからログイン
-							</Link>
-						</Typography>
-					</CardContent>
-				</Card>
-			</Container>
+										<FormControlLabel
+											control={
+												<Checkbox
+													checked={agree}
+													onChange={(e) => setAgree(e.target.checked)}
+													required
+													disabled={loading}
+												/>
+											}
+											label={
+												<>
+													利用規約に同意します（
+													<Link href="#" target="_blank" rel="noopener">
+														詳細を確認
+													</Link>
+													）
+												</>
+											}
+										/>
+
+										<Button
+											type="submit"
+											variant="contained"
+											fullWidth
+											sx={{ fontWeight: "bold", py: 1.25 }}
+											disabled={loading}
+										>
+											{loading ? "登録処理中..." : "登録"}
+										</Button>
+									</Stack>
+								</form>
+
+								<Typography variant="body2" align="center">
+									既にアカウントをお持ちの方は{" "}
+									<Link component={RouterLink} to="/login" variant="body2">
+										こちらからログイン
+									</Link>
+								</Typography>
+							</Stack>
+						</CardContent>
+					</Card>
+				</Container>
+			</Box>
 		</>
 	);
 };
