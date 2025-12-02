@@ -1,4 +1,3 @@
-import GitHubIcon from "@mui/icons-material/GitHub";
 import {
 	Alert,
 	Box,
@@ -7,7 +6,6 @@ import {
 	CardContent,
 	Checkbox,
 	Container,
-	Divider,
 	FormControlLabel,
 	Link,
 	Stack,
@@ -60,11 +58,6 @@ const LoginPage: React.FC = () => {
 		}
 	};
 
-	const handleOAuthSignIn = () => {
-		// GitHub OAuth の実装
-		window.location.href = "null";
-	};
-
 	return (
 		<>
 			<AppHeaderWithAuth activePath="/login" />
@@ -82,19 +75,6 @@ const LoginPage: React.FC = () => {
 						>
 							Welcome, please sign in to continue
 						</Typography>
-
-						<Button
-							fullWidth
-							variant="outlined"
-							startIcon={<GitHubIcon />}
-							sx={{ mt: 2, mb: 2 }}
-							onClick={handleOAuthSignIn}
-							disabled={loading}
-						>
-							Sign In With GitHub
-						</Button>
-
-						<Divider>or</Divider>
 
 						<form onSubmit={handleSubmit}>
 							<Stack spacing={2} mt={2}>

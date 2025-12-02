@@ -79,21 +79,6 @@ GitHubリポジトリに以下のSecretsを設定する必要があります。
 
 ---
 
-#### 5. VITE_GITHUB_CLIENT_ID
-
-**説明**: GitHub OAuth認証用のクライアントID
-
-**取得方法**:
-1. GitHub > Settings > Developer settings > OAuth Apps
-2. 対象のOAuth Appを選択
-3. Client IDをコピー
-
-**現在の値**: プロジェクトの`.env`ファイルに記載されています
-
-**注意**: この値は公開されても問題ありませんが、Secretとして管理します
-
----
-
 ## S3バケットの設定
 
 ### 1. 静的ウェブサイトホスティングの有効化

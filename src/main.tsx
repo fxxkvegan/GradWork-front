@@ -4,7 +4,6 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./context/AuthContext";
 import AddItemsPage from "./pages/admin/AddItemsPage";
-import GitHubCallbackPage from "./pages/auth/GitHubCallbackPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import HomePage from "./pages/HomePage";
@@ -40,7 +39,6 @@ const router = createBrowserRouter([
 			{ path: "projects", element: <ProjectList /> },
 			{ path: "register", element: <RegisterPage /> },
 			{ path: "login", element: <LoginPage /> },
-			{ path: "login/github-callback", element: <GitHubCallbackPage /> },
 			{ path: "Legal", element: <Legal /> },
 			{ path: "item", element: <ItemListPage /> },
 			{ path: "item/:itemId", element: <ItemDetailPage /> },

@@ -1,4 +1,3 @@
-import GitHubIcon from "@mui/icons-material/GitHub";
 import {
 	Alert,
 	Button,
@@ -6,7 +5,6 @@ import {
 	CardContent,
 	Checkbox,
 	Container,
-	Divider,
 	FormControlLabel,
 	Link,
 	Stack,
@@ -94,11 +92,6 @@ const RegisterPage: React.FC = () => {
 		}
 	};
 
-	const handleOAuthSignUp = () => {
-		window.location.href =
-			"http://app.nice-dig.com/auth/github?action=register";
-	};
-
 	return (
 		<>
 			<AppHeaderWithAuth activePath="/register" />
@@ -116,18 +109,6 @@ const RegisterPage: React.FC = () => {
 						>
 							Sign up to get started
 						</Typography>
-
-						<Button
-							fullWidth
-							variant="outlined"
-							startIcon={<GitHubIcon />}
-							sx={{ mt: 2, mb: 2 }}
-							onClick={handleOAuthSignUp}
-						>
-							Sign Up With GitHub
-						</Button>
-
-						<Divider>or</Divider>
 
 						<form onSubmit={handleSubmit}>
 							<Stack spacing={2} mt={2}>
