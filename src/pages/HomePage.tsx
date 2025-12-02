@@ -37,6 +37,11 @@ import {
 	fetchRankingProjects,
 	type RankingItemResponse,
 } from "../services/productApi";
+// import {
+// 	fetchCategories,
+// 	fetchRankingProjects,
+// 	type RankingItemResponse,
+// } from "../api";
 import type { Category as ApiCategory } from "../types/category";
 
 /* ---------- 型定義 ---------- */

@@ -46,10 +46,10 @@ import {
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import "./ItemDetailPage.css";
 import axios from "axios";
-import { API_CONFIG } from "../constants/api";
+import { API_CONFIG, createProductReview, fetchProductReviews } from "../api";
+// import { API_CONFIG } from "../constants/api";
 import { useAuth } from "../context/AuthContext";
 import { fetchCategories } from "../services/categoryApi";
-import productApi from "../services/productApi";
 import type { Category } from "../types/category";
 import type { Review } from "../types/review";
 
@@ -516,7 +516,8 @@ export default function ItemDetailPage({
 				review_count: 0,
 			};
 		}
-		return productApi.fetchProductReviews(productNumericId);
+		// return productApi.fetchProductReviews(productNumericId);
+		return fetchProductReviews(productNumericId);
 	}, [isDemoMode, productNumericId]);
 
 	useEffect(() => {
@@ -900,10 +901,12 @@ export default function ItemDetailPage({
 				body: reviewForm.body.trim(),
 				rating: reviewForm.rating,
 			};
-			const response = await productApi.createProductReview(
-				productNumericId,
-				payload,
-			);
+			// const response = await productApi.createProductReview(
+			// 	productNumericId,
+			// 	payload,
+			// );
+			const response = await createProductReview(productNumericId, payload);
+
 			applyReviewSummary(response.average_rating, response.review_count);
 			if (response.data) {
 				const newReview = response.data;
