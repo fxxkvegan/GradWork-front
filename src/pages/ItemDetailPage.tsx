@@ -48,7 +48,9 @@ import "./ItemDetailPage.css";
 import axios from "axios";
 import { API_CONFIG } from "../constants/api";
 import { useAuth } from "../context/AuthContext";
+import { fetchCategories } from "../services/categoryApi";
 import productApi from "../services/productApi";
+import type { Category } from "../types/category";
 import type { Review } from "../types/review";
 
 // プロジェクト詳細の型定義
@@ -78,8 +80,8 @@ interface ProjectDetail {
 	created_at?: string;
 	updated_at?: string;
 	lastUpdated?: string;
-	categoryIds?: number[];
-	categories?: Array<{ id: number; name: string }>;
+	categoryIds?: Array<number | string>;
+	categories?: Array<{ id?: number | string; name?: string | null }>;
 	price?: number;
 	isFree?: boolean;
 	features?: string[];
@@ -452,6 +454,32 @@ export default function ItemDetailPage({
 	);
 	const [submittingReview, setSubmittingReview] = useState(false);
 	const [isReviewSectionOpen, setReviewSectionOpen] = useState(true);
+	const [categories, setCategories] = useState<Category[]>([]);
+
+	useEffect(() => {
+		let cancelled = false;
+		const loadCategories = async () => {
+			try {
+				const items = await fetchCategories();
+				if (!cancelled) {
+					setCategories(items);
+				}
+			} catch (categoryError) {
+				console.error("カテゴリの取得に失敗しました", categoryError);
+			}
+		};
+		loadCategories();
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	const categoryMap = useMemo(() => {
+		return categories.reduce((map, category) => {
+			map.set(String(category.id), category);
+			return map;
+		}, new Map<string, Category>());
+	}, [categories]);
 
 	const applyReviewSummary = useCallback(
 		(average: number, count: number) => {
@@ -726,20 +754,78 @@ export default function ItemDetailPage({
 		user.id === project.owner.id;
 
 	const primaryCategory = useMemo(() => {
-		if (
-			!Array.isArray(project?.categories) ||
-			project.categories.length === 0
-		) {
-			return null;
+		if (Array.isArray(project?.categories) && project.categories.length > 0) {
+			const validCategory = project.categories.find(
+				(category): category is { id: number; name: string } =>
+					category !== null &&
+					typeof category?.id === "number" &&
+					Number.isFinite(category.id),
+			);
+			if (validCategory) {
+				return {
+					id: validCategory.id,
+					name: validCategory.name ?? "",
+				};
+			}
 		}
-		const validCategory = project.categories.find(
-			(category): category is { id: number; name: string } =>
-				category !== null &&
-				typeof category?.id === "number" &&
-				Number.isFinite(category.id),
-		);
-		return validCategory ?? null;
-	}, [project?.categories]);
+
+		if (Array.isArray(project?.categoryIds) && project.categoryIds.length > 0) {
+			for (const rawId of project.categoryIds) {
+				const mapKey = String(rawId);
+				const category = categoryMap.get(mapKey);
+				if (category) {
+					return { id: category.id, name: category.name };
+				}
+			}
+		}
+
+		return null;
+	}, [project?.categories, project?.categoryIds, categoryMap]);
+
+	const resolvedCategoryChips = useMemo(() => {
+		if (!project) {
+			return [] as Array<{ id: number; name: string }>;
+		}
+
+		if (Array.isArray(project.categories) && project.categories.length > 0) {
+			return project.categories
+				.filter(
+					(category): category is { id: number; name: string } =>
+						category !== null &&
+						typeof category?.id === "number" &&
+						Number.isFinite(category.id) &&
+						typeof category.name === "string" &&
+						category.name.trim().length > 0,
+				)
+				.map((category) => ({ id: category.id, name: category.name.trim() }));
+		}
+
+		if (Array.isArray(project.categoryIds) && project.categoryIds.length > 0) {
+			return project.categoryIds
+				.map((categoryId) => {
+					const mapKey = String(categoryId);
+					const category = categoryMap.get(mapKey);
+					if (category && category.name.trim().length > 0) {
+						return { id: category.id, name: category.name.trim() };
+					}
+
+					const numericId =
+						typeof categoryId === "string" ? Number(categoryId) : categoryId;
+					if (Number.isFinite(numericId)) {
+						return {
+							id: numericId,
+							name: `カテゴリID: ${numericId}`,
+						};
+					}
+					return null;
+				})
+				.filter(
+					(value): value is { id: number; name: string } => value !== null,
+				);
+		}
+
+		return [] as Array<{ id: number; name: string }>;
+	}, [project, categoryMap]);
 
 	const categoryBreadcrumbLabel =
 		primaryCategory?.name?.trim() || "プロジェクト一覧";
@@ -1393,8 +1479,7 @@ export default function ItemDetailPage({
 							<Typography variant="body2" color="text.secondary" paragraph>
 								{project.shortDescription || project.description}
 							</Typography>
-							{((project.categories && project.categories.length > 0) ||
-								(project.categoryIds && project.categoryIds.length > 0)) && (
+							{resolvedCategoryChips.length > 0 && (
 								<Box sx={{ mb: 2 }}>
 									<Typography
 										variant="body2"
@@ -1404,7 +1489,7 @@ export default function ItemDetailPage({
 										カテゴリー
 									</Typography>
 									<Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-										{project.categories?.map((category) => (
+										{resolvedCategoryChips.map((category) => (
 											<Chip
 												key={category.id}
 												label={category.name}
@@ -1412,15 +1497,6 @@ export default function ItemDetailPage({
 												variant="outlined"
 											/>
 										))}
-										{!project.categories?.length &&
-											project.categoryIds?.map((id) => (
-												<Chip
-													key={id}
-													label={`カテゴリID: ${id}`}
-													size="small"
-													variant="outlined"
-												/>
-											))}
 									</Box>
 								</Box>
 							)}
