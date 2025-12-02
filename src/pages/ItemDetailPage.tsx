@@ -420,7 +420,7 @@ export default function ItemDetailPage({
 	const { search } = useLocation();
 	const isDemoMode =
 		demoMode || new URLSearchParams(search).get("demo") === "true";
-	const { isLoggedIn } = useAuth();
+	const { isLoggedIn, user } = useAuth();
 
 	const productNumericId = useMemo(() => {
 		if (!itemId) {
@@ -720,6 +720,11 @@ export default function ItemDetailPage({
 	const ownerBioValue = trimString(project?.owner?.bio);
 	const ownerBio = ownerBioValue.length > 0 ? ownerBioValue : null;
 
+	const isOwnProject =
+		user !== null &&
+		project?.owner?.id !== undefined &&
+		user.id === project.owner.id;
+
 	const primaryCategory = useMemo(() => {
 		if (
 			!Array.isArray(project?.categories) ||
@@ -792,8 +797,8 @@ export default function ItemDetailPage({
 			setReviewSubmitError("デモモードではレビューを投稿できません");
 			return;
 		}
-		if (!isLoggedIn) {
-			setReviewSubmitError("レビューを投稿するにはログインしてください");
+		if (isOwnProject) {
+			setReviewSubmitError("自分の投稿にはレビューを投稿できません");
 			return;
 		}
 		if (!reviewForm.title.trim() || !reviewForm.body.trim()) {
@@ -1227,7 +1232,11 @@ export default function ItemDetailPage({
 							</Stack>
 							<Collapse in={isReviewSectionOpen}>
 								<Box id="review-section-content" sx={{ mt: 2 }}>
-									{isLoggedIn ? (
+									{isLoggedIn && isOwnProject ? (
+										<Alert severity="info" sx={{ mt: 1.5 }}>
+											自分の投稿にはレビューを投稿できません。
+										</Alert>
+									) : (
 										<Box
 											component="form"
 											onSubmit={handleReviewSubmit}
@@ -1278,10 +1287,6 @@ export default function ItemDetailPage({
 												</Box>
 											</Stack>
 										</Box>
-									) : (
-										<Alert severity="info" sx={{ mt: 1.5 }}>
-											レビューを書くにはログインしてください。
-										</Alert>
 									)}
 									<Divider sx={{ my: { xs: 2, md: 3 } }} />
 									{reviewsLoading ? (
