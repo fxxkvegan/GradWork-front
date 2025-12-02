@@ -67,10 +67,10 @@ const navItems = [
 	{ label: "HOME", path: "/home" },
 	{ label: "プロジェクト一覧", path: "/item" },
 	{ label: "WEB開発", path: "/item?categoryId=1" },
-	{ label: "AI開発", path: "/item?categoryId=2" },
+	{ label: "モバイル開発", path: "/item?categoryId=2" },
 	{
-		label: "IoT開発",
-		path: "/item?categoryId=10",
+		label: "AI開発",
+		path: "/item?categoryId=3",
 	},
 ];
 
