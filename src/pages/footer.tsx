@@ -77,7 +77,7 @@ const Footer: React.FC = () => {
 									サービス
 								</Typography>
 								<Link
-									href="/projects"
+									href="/item"
 									color="grey.400"
 									underline="hover"
 									variant="body2"

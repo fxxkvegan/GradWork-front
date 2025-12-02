@@ -15,8 +15,9 @@ import {
 } from "@mui/material";
 import { type ChangeEvent, type FC, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+// import { fetchProducts } from "../services/productApi";
+import { fetchProducts } from "../api";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
-import { fetchProducts } from "../services/productApi";
 import type { Product } from "../types/product";
 import "./ItemListPage.css";
 
