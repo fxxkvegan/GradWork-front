@@ -286,6 +286,8 @@ const ItemListPage: FC = () => {
 			items.push({ label, to: `/item?${params.toString()}` });
 		} else if (selectedCategoryIds.length > 1) {
 			items.push({ label: multiCategoryLabel });
+		} else {
+			items.push({ label: "プロジェクト一覧" });
 		}
 		return items;
 	}, [categoryMap, multiCategoryLabel, selectedCategoryIds]);
