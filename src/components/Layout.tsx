@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import type { ReactNode } from "react";
 import { Outlet } from "react-router-dom";
 import Footer from "../pages/footer";
+import ScrollToTop from "./ScrollToTop";
 
 interface LayoutProps {
 	children?: ReactNode;
@@ -20,6 +21,7 @@ const Layout = ({ children }: LayoutProps) => {
 		>
 			{/* メインコンテンツエリア */}
 			<Box component="main" sx={{ flex: 1 }}>
+				<ScrollToTop />
 				{content}
 			</Box>
 

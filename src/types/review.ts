@@ -3,6 +3,7 @@ export interface Review {
 	product_id: number;
 	author_id: number | null;
 	author_name?: string | null;
+	author_avatar_url?: string | null;
 	title: string;
 	body: string;
 	rating: number;

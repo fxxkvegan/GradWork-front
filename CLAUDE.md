@@ -54,12 +54,10 @@ src/
 │   ├── ItemDetailPage.tsx   # アイテム詳細ページ
 │   ├── ItemFormPage.tsx     # アイテム作成・編集フォーム
 │   ├── ItemDemoPage.tsx     # デモページ
-│   ├── TestLogin.tsx   # テストログインページ (開発環境のみ)
 │   ├── Legal.tsx       # 法的情報ページ
 │   └── auth/           # 認証関連ページ
 │       ├── LoginPage.tsx
 │       ├── RegisterPage.tsx
-│       └── GitHubCallbackPage.tsx
 ├── context/            # Reactコンテキスト
 │   └── AuthContext.tsx # 認証状態管理
 ├── services/           # APIクライアント・サービス層

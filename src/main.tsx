@@ -4,7 +4,6 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./context/AuthContext";
 import AddItemsPage from "./pages/admin/AddItemsPage";
-import GitHubCallbackPage from "./pages/auth/GitHubCallbackPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import HomePage from "./pages/HomePage";
@@ -24,17 +23,22 @@ const NotFoundPage = () => (
 	</div>
 );
 
+const RootLayout = () => (
+	<AuthProvider>
+		<Layout />
+	</AuthProvider>
+);
+
 const router = createBrowserRouter([
 	{
 		path: "/",
-		element: <Layout />,
+		element: <RootLayout />,
 		children: [
 			{ index: true, element: <HomePage /> },
 			{ path: "home", element: <HomePage /> },
 			{ path: "projects", element: <ProjectList /> },
 			{ path: "register", element: <RegisterPage /> },
 			{ path: "login", element: <LoginPage /> },
-			{ path: "login/github-callback", element: <GitHubCallbackPage /> },
 			{ path: "Legal", element: <Legal /> },
 			{ path: "item", element: <ItemListPage /> },
 			{ path: "item/:itemId", element: <ItemDetailPage /> },
@@ -50,7 +54,5 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById("root")!).render(
-	<AuthProvider>
-		<RouterProvider router={router} />
-	</AuthProvider>,
+	<RouterProvider router={router} />,
 );

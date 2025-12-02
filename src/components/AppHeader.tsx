@@ -66,13 +66,12 @@ const MenuIcon = () => (
 const navItems = [
 	{ label: "HOME", path: "/home" },
 	{ label: "プロジェクト一覧", path: "/item" },
-	{ label: "iOS 開発", path: "/projects?category=iOS開発" },
-	{ label: "Android 開発", path: "/projects?category=Android開発" },
+	{ label: "WEB開発", path: "/item?categoryId=1" },
+	{ label: "モバイル開発", path: "/item?categoryId=2" },
 	{
-		label: "プログラミング 学習",
-		path: "/projects?category=プログラミング学習",
+		label: "AI開発",
+		path: "/item?categoryId=3",
 	},
-	{ label: "サポート", path: "/support" },
 ];
 
 interface AppHeaderProps {
@@ -128,8 +127,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 				const res = await fetch("https://app.nice-dig.com/api/products");
 				const data = await res.json();
 
-				console.log("API data:", data); // 確認用
-
 				// items の中に本体が入っている
 				setAllProducts(data.items || []);
 			} catch (err) {
@@ -174,7 +171,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 	// 検索フォームの送信処理
 	const handleSearchSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		console.log("Search submitted:", searchInputRef.current?.value);
 		handleCloseSearch();
 	};
 

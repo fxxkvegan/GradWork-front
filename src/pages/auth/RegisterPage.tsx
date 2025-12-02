@@ -1,4 +1,3 @@
-import GitHubIcon from "@mui/icons-material/GitHub";
 import {
 	Alert,
 	Button,
@@ -6,7 +5,6 @@ import {
 	CardContent,
 	Checkbox,
 	Container,
-	Divider,
 	FormControlLabel,
 	Link,
 	Stack,
@@ -14,7 +12,7 @@ import {
 	Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import AppHeaderWithAuth from "../../components/AppHeaderWithAuth";
 import { useAuth } from "../../context/AuthContext";
 import { registerUser } from "../../services/userApi";
@@ -35,30 +33,18 @@ const RegisterPage: React.FC = () => {
 		setError("");
 		setLoading(true);
 
-		console.log("🚀 RegisterPage: フォーム送信開始");
-		console.log("📊 RegisterPage: 入力データ", {
-			email: email,
-			username: username,
-			passwordLength: password.length,
-			confirmPasswordLength: confirmPassword.length,
-			agree: agree,
-		});
-
 		if (password !== confirmPassword) {
-			setError("Passwords do not match");
-			console.log("❌ RegisterPage: パスワード不一致エラー");
+			setError("パスワードが一致しません");
 			setLoading(false);
 			return;
 		}
 		if (!agree) {
-			setError("You must agree to the terms");
-			console.log("❌ RegisterPage: 利用規約未同意エラー");
+			setError("利用規約への同意が必要です");
 			setLoading(false);
 			return;
 		}
 		if (!username.trim()) {
-			setError("Username is required");
-			console.log("❌ RegisterPage: ユーザー名未入力エラー");
+			setError("ユーザー名を入力してください");
 			setLoading(false);
 			return;
 		}
@@ -71,25 +57,9 @@ const RegisterPage: React.FC = () => {
 				password_confirmation: password,
 			};
 
-			console.log("📤 RegisterPage: バックエンドに送信するデータ", {
-				email: registerData.email,
-				name: registerData.name,
-				passwordProvided: !!registerData.password,
-				passwordConfirmationProvided: !!registerData.password_confirmation,
-				timestamp: new Date().toISOString(),
-			});
-			console.log("🌐 RegisterPage: API呼び出し開始 - POST /auth/register");
-
 			const response = await registerUser(registerData);
 
-			console.log("✅ RegisterPage: API呼び出し成功", {
-				userId: response.user?.id,
-				email: response.user?.email,
-				tokenReceived: !!response.token,
-			});
-
 			login({ ...response.user, token: response.token }, false);
-			console.log("🎉 RegisterPage: ユーザー登録成功、ホームページに遷移");
 			navigate("/home");
 		} catch (error) {
 			console.error("💥 RegisterPage: API呼び出しエラー", {
@@ -99,7 +69,6 @@ const RegisterPage: React.FC = () => {
 			});
 
 			if (email && password && username) {
-				console.log("🧪 RegisterPage: テストモードでの登録処理");
 				const testUser = {
 					id: Date.now(),
 					name: username.trim(),
@@ -109,7 +78,6 @@ const RegisterPage: React.FC = () => {
 					token: "debug-token",
 				};
 
-				console.log("✅ RegisterPage: テストユーザー作成成功", testUser);
 				login(testUser, false);
 				navigate("/home");
 			} else {
@@ -121,15 +89,7 @@ const RegisterPage: React.FC = () => {
 			}
 		} finally {
 			setLoading(false);
-			console.log("🏁 RegisterPage: 登録処理完了");
 		}
-	};
-
-	const handleOAuthSignUp = () => {
-		console.log("🔗 RegisterPage: GitHub OAuth登録開始");
-		console.log("🌐 RegisterPage: GitHub OAuthリダイレクト");
-		window.location.href =
-			"http://app.nice-dig.com/auth/github?action=register";
 	};
 
 	return (
@@ -139,7 +99,7 @@ const RegisterPage: React.FC = () => {
 				<Card elevation={3}>
 					<CardContent>
 						<Typography variant="h6" align="center" gutterBottom>
-							Create your account
+							アカウントを作成
 						</Typography>
 						<Typography
 							variant="body2"
@@ -147,27 +107,15 @@ const RegisterPage: React.FC = () => {
 							color="text.secondary"
 							gutterBottom
 						>
-							Sign up to get started
+							必要な情報を入力してください
 						</Typography>
-
-						<Button
-							fullWidth
-							variant="outlined"
-							startIcon={<GitHubIcon />}
-							sx={{ mt: 2, mb: 2 }}
-							onClick={handleOAuthSignUp}
-						>
-							Sign Up With GitHub
-						</Button>
-
-						<Divider>or</Divider>
 
 						<form onSubmit={handleSubmit}>
 							<Stack spacing={2} mt={2}>
 								<TextField
-									label="Username"
+									label="ユーザー名"
 									type="text"
-									placeholder="your_username"
+									placeholder="nice_digger"
 									value={username}
 									onChange={(e) => setUsername(e.target.value)}
 									required
@@ -175,7 +123,7 @@ const RegisterPage: React.FC = () => {
 									disabled={loading}
 								/>
 								<TextField
-									label="Email"
+									label="メールアドレス"
 									type="email"
 									placeholder="your@email.com"
 									value={email}
@@ -185,7 +133,7 @@ const RegisterPage: React.FC = () => {
 									disabled={loading}
 								/>
 								<TextField
-									label="Password"
+									label="パスワード"
 									type="password"
 									placeholder="******"
 									value={password}
@@ -195,7 +143,7 @@ const RegisterPage: React.FC = () => {
 									disabled={loading}
 								/>
 								<TextField
-									label="Confirm Password"
+									label="パスワード（確認）"
 									type="password"
 									placeholder="******"
 									value={confirmPassword}
@@ -215,10 +163,11 @@ const RegisterPage: React.FC = () => {
 									}
 									label={
 										<>
-											I agree to the{" "}
+											利用規約に同意します（
 											<Link href="#" target="_blank" rel="noopener">
-												terms and conditions
+												詳細を確認
 											</Link>
+											）
 										</>
 									}
 								/>
@@ -231,15 +180,15 @@ const RegisterPage: React.FC = () => {
 									sx={{ fontWeight: "bold" }}
 									disabled={loading}
 								>
-									{loading ? "Creating Account..." : "Sign Up"}
+									{loading ? "登録処理中..." : "登録"}
 								</Button>
 							</Stack>
 						</form>
 
 						<Typography variant="body2" align="center" sx={{ mt: 2 }}>
-							Already have an account?{" "}
-							<Link href="/login" variant="body2">
-								Sign in
+							既にアカウントをお持ちの方は{" "}
+							<Link component={RouterLink} to="/login" variant="body2">
+								こちらからログイン
 							</Link>
 						</Typography>
 					</CardContent>

@@ -7,6 +7,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
+import { useNavigate } from "react-router";
 import type { User } from "../types/user";
 
 type StoredUser = Pick<User, "id" | "name" | "email"> & {
@@ -48,6 +49,8 @@ const readStoredUser = (): StoredUser | null => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+	const router = useNavigate();
+
 	const [user, setUser] = useState<StoredUser | null>(null);
 	const [token, setToken] = useState<string | null>(null);
 
@@ -90,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		setUser(null);
 		localStorage.removeItem(AUTH_TOKEN_KEY);
 		localStorage.removeItem(AUTH_USER_KEY);
-		window.location.assign("/login");
+		router("/home");
 	}, []);
 
 	const updateUser = useCallback((payload: Partial<StoredUser>) => {
