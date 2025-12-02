@@ -127,8 +127,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 				const res = await fetch("https://app.nice-dig.com/api/products");
 				const data = await res.json();
 
-				console.log("API data:", data); // 確認用
-
 				// items の中に本体が入っている
 				setAllProducts(data.items || []);
 			} catch (err) {
@@ -173,7 +171,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 	// 検索フォームの送信処理
 	const handleSearchSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		console.log("Search submitted:", searchInputRef.current?.value);
 		handleCloseSearch();
 	};
 

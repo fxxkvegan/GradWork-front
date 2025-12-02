@@ -35,30 +35,18 @@ const RegisterPage: React.FC = () => {
 		setError("");
 		setLoading(true);
 
-		console.log("🚀 RegisterPage: フォーム送信開始");
-		console.log("📊 RegisterPage: 入力データ", {
-			email: email,
-			username: username,
-			passwordLength: password.length,
-			confirmPasswordLength: confirmPassword.length,
-			agree: agree,
-		});
-
 		if (password !== confirmPassword) {
 			setError("Passwords do not match");
-			console.log("❌ RegisterPage: パスワード不一致エラー");
 			setLoading(false);
 			return;
 		}
 		if (!agree) {
 			setError("You must agree to the terms");
-			console.log("❌ RegisterPage: 利用規約未同意エラー");
 			setLoading(false);
 			return;
 		}
 		if (!username.trim()) {
 			setError("Username is required");
-			console.log("❌ RegisterPage: ユーザー名未入力エラー");
 			setLoading(false);
 			return;
 		}
@@ -71,25 +59,9 @@ const RegisterPage: React.FC = () => {
 				password_confirmation: password,
 			};
 
-			console.log("📤 RegisterPage: バックエンドに送信するデータ", {
-				email: registerData.email,
-				name: registerData.name,
-				passwordProvided: !!registerData.password,
-				passwordConfirmationProvided: !!registerData.password_confirmation,
-				timestamp: new Date().toISOString(),
-			});
-			console.log("🌐 RegisterPage: API呼び出し開始 - POST /auth/register");
-
 			const response = await registerUser(registerData);
 
-			console.log("✅ RegisterPage: API呼び出し成功", {
-				userId: response.user?.id,
-				email: response.user?.email,
-				tokenReceived: !!response.token,
-			});
-
 			login({ ...response.user, token: response.token }, false);
-			console.log("🎉 RegisterPage: ユーザー登録成功、ホームページに遷移");
 			navigate("/home");
 		} catch (error) {
 			console.error("💥 RegisterPage: API呼び出しエラー", {
@@ -99,7 +71,6 @@ const RegisterPage: React.FC = () => {
 			});
 
 			if (email && password && username) {
-				console.log("🧪 RegisterPage: テストモードでの登録処理");
 				const testUser = {
 					id: Date.now(),
 					name: username.trim(),
@@ -109,7 +80,6 @@ const RegisterPage: React.FC = () => {
 					token: "debug-token",
 				};
 
-				console.log("✅ RegisterPage: テストユーザー作成成功", testUser);
 				login(testUser, false);
 				navigate("/home");
 			} else {
@@ -121,13 +91,10 @@ const RegisterPage: React.FC = () => {
 			}
 		} finally {
 			setLoading(false);
-			console.log("🏁 RegisterPage: 登録処理完了");
 		}
 	};
 
 	const handleOAuthSignUp = () => {
-		console.log("🔗 RegisterPage: GitHub OAuth登録開始");
-		console.log("🌐 RegisterPage: GitHub OAuthリダイレクト");
 		window.location.href =
 			"http://app.nice-dig.com/auth/github?action=register";
 	};

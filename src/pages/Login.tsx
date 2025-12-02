@@ -170,11 +170,7 @@ const Login: React.FC = () => {
 										}
 										label="ログイン状態を保存"
 									/>
-									<MuiLink
-										component="button"
-										variant="body2"
-										onClick={() => console.log("パスワードリセット機能")}
-									>
+									<MuiLink component="button" variant="body2">
 										パスワードをお忘れですか？
 									</MuiLink>
 								</Box>

@@ -30,10 +30,7 @@ const GitHubCallbackPage: React.FC = () => {
 					return;
 				}
 
-				console.log("GitHubコードを受信:", code);
-
 				if (import.meta.env.DEV) {
-					console.log("開発環境でのモック認証を使用");
 					await new Promise((resolve) => setTimeout(resolve, 1000));
 
 					const mockUser = {
@@ -59,8 +56,6 @@ const GitHubCallbackPage: React.FC = () => {
 						"http://app.nice-dig.com/auth/github/callback",
 						{ code },
 					);
-					console.log("APIレスポンス:", data);
-
 					if (data.success) {
 						authCtx.login({ ...data.data.user, token: data.data.token }, true);
 						navigate("/home");

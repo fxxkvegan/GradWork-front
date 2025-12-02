@@ -34,38 +34,14 @@ const LoginPage: React.FC = () => {
 		setError("");
 		setLoading(true);
 
-		console.log("🚀 LoginPage: ログイン開始");
-		console.log("📊 LoginPage: 入力データ", {
-			email: email,
-			passwordLength: password.length,
-			remember: remember,
-			timestamp: new Date().toISOString(),
-		});
-
 		try {
 			// バックエンドに送信するデータ
 			const loginData = { email, password, remember };
 
-			console.log("📤 LoginPage: バックエンドに送信するデータ", {
-				email: loginData.email,
-				passwordProvided: !!loginData.password,
-				remember: loginData.remember,
-				timestamp: new Date().toISOString(),
-			});
-			console.log("🌐 LoginPage: API呼び出し開始 - POST /auth/login");
-
 			// 本番用API呼び出し
 			const response = await loginUser(loginData);
 
-			console.log("✅ LoginPage: API呼び出し成功", {
-				userId: response.user?.id,
-				username: response.user?.name,
-				email: response.user?.email,
-				tokenReceived: !!response.token,
-			});
-
 			login({ ...response.user, token: response.token }, remember);
-			console.log("🎉 LoginPage: ログイン成功、ホームページに遷移");
 			navigate("/home");
 		} catch (error) {
 			console.error("💥 LoginPage: API呼び出しエラー", {
@@ -81,18 +57,13 @@ const LoginPage: React.FC = () => {
 			);
 		} finally {
 			setLoading(false);
-			console.log("🏁 LoginPage: ログイン処理完了");
 		}
 	};
 
 	const handleOAuthSignIn = () => {
-		console.log("🔗 LoginPage: GitHub OAuthログイン開始");
-		console.log("🌐 LoginPage: GitHub OAuthリダイレクト");
 		// GitHub OAuth の実装
 		window.location.href = "null";
 	};
-
-	console.log("LoginPage component rendered");
 
 	return (
 		<>
