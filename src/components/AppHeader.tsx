@@ -66,11 +66,11 @@ const MenuIcon = () => (
 const navItems = [
 	{ label: "HOME", path: "/home" },
 	{ label: "プロジェクト一覧", path: "/item" },
-	{ label: "iOS 開発", path: "/projects?category=iOS開発" },
-	{ label: "Android 開発", path: "/projects?category=Android開発" },
+	{ label: "WEB開発", path: "/item?categoryId=1" },
+	{ label: "AI開発", path: "/item?categoryId=2" },
 	{
-		label: "プログラミング 学習",
-		path: "/projects?category=プログラミング学習",
+		label: "IoT開発",
+		path: "/item?categoryId=10",
 	},
 ];
 

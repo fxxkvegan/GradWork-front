@@ -135,6 +135,16 @@ const ItemListPage: FC = () => {
 		}, new Map<string, Category>());
 	}, [categories]);
 
+	const headingTitle = useMemo(() => {
+		if (selectedCategoryIds.length === 1) {
+			const category = categoryMap.get(String(selectedCategoryIds[0]));
+			if (category) {
+				return `${category.name}プロジェクト一覧`;
+			}
+		}
+		return "プロジェクト一覧";
+	}, [categoryMap, selectedCategoryIds]);
+
 	useEffect(() => {
 		let isMounted = true;
 		const loadProducts = async () => {
@@ -261,7 +271,7 @@ const ItemListPage: FC = () => {
 			<Box component="main" className="item-list-page">
 				<Container maxWidth="lg" sx={{ py: 4 }}>
 					<Typography variant="h4" component="h1" gutterBottom align="center">
-						プロジェクト一覧
+						{headingTitle}
 					</Typography>
 					<Typography
 						variant="body1"
