@@ -3,10 +3,13 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import CloseIcon from "@mui/icons-material/Close";
 import LanguageIcon from "@mui/icons-material/Language";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import {
 	Alert,
 	Avatar,
 	Box,
+	Button,
 	CircularProgress,
 	Dialog,
 	DialogContent,
@@ -16,6 +19,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import userApi from "../services/userApi";
 import type { PublicUserProfile } from "../types/user";
 
@@ -57,12 +61,37 @@ export default function UserProfileDialog({
 	const [profile, setProfile] = useState<PublicUserProfile | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [isFollowing, setIsFollowing] = useState(false);
+	const { user: authUser } = useAuth();
+	const viewerId = authUser?.id ?? null;
+	const normalizedViewerId = useMemo(() => {
+		if (viewerId === null || viewerId === undefined) {
+			return null;
+		}
+		const value = typeof viewerId === "string" ? Number(viewerId) : viewerId;
+		return Number.isFinite(value) ? value : null;
+	}, [viewerId]);
+	const normalizedTargetId = useMemo(() => {
+		const sourceId = profile?.id ?? userId;
+		if (sourceId === null || sourceId === undefined) {
+			return null;
+		}
+		const value = typeof sourceId === "string" ? Number(sourceId) : sourceId;
+		return Number.isFinite(value) ? value : null;
+	}, [profile, userId]);
+	const isOwnProfile = Boolean(
+		normalizedViewerId &&
+			normalizedTargetId &&
+			normalizedViewerId === normalizedTargetId,
+	);
+	const shouldShowActions = Boolean(normalizedTargetId) && !isOwnProfile;
 
 	useEffect(() => {
 		if (!open || !userId) {
 			setProfile(null);
 			setLoading(false);
 			setError(null);
+			setIsFollowing(false);
 			return;
 		}
 
@@ -70,6 +99,7 @@ export default function UserProfileDialog({
 		setLoading(true);
 		setError(null);
 		setProfile(null);
+		setIsFollowing(false);
 
 		userApi
 			.getPublicProfile(userId)
@@ -128,8 +158,20 @@ export default function UserProfileDialog({
 	});
 	const projectCount =
 		typeof profile?.productsCount === "number" ? profile.productsCount : null;
+	const followersCount =
+		typeof profile?.followersCount === "number" ? profile.followersCount : null;
+	const followingCount =
+		typeof profile?.followingCount === "number" ? profile.followingCount : null;
 	const showLoadingIndicator = loading && !profile;
 	const avatarInitial = displayName.charAt(0).toUpperCase() || "?";
+
+	const handleFollowToggle = () => {
+		setIsFollowing((prev) => !prev);
+	};
+
+	const handleDmClick = () => {
+		console.info("DM button clicked for user", profile?.id ?? userId);
+	};
 
 	return (
 		<Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -173,64 +215,125 @@ export default function UserProfileDialog({
 					</Avatar>
 				</Box>
 				<Box sx={{ p: 3, pt: 6 }}>
-					<Typography variant="h6" fontWeight="bold">
-						{displayName}
-					</Typography>
-					{handleName && (
-						<Typography variant="body2" color="text.secondary">
-							@{handleName}
-						</Typography>
-					)}
-					{bio && (
-						<Typography variant="body1" sx={{ mt: 1.5 }}>
-							{bio}
-						</Typography>
-					)}
-					<Stack direction="row" spacing={2} sx={{ mt: 1.5, flexWrap: "wrap" }}>
-						{location && (
-							<Stack direction="row" spacing={0.5} alignItems="center">
-								<LocationOnIcon fontSize="small" color="action" />
+					<Box
+						sx={{
+							display: "flex",
+							flexDirection: { xs: "column", sm: "row" },
+							justifyContent: "space-between",
+							gap: 2,
+						}}
+					>
+						<Box sx={{ flex: "1 1 auto", minWidth: 0 }}>
+							<Typography variant="h6" fontWeight="bold">
+								{displayName}
+							</Typography>
+							{handleName && (
 								<Typography variant="body2" color="text.secondary">
-									{location}
+									@{handleName}
 								</Typography>
+							)}
+							{bio && (
+								<Typography variant="body1" sx={{ mt: 1.5 }}>
+									{bio}
+								</Typography>
+							)}
+							<Stack
+								direction="row"
+								spacing={2}
+								sx={{ mt: 1.5, flexWrap: "wrap" }}
+							>
+								{location && (
+									<Stack direction="row" spacing={0.5} alignItems="center">
+										<LocationOnIcon fontSize="small" color="action" />
+										<Typography variant="body2" color="text.secondary">
+											{location}
+										</Typography>
+									</Stack>
+								)}
+								{website && (
+									<Stack direction="row" spacing={0.5} alignItems="center">
+										<LanguageIcon fontSize="small" color="action" />
+										<Link
+											href={website}
+											target="_blank"
+											rel="noopener noreferrer"
+											underline="hover"
+											variant="body2"
+										>
+											{website}
+										</Link>
+									</Stack>
+								)}
 							</Stack>
-						)}
-						{website && (
-							<Stack direction="row" spacing={0.5} alignItems="center">
-								<LanguageIcon fontSize="small" color="action" />
-								<Link
-									href={website}
-									target="_blank"
-									rel="noopener noreferrer"
-									underline="hover"
-									variant="body2"
+							<Stack
+								direction="row"
+								spacing={2}
+								sx={{ mt: 1.5, flexWrap: "wrap" }}
+							>
+								{birthdayLabel && (
+									<Stack direction="row" spacing={0.5} alignItems="center">
+										<CakeIcon fontSize="small" color="action" />
+										<Typography variant="body2" color="text.secondary">
+											{birthdayLabel}
+										</Typography>
+									</Stack>
+								)}
+								{joinedLabel && (
+									<Stack direction="row" spacing={0.5} alignItems="center">
+										<CalendarMonthIcon fontSize="small" color="action" />
+										<Typography variant="body2" color="text.secondary">
+											{joinedLabel} 参加
+										</Typography>
+									</Stack>
+								)}
+							</Stack>
+						</Box>
+						{shouldShowActions && (
+							<Stack
+								direction={{ xs: "column", sm: "row" }}
+								spacing={1}
+								sx={{
+									alignSelf: { xs: "stretch", sm: "flex-start" },
+									width: { xs: "100%", sm: "auto" },
+									"& > .MuiButton-root": {
+										flex: { xs: 1, sm: "unset" },
+									},
+								}}
+							>
+								<Button
+									variant={isFollowing ? "outlined" : "contained"}
+									color={isFollowing ? "secondary" : "primary"}
+									startIcon={<PersonAddAlt1Icon fontSize="small" />}
+									onClick={handleFollowToggle}
+									sx={{ minWidth: 140 }}
 								>
-									{website}
-								</Link>
+									{isFollowing ? "フォロー済み" : "フォロー"}
+								</Button>
+								<Button
+									variant="outlined"
+									color="primary"
+									startIcon={<MailOutlineIcon fontSize="small" />}
+									onClick={handleDmClick}
+									sx={{ minWidth: 140 }}
+								>
+									DM
+								</Button>
 							</Stack>
 						)}
-					</Stack>
-					<Stack direction="row" spacing={2} sx={{ mt: 1.5, flexWrap: "wrap" }}>
-						{birthdayLabel && (
-							<Stack direction="row" spacing={0.5} alignItems="center">
-								<CakeIcon fontSize="small" color="action" />
-								<Typography variant="body2" color="text.secondary">
-									{birthdayLabel}
-								</Typography>
-							</Stack>
-						)}
-						{joinedLabel && (
-							<Stack direction="row" spacing={0.5} alignItems="center">
-								<CalendarMonthIcon fontSize="small" color="action" />
-								<Typography variant="body2" color="text.secondary">
-									{joinedLabel} 参加
-								</Typography>
-							</Stack>
-						)}
-					</Stack>
-					<Stack direction="row" spacing={3} sx={{ mt: 2 }}>
+					</Box>
+					<Stack
+						direction="row"
+						spacing={3}
+						sx={{ mt: 2, flexWrap: "wrap", rowGap: 1, columnGap: 3 }}
+					>
 						<Typography variant="body2">
 							<strong>{projectCount ?? "—"}</strong> プロジェクト
+						</Typography>
+						<Typography variant="body2">
+							<strong>{followersCount ?? "—"}</strong> フォロワー
+						</Typography>
+						<Typography variant="body2">
+							<strong>{followingCount ?? "—"}</strong> フォロー
 						</Typography>
 					</Stack>
 					{showLoadingIndicator && (

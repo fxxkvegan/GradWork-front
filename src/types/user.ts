@@ -29,6 +29,8 @@ interface BaseUserProfile {
 	birthday?: string | null;
 	locale?: string | null;
 	theme?: string | null;
+	followersCount?: number;
+	followingCount?: number;
 }
 
 export interface UserProfile extends BaseUserProfile {
