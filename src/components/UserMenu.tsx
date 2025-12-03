@@ -2,7 +2,6 @@ import {
 	Article,
 	Login,
 	Logout,
-	Message,
 	Notifications,
 	PersonOutline,
 	Settings,
