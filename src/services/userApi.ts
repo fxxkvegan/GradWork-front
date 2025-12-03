@@ -21,9 +21,6 @@ const REFRESH_TOKEN_KEY = "refreshToken";
 const api = axios.create({
 	baseURL: API_CONFIG.BASE_URL,
 	timeout: API_CONFIG.TIMEOUT,
-	headers: {
-		"Content-Type": "application/json",
-	},
 });
 
 const mapAuthResponse = (data: AuthResponse): AuthResponse => ({
@@ -161,14 +158,15 @@ export const updateUserProfile = async (
 	formData: FormData,
 ): Promise<UserProfile> => {
 	try {
-		const { data } = await api.put<UserResponse>(
+		const payload = new FormData();
+		formData.forEach((value, key) => {
+			payload.append(key, value);
+		});
+		payload.append("_method", "PUT");
+
+		const { data } = await api.post<UserResponse>(
 			API_ENDPOINTS.USERS.PROFILE,
-			formData,
-			{
-				headers: {
-					"Content-Type": "multipart/form-data",
-				},
-			},
+			payload,
 		);
 		return data.data;
 	} catch (error) {
