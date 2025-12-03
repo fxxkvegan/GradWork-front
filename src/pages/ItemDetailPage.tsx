@@ -10,7 +10,6 @@ import {
 } from "@mui/icons-material";
 import {
 	Alert,
-	Avatar,
 	Box,
 	Breadcrumbs,
 	Button,
@@ -44,6 +43,7 @@ import {
 	useParams,
 } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
+import UserAvatarButton from "../components/UserAvatarButton";
 import "./ItemDetailPage.css";
 import axios from "axios";
 import { API_CONFIG, createProductReview, fetchProductReviews } from "../api";
@@ -741,11 +741,6 @@ export default function ItemDetailPage({
 	const ownerDisplayNameRaw = trimString(project?.owner?.displayName);
 	const ownerNameRaw = trimString(project?.owner?.name);
 	const ownerDisplayName = ownerDisplayNameRaw || ownerNameRaw || null;
-	const ownerInitialSource = ownerDisplayName ?? "";
-	const ownerInitial =
-		ownerInitialSource.length > 0
-			? ownerInitialSource.charAt(0).toUpperCase()
-			: "U";
 	const ownerAvatarUrl = project?.owner?.avatarUrl ?? null;
 	const ownerBioValue = trimString(project?.owner?.bio);
 	const ownerBio = ownerBioValue.length > 0 ? ownerBioValue : null;
@@ -1397,9 +1392,6 @@ export default function ItemDetailPage({
 												const authorName = review.author_name?.trim().length
 													? review.author_name.trim()
 													: "匿名ユーザー";
-												const authorInitial = authorName
-													.charAt(0)
-													.toUpperCase();
 												const authorAvatarUrl =
 													review.author_avatar_url ?? null;
 
@@ -1424,13 +1416,13 @@ export default function ItemDetailPage({
 																spacing={1.5}
 																alignItems="center"
 															>
-																<Avatar
-																	src={authorAvatarUrl ?? undefined}
-																	alt={authorName}
-																	sx={{ width: 36, height: 36 }}
-																>
-																	{authorInitial}
-																</Avatar>
+																<UserAvatarButton
+																	userId={review.author_id}
+																	name={review.author_name ?? undefined}
+																	displayName={review.author_name ?? undefined}
+																	avatarUrl={authorAvatarUrl}
+																	size={36}
+																/>
 																<Box>
 																	<Typography variant="subtitle2">
 																		{authorName}
@@ -1588,13 +1580,14 @@ export default function ItemDetailPage({
 								<>
 									<Divider sx={{ my: 2 }} />
 									<Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-										<Avatar
-											src={ownerAvatarUrl ?? undefined}
-											alt={(ownerDisplayName ?? ownerNameRaw) || "投稿者"}
-											sx={{ width: 48, height: 48 }}
-										>
-											{ownerInitial}
-										</Avatar>
+										<UserAvatarButton
+											userId={project.owner.id}
+											name={ownerNameRaw ?? undefined}
+											displayName={ownerDisplayName ?? undefined}
+											avatarUrl={ownerAvatarUrl}
+											headerUrl={project.owner.headerUrl ?? null}
+											size={48}
+										/>
 										<Box>
 											<Typography variant="body2" fontWeight="medium">
 												{(ownerDisplayName ?? ownerNameRaw) || "投稿者"}
