@@ -24,6 +24,7 @@ export const API_ENDPOINTS = {
 	},
 	USERS: {
 		PROFILE: "/users/me",
+		PUBLIC_PROFILE: (userId: number | string) => `/users/${userId}`,
 		SETTINGS: "/users/me/settings",
 		HISTORY: "/users/me/history",
 	},

@@ -3,6 +3,8 @@ import { API_CONFIG, API_ENDPOINTS, ERROR_MESSAGES } from "../constants/api";
 import type {
 	AuthResponse,
 	LoginRequest,
+	PublicUserProfile,
+	PublicUserResponse,
 	RegisterRequest,
 	TokenRefreshResponse,
 	UpdateUserSettingsRequest,
@@ -154,6 +156,19 @@ export const getUserProfile = async (): Promise<UserProfile> => {
 	}
 };
 
+export const getPublicUserProfile = async (
+	userId: number | string,
+): Promise<PublicUserProfile> => {
+	try {
+		const { data } = await api.get<PublicUserResponse>(
+			API_ENDPOINTS.USERS.PUBLIC_PROFILE(userId),
+		);
+		return data.data;
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.USER.PROFILE_FETCH_FAILED);
+	}
+};
+
 export const updateUserProfile = async (
 	formData: FormData,
 ): Promise<UserProfile> => {
@@ -251,6 +266,7 @@ export const userApi = {
 	logout: logoutUser,
 	refreshToken,
 	getProfile: getUserProfile,
+	getPublicProfile: getPublicUserProfile,
 	updateProfile: updateUserProfile,
 	getSettings: getUserSettings,
 	updateSettings: updateUserSettings,

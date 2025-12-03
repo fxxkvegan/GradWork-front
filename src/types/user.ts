@@ -17,11 +17,10 @@ export interface User {
 	updated_at?: string;
 }
 
-export interface UserProfile {
+interface BaseUserProfile {
 	id: number;
 	name: string;
 	displayName?: string | null;
-	email: string;
 	avatarUrl?: string | null;
 	headerUrl?: string | null;
 	bio?: string | null;
@@ -30,6 +29,17 @@ export interface UserProfile {
 	birthday?: string | null;
 	locale?: string | null;
 	theme?: string | null;
+}
+
+export interface UserProfile extends BaseUserProfile {
+	email: string;
+	productsCount?: number;
+	joinedAt?: string | null;
+}
+
+export interface PublicUserProfile extends BaseUserProfile {
+	productsCount: number;
+	joinedAt?: string | null;
 }
 
 export interface UserSettings {
@@ -55,6 +65,11 @@ export interface UserHistoryItem {
 export interface UserResponse {
 	message: string;
 	data: UserProfile;
+}
+
+export interface PublicUserResponse {
+	message: string;
+	data: PublicUserProfile;
 }
 
 export interface UserSettingsResponse {

@@ -5,7 +5,6 @@ import {
 } from "@mui/icons-material";
 import {
 	Alert,
-	Avatar,
 	Box,
 	Button,
 	Card,
@@ -25,6 +24,7 @@ import React, {
 	useState,
 } from "react";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
+import UserAvatarButton from "../components/UserAvatarButton";
 import { fetchCategories } from "../services/categoryApi";
 import * as favorites from "../utils/favorites";
 
@@ -85,7 +85,6 @@ const ProjectCard: React.FC<{
 
 	const ownerName =
 		project.owner?.displayName?.trim() || project.owner?.name?.trim() || "";
-	const ownerInitial = ownerName ? ownerName.charAt(0).toUpperCase() : "U";
 
 	return (
 		<Card className="project-card">
@@ -127,13 +126,13 @@ const ProjectCard: React.FC<{
 					<Box
 						sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}
 					>
-						<Avatar
-							src={project.owner.avatarUrl ?? undefined}
-							alt={ownerName || project.owner.name || "投稿者"}
-							sx={{ width: 32, height: 32 }}
-						>
-							{ownerInitial}
-						</Avatar>
+						<UserAvatarButton
+							userId={project.owner.id}
+							name={project.owner.name}
+							displayName={project.owner.displayName ?? project.owner.name}
+							avatarUrl={project.owner.avatarUrl ?? null}
+							size={32}
+						/>
 						<Typography variant="body2" fontWeight="medium">
 							{ownerName || project.owner?.name || "投稿者"}
 						</Typography>
