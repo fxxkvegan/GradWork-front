@@ -381,7 +381,7 @@ const StarRating = ({
 	);
 };
 
-const formatReviewTimestamp = (value: string): string => {
+const formatJapaneseDateTime = (value?: string | null): string => {
 	if (!value) {
 		return "";
 	}
@@ -389,13 +389,14 @@ const formatReviewTimestamp = (value: string): string => {
 	if (Number.isNaN(parsed.getTime())) {
 		return value;
 	}
-	return new Intl.DateTimeFormat("ja-JP", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	}).format(parsed);
+	const pad = (input: number) => String(input).padStart(2, "0");
+	const year = parsed.getFullYear();
+	const month = pad(parsed.getMonth() + 1);
+	const day = pad(parsed.getDate());
+	const hours = pad(parsed.getHours());
+	const minutes = pad(parsed.getMinutes());
+	const seconds = pad(parsed.getSeconds());
+	return `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`;
 };
 
 interface ReviewFormState {
@@ -1438,7 +1439,7 @@ export default function ItemDetailPage({
 																		variant="caption"
 																		color="text.secondary"
 																	>
-																		{formatReviewTimestamp(review.created_at)}
+																		{formatJapaneseDateTime(review.created_at)}
 																	</Typography>
 																</Box>
 															</Stack>
@@ -1570,7 +1571,9 @@ export default function ItemDetailPage({
 									最終更新
 								</Typography>
 								<Typography variant="body1">
-									{project.lastUpdated || project.updated_at}
+									{formatJapaneseDateTime(
+										project.lastUpdated || project.updated_at,
+									) || "-"}
 								</Typography>
 							</Box>
 							{project.version && (
