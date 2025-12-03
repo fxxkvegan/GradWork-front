@@ -3,6 +3,7 @@ import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./context/AuthContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import AddItemsPage from "./pages/admin/AddItemsPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
@@ -12,6 +13,7 @@ import ItemFormPage from "./pages/ItemFormPage";
 import ItemListPage from "./pages/ItemListPage";
 import Legal from "./pages/Legal";
 import MyProductsPage from "./pages/MyProductsPage";
+import NoticePage from "./pages/noticePage";
 import ProjectList from "./pages/ProjectList";
 import SettingsPage from "./pages/SettingsPage";
 
@@ -25,7 +27,9 @@ const NotFoundPage = () => (
 
 const RootLayout = () => (
 	<AuthProvider>
-		<Layout />
+		<NotificationProvider>
+			<Layout />
+		</NotificationProvider>
 	</AuthProvider>
 );
 
@@ -48,6 +52,7 @@ const router = createBrowserRouter([
 			{ path: "my-products", element: <MyProductsPage /> },
 			{ path: "settings", element: <SettingsPage /> },
 			{ path: "edit/:itemId", element: <ItemFormPage /> },
+			{ path: "notifications", element: <NoticePage /> },
 			{ path: "*", element: <NotFoundPage /> },
 		],
 	},

@@ -65,8 +65,8 @@ const UserMenu: React.FC<UserMenuProps> = ({
 			>
 				{isLoggedIn ? (
 					<Badge
-						badgeContent={messageCount}
 						color="error"
+						variant="dot"
 						invisible={messageCount === 0}
 						overlap="circular"
 					>
@@ -160,25 +160,6 @@ const UserMenu: React.FC<UserMenuProps> = ({
 								<ListItemText primary="あなたの投稿一覧" />
 							</ListItemButton>
 
-							<ListItemButton disabled>
-								<ListItemIcon sx={{ color: "rgba(255,255,255,0.7)" }}>
-									<Badge
-										badgeContent={messageCount}
-										color="error"
-										invisible={messageCount === 0}
-									>
-										<Message />
-									</Badge>
-								</ListItemIcon>
-								<ListItemText
-									primary="投稿へのメッセージ"
-									secondary={
-										messageCount > 0 ? `${messageCount} 件未読` : undefined
-									}
-									secondaryTypographyProps={{ color: "error.main" }}
-								/>
-							</ListItemButton>
-
 							<ListItemButton
 								component={RouterLink}
 								to="/create"
@@ -196,9 +177,21 @@ const UserMenu: React.FC<UserMenuProps> = ({
 								onClick={handleClose}
 							>
 								<ListItemIcon sx={{ color: "rgba(255,255,255,0.7)" }}>
-									<Notifications />
+									<Badge
+										badgeContent={messageCount}
+										color="error"
+										invisible={messageCount === 0}
+									>
+										<Notifications />
+									</Badge>
 								</ListItemIcon>
-								<ListItemText primary="通知" />
+								<ListItemText
+									primary="通知"
+									secondary={
+										messageCount > 0 ? `${messageCount} 件未読` : undefined
+									}
+									secondaryTypographyProps={{ color: "error.main" }}
+								/>
 							</ListItemButton>
 
 							<ListItemButton
