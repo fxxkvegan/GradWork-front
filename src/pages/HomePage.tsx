@@ -577,11 +577,7 @@ const HomePage: React.FC = () => {
 													src={category.image}
 													alt={category.name}
 													loading="lazy"
-													style={{
-														width: "100%",
-														height: "100%",
-														objectFit: "cover",
-													}}
+													className="category-icon-image"
 												/>
 											) : (
 												<CodeIcon fontSize="large" color="primary" />
