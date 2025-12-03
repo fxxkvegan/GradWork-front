@@ -25,7 +25,8 @@ import React, {
 } from "react";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import UserAvatarButton from "../components/UserAvatarButton";
-import { fetchCategories } from "../services/categoryApi";
+import { useCategoriesList } from "../hooks/useCategoriesList";
+import { useRankingProjects } from "../hooks/useRankingProjects";
 import * as favorites from "../utils/favorites";
 
 import "./HomePage.css";
@@ -33,37 +34,11 @@ import "./carousel-extra.css";
 import "./category.css";
 
 import { useNavigate } from "react-router-dom";
-import {
-	fetchRankingProjects,
-	type RankingItemResponse,
-} from "../services/productApi";
-// import {
-// 	fetchCategories,
-// 	fetchRankingProjects,
-// 	type RankingItemResponse,
-// } from "../api";
-import type { Category as ApiCategory } from "../types/category";
+import type { HomeProject } from "../types/home";
 
-/* ---------- 型定義 ---------- */
-export interface Project {
-	id: number;
-	title: string;
-	subtitle: string;
-	img: string;
-	category: string;
-	rating: number;
-	downloads: number;
-	tags: string[];
-	owner?: {
-		id: number;
-		name: string;
-		displayName?: string | null;
-		avatarUrl?: string | null;
-	} | null;
-}
 /* ---------- プロジェクトカード ---------- */
 const ProjectCard: React.FC<{
-	project: Project;
+	project: HomeProject;
 	onView?: (id: number) => void;
 }> = ({ project, onView }) => {
 	// お気に入り状態の管理
@@ -188,150 +163,25 @@ const ProjectCard: React.FC<{
 const HomePage: React.FC = () => {
 	const navigate = useNavigate();
 	const carouselRef = useRef<HTMLDivElement | null>(null);
-	const [rankingProjects, setRankingProjects] = useState<Project[]>([]);
-	const [rankingLoading, setRankingLoading] = useState(true);
-	const [rankingError, setRankingError] = useState<string | null>(null);
-	const [rankingEmptyMessage, setRankingEmptyMessage] = useState<string | null>(
-		null,
-	);
+	const {
+		projects: rankingProjects,
+		loading: rankingLoading,
+		error: rankingError,
+		emptyMessage: rankingEmptyMessage,
+	} = useRankingProjects();
+	const {
+		categories,
+		loading: categoryLoading,
+		error: categoryError,
+	} = useCategoriesList();
 	const [isCarouselPaused, setIsCarouselPaused] = useState(false);
 	const [activeIndex, setActiveIndex] = useState(0);
-	const [categories, setCategories] = useState<ApiCategory[]>([]);
-	const [categoryLoading, setCategoryLoading] = useState(true);
-	const [categoryError, setCategoryError] = useState<string | null>(null);
 	const handleViewProject = useCallback(
 		(projectId: number) => {
 			navigate(`/item/${projectId}`);
 		},
 		[navigate],
 	);
-
-	useEffect(() => {
-		let cancelled = false;
-
-		const parseImageField = (value: unknown): string[] => {
-			if (Array.isArray(value)) {
-				return value.filter(
-					(item): item is string =>
-						typeof item === "string" && item.trim() !== "",
-				);
-			}
-			if (typeof value === "string") {
-				try {
-					const parsed = JSON.parse(value);
-					if (Array.isArray(parsed)) {
-						return parsed.filter(
-							(item): item is string =>
-								typeof item === "string" && item.trim() !== "",
-						);
-					}
-					if (typeof parsed === "string" && parsed.trim() !== "") {
-						return [parsed];
-					}
-				} catch {
-					return value.trim() !== "" ? [value] : [];
-				}
-			}
-			return [];
-		};
-
-		const toProject = (item: RankingItemResponse): Project => {
-			const rawImages = item?.image_urls ?? item?.image_url;
-			const imageUrls = parseImageField(rawImages ?? []);
-			const categoryNames = Array.isArray(item?.categories)
-				? item.categories
-						.map((category) =>
-							typeof category?.name === "string" && category.name.trim() !== ""
-								? category.name
-								: null,
-						)
-						.filter((name): name is string => Boolean(name))
-				: [];
-			const explicitTags = Array.isArray(item?.tags)
-				? item.tags.filter(
-						(tag): tag is string =>
-							typeof tag === "string" && tag.trim() !== "",
-					)
-				: [];
-			const tags = Array.from(
-				new Set([...categoryNames, ...explicitTags]),
-			).slice(0, 6);
-			const firstCategory = categoryNames[0] ?? "カテゴリー";
-
-			const ownerPayload = item?.owner;
-			const owner = ownerPayload
-				? {
-						id: Number(ownerPayload.id) || 0,
-						name: ownerPayload.name ?? "",
-						displayName: ownerPayload.displayName ?? null,
-						avatarUrl: ownerPayload.avatarUrl ?? null,
-					}
-				: null;
-
-			return {
-				id: Number(item?.id) || 0,
-				title: item?.name ?? "無題",
-				subtitle: item?.description ?? "",
-				img: imageUrls[0] ?? "/no-image.png",
-				category: firstCategory,
-				rating:
-					typeof item?.rating === "number"
-						? item.rating
-						: Number((item?.rating as unknown) ?? 0) || 0,
-				downloads:
-					typeof item?.download_count === "number"
-						? item.download_count
-						: Number((item?.download_count as unknown) ?? 0) || 0,
-				tags: tags.length ? tags : [firstCategory],
-				owner,
-			};
-		};
-
-		const fetchRankings = async () => {
-			setRankingLoading(true);
-			setRankingError(null);
-			try {
-				const { items, message } = await fetchRankingProjects();
-				const projects = items
-					.map(toProject)
-					.filter((project) => project.id !== 0 && project.img !== "");
-
-				if (!cancelled) {
-					setRankingProjects(projects);
-					if (projects.length) {
-						setRankingError(null);
-						setRankingEmptyMessage(null);
-					} else {
-						setRankingError(null);
-						setRankingEmptyMessage(
-							message || "現在、表示できるランキングがありません。",
-						);
-					}
-				}
-			} catch (error) {
-				console.error("ランキング取得失敗:", error);
-				if (!cancelled) {
-					const message =
-						error instanceof Error
-							? error.message
-							: "ランキングの取得に失敗しました";
-					setRankingError(message);
-					setRankingEmptyMessage(null);
-					setRankingProjects([]);
-				}
-			} finally {
-				if (!cancelled) {
-					setRankingLoading(false);
-				}
-			}
-		};
-
-		fetchRankings();
-
-		return () => {
-			cancelled = true;
-		};
-	}, []);
 
 	const repeatedProjects = useMemo(() => {
 		if (!rankingProjects.length) return [];
@@ -351,47 +201,6 @@ const HomePage: React.FC = () => {
 			track.scrollLeft = baseWidth;
 		}
 	}, [rankingProjects.length, repeatedProjects.length]);
-
-	useEffect(() => {
-		let cancelled = false;
-
-		const loadCategories = async () => {
-			setCategoryLoading(true);
-			setCategoryError(null);
-			try {
-				const items = await fetchCategories();
-				if (!cancelled) {
-					setCategories(
-						items.map((item) => ({
-							...item,
-							image:
-								item.image && item.image.trim().length > 0 ? item.image : null,
-						})),
-					);
-				}
-			} catch (error) {
-				console.error("カテゴリ取得失敗:", error);
-				if (!cancelled) {
-					const message =
-						error instanceof Error
-							? error.message
-							: "カテゴリの取得に失敗しました";
-					setCategoryError(message);
-					setCategories([]);
-				}
-			} finally {
-				if (!cancelled) {
-					setCategoryLoading(false);
-				}
-			}
-		};
-
-		loadCategories();
-
-		return () => {
-			cancelled = true;
-		};
-	}, []);
 
 	useEffect(() => {
 		const track = carouselRef.current;
