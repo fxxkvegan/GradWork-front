@@ -13,7 +13,7 @@ import ItemFormPage from "./pages/ItemFormPage";
 import ItemListPage from "./pages/ItemListPage";
 import Legal from "./pages/Legal";
 import MyProductsPage from "./pages/MyProductsPage";
-import NoticePage from "./pages/noticePage";
+import NoticePage from "./pages/NoticePage";
 import ProjectList from "./pages/ProjectList";
 import SettingsPage from "./pages/SettingsPage";
 
