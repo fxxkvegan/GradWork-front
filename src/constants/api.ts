@@ -27,6 +27,7 @@ export const API_ENDPOINTS = {
 		PUBLIC_PROFILE: (userId: number | string) => `/users/${userId}`,
 		SETTINGS: "/users/me/settings",
 		HISTORY: "/users/me/history",
+		FOLLOW: (userId: number | string) => `/users/${userId}/follow`,
 	},
 } as const;
 
@@ -45,6 +46,8 @@ export const ERROR_MESSAGES = {
 		SETTINGS_UPDATE_FAILED: "設定の更新に失敗しました",
 		HISTORY_FETCH_FAILED: "履歴の取得に失敗しました",
 		HISTORY_ADD_FAILED: "履歴の追加に失敗しました",
+		FOLLOW_FAILED: "フォローに失敗しました",
+		UNFOLLOW_FAILED: "フォロー解除に失敗しました",
 	},
 	NETWORK: {
 		CONNECTION_ERROR: "ネットワークエラーが発生しました",

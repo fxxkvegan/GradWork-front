@@ -31,6 +31,7 @@ interface BaseUserProfile {
 	theme?: string | null;
 	followersCount?: number;
 	followingCount?: number;
+	isFollowing?: boolean | null;
 }
 
 export interface UserProfile extends BaseUserProfile {

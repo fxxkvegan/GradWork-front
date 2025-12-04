@@ -169,6 +169,32 @@ export const getPublicUserProfile = async (
 	}
 };
 
+export const followUser = async (
+	userId: number | string,
+): Promise<PublicUserProfile> => {
+	try {
+		const { data } = await api.post<PublicUserResponse>(
+			API_ENDPOINTS.USERS.FOLLOW(userId),
+		);
+		return data.data;
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.USER.FOLLOW_FAILED);
+	}
+};
+
+export const unfollowUser = async (
+	userId: number | string,
+): Promise<PublicUserProfile> => {
+	try {
+		const { data } = await api.delete<PublicUserResponse>(
+			API_ENDPOINTS.USERS.FOLLOW(userId),
+		);
+		return data.data;
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.USER.UNFOLLOW_FAILED);
+	}
+};
+
 export const updateUserProfile = async (
 	formData: FormData,
 ): Promise<UserProfile> => {
@@ -272,6 +298,8 @@ export const userApi = {
 	updateSettings: updateUserSettings,
 	getHistory: getUserHistory,
 	addHistory: addHistoryItem,
+	follow: followUser,
+	unfollow: unfollowUser,
 };
 
 export default userApi;

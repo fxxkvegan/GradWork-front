@@ -62,6 +62,8 @@ export default function UserProfileDialog({
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isFollowing, setIsFollowing] = useState(false);
+	const [actionLoading, setActionLoading] = useState(false);
+	const [actionError, setActionError] = useState<string | null>(null);
 	const { user: authUser } = useAuth();
 	const viewerId = authUser?.id ?? null;
 	const normalizedViewerId = useMemo(() => {
@@ -92,6 +94,8 @@ export default function UserProfileDialog({
 			setLoading(false);
 			setError(null);
 			setIsFollowing(false);
+			setActionLoading(false);
+			setActionError(null);
 			return;
 		}
 
@@ -106,6 +110,8 @@ export default function UserProfileDialog({
 			.then((data) => {
 				if (!cancelled) {
 					setProfile(data);
+					setIsFollowing(Boolean(data.isFollowing));
+					setActionError(null);
 				}
 			})
 			.catch((err) => {
@@ -165,8 +171,33 @@ export default function UserProfileDialog({
 	const showLoadingIndicator = loading && !profile;
 	const avatarInitial = displayName.charAt(0).toUpperCase() || "?";
 
-	const handleFollowToggle = () => {
-		setIsFollowing((prev) => !prev);
+	const handleFollowToggle = async () => {
+		if (!shouldShowActions || !normalizedTargetId || actionLoading) {
+			return;
+		}
+
+		if (!authUser) {
+			setActionError("フォローするにはログインが必要です");
+			return;
+		}
+
+		setActionError(null);
+		setActionLoading(true);
+		try {
+			const nextProfile = isFollowing
+				? await userApi.unfollow(normalizedTargetId)
+				: await userApi.follow(normalizedTargetId);
+			setProfile(nextProfile);
+			setIsFollowing(Boolean(nextProfile.isFollowing));
+		} catch (followError) {
+			const message =
+				followError instanceof Error
+					? followError.message
+					: "フォローの更新に失敗しました";
+			setActionError(message);
+		} finally {
+			setActionLoading(false);
+		}
 	};
 
 	const handleDmClick = () => {
@@ -289,36 +320,50 @@ export default function UserProfileDialog({
 							</Stack>
 						</Box>
 						{shouldShowActions && (
-							<Stack
-								direction={{ xs: "column", sm: "row" }}
-								spacing={1}
-								sx={{
-									alignSelf: { xs: "stretch", sm: "flex-start" },
-									width: { xs: "100%", sm: "auto" },
-									"& > .MuiButton-root": {
-										flex: { xs: 1, sm: "unset" },
-									},
-								}}
-							>
-								<Button
-									variant={isFollowing ? "outlined" : "contained"}
-									color={isFollowing ? "secondary" : "primary"}
-									startIcon={<PersonAddAlt1Icon fontSize="small" />}
-									onClick={handleFollowToggle}
-									sx={{ minWidth: 140 }}
+							<>
+								<Stack
+									direction={{ xs: "column", sm: "row" }}
+									spacing={1}
+									sx={{
+										alignSelf: { xs: "stretch", sm: "flex-start" },
+										width: { xs: "100%", sm: "auto" },
+										"& > .MuiButton-root": {
+											flex: { xs: 1, sm: "unset" },
+										},
+									}}
 								>
-									{isFollowing ? "フォロー済み" : "フォロー"}
-								</Button>
-								<Button
-									variant="outlined"
-									color="primary"
-									startIcon={<MailOutlineIcon fontSize="small" />}
-									onClick={handleDmClick}
-									sx={{ minWidth: 140 }}
-								>
-									DM
-								</Button>
-							</Stack>
+									<Button
+										variant={isFollowing ? "outlined" : "contained"}
+										color={isFollowing ? "secondary" : "primary"}
+										disabled={actionLoading}
+										startIcon={
+											actionLoading ? (
+												<CircularProgress size={16} color="inherit" />
+											) : (
+												<PersonAddAlt1Icon fontSize="small" />
+											)
+										}
+										onClick={handleFollowToggle}
+										sx={{ minWidth: 140 }}
+									>
+										{isFollowing ? "フォロー済み" : "フォロー"}
+									</Button>
+									<Button
+										variant="outlined"
+										color="primary"
+										startIcon={<MailOutlineIcon fontSize="small" />}
+										onClick={handleDmClick}
+										sx={{ minWidth: 140 }}
+									>
+										DM
+									</Button>
+								</Stack>
+								{actionError && (
+									<Alert severity="warning" sx={{ mt: 1 }}>
+										{actionError}
+									</Alert>
+								)}
+							</>
 						)}
 					</Box>
 					<Stack
