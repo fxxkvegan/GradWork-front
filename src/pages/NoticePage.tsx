@@ -57,7 +57,7 @@ const NoticePage = () => {
 		if (unreadNotifications.length === 0) {
 			return;
 		}
-		markAsRead(unreadNotifications.map((notice) => notice.id));
+		void markAsRead(unreadNotifications.map((notice) => notice.id));
 	}, [isLoggedIn, markAsRead, unreadNotifications]);
 
 	if (!isLoggedIn) {

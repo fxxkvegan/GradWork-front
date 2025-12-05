@@ -7,10 +7,8 @@ import {
 	useMemo,
 	useState,
 } from "react";
-import productApi from "../services/productApi";
+import notificationApi from "../services/notificationApi";
 import type { ReviewNotification } from "../types/notification";
-import type { Product } from "../types/product";
-import type { Review } from "../types/review";
 import { useAuth } from "./AuthContext";
 
 interface NotificationContextValue {
@@ -20,189 +18,141 @@ interface NotificationContextValue {
 	loading: boolean;
 	error: string | null;
 	refresh: () => Promise<void>;
-	markAsRead: (ids: string | string[]) => void;
-	markAllAsRead: () => void;
+	markAsRead: (ids: string | string[]) => Promise<void>;
+	markAllAsRead: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextValue | undefined>(
 	undefined,
 );
 
-const READ_STORAGE_PREFIX = "READ_REVIEW_NOTICES_";
-
-const pickPrimaryImage = (product: Product): string | null => {
-	if (Array.isArray(product.image_url) && product.image_url.length > 0) {
-		return product.image_url[0];
-	}
-	if (typeof product.image_url === "string" && product.image_url !== "") {
-		return product.image_url;
-	}
-	return null;
-};
-
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
-	const { isLoggedIn, user } = useAuth();
+	const { isLoggedIn } = useAuth();
 	const [notifications, setNotifications] = useState<ReviewNotification[]>([]);
+	const [unreadCount, setUnreadCount] = useState(0);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [readIds, setReadIds] = useState<Set<string>>(new Set());
-
-	const storageKey = useMemo(() => {
-		if (!user) {
-			return null;
-		}
-		return `${READ_STORAGE_PREFIX}${user.id}`;
-	}, [user]);
-
-	useEffect(() => {
-		if (!storageKey) {
-			setReadIds(new Set());
-			return;
-		}
-
-		try {
-			const stored = localStorage.getItem(storageKey);
-			if (!stored) {
-				setReadIds(new Set());
-				return;
-			}
-			const parsed = JSON.parse(stored);
-			if (Array.isArray(parsed)) {
-				setReadIds(new Set(parsed as string[]));
-				return;
-			}
-			localStorage.removeItem(storageKey);
-			setReadIds(new Set());
-		} catch (storageError) {
-			console.warn("Failed to parse read notification ids", storageError);
-			setReadIds(new Set());
-		}
-	}, [storageKey]);
-
-	const persistReadIds = useCallback(
-		(next: Set<string>) => {
-			if (!storageKey) {
-				return;
-			}
-			localStorage.setItem(storageKey, JSON.stringify(Array.from(next)));
-		},
-		[storageKey],
-	);
 
 	const refresh = useCallback(async () => {
-		if (!isLoggedIn || !user) {
+		if (!isLoggedIn) {
 			setNotifications([]);
+			setUnreadCount(0);
 			setError(null);
 			return;
 		}
 
 		setLoading(true);
 		setError(null);
+
 		try {
-			const myProducts = await productApi.fetchMyProducts();
-			if (myProducts.length === 0) {
-				setNotifications([]);
-				return;
-			}
-
-			type ProductReviews = { product: Product; reviews: Review[] };
-			const perProductResults = await Promise.allSettled(
-				myProducts.map(async (product): Promise<ProductReviews> => {
-					const response = await productApi.fetchProductReviews(product.id);
-					return {
-						product,
-						reviews: response.data ?? [],
-					};
-				}),
-			);
-
-			const nextNotifications: ReviewNotification[] = [];
-			perProductResults.forEach((result) => {
-				if (result.status !== "fulfilled") {
-					console.error("Failed to load reviews", result.reason);
-					return;
-				}
-				const { product, reviews } = result.value;
-				reviews
-					.filter((review) => review.author_id !== user.id)
-					.forEach((review) => {
-						nextNotifications.push({
-							id: `${product.id}-${review.id}`,
-							productId: product.id,
-							productName: product.name,
-							productImage: pickPrimaryImage(product),
-							reviewId: review.id,
-							reviewerName: review.author_name ?? "匿名ユーザー",
-							reviewerAvatar: review.author_avatar_url ?? null,
-							rating: review.rating,
-							title: review.title,
-							body: review.body,
-							createdAt: review.created_at,
-						});
-					});
-			});
-
-			nextNotifications.sort(
-				(a, b) =>
-					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-			);
-
-			setNotifications(nextNotifications);
-
-			setReadIds((previous) => {
-				const next = new Set(
-					Array.from(previous).filter((id) =>
-						nextNotifications.some((notification) => notification.id === id),
-					),
-				);
-				persistReadIds(next);
-				return next;
-			});
-		} catch (refreshError) {
-			console.error(refreshError);
-			setError("通知の取得に失敗しました");
+			const { items, unreadCount: nextUnread } =
+				await notificationApi.fetchReviewNotifications();
+			setNotifications(items);
+			setUnreadCount(nextUnread);
+		} catch (apiError) {
+			const message =
+				apiError instanceof Error
+					? apiError.message
+					: "通知の取得に失敗しました";
+			setError(message);
 		} finally {
 			setLoading(false);
 		}
-	}, [isLoggedIn, persistReadIds, user]);
+	}, [isLoggedIn]);
 
 	useEffect(() => {
 		if (!isLoggedIn) {
 			setNotifications([]);
+			setUnreadCount(0);
+			setError(null);
 			return;
 		}
-		refresh();
+
+		void refresh();
 	}, [isLoggedIn, refresh]);
 
 	const markAsRead = useCallback(
-		(ids: string | string[]) => {
+		async (ids: string | string[]) => {
 			const targetIds = Array.isArray(ids) ? ids : [ids];
 			if (targetIds.length === 0) {
 				return;
 			}
-			setReadIds((previous) => {
-				const next = new Set(previous);
-				targetIds.forEach((id) => next.add(id));
-				persistReadIds(next);
-				return next;
-			});
+
+			const targetSet = new Set(targetIds);
+			let newlyRead = 0;
+			const timestamp = new Date().toISOString();
+
+			setNotifications((previous) =>
+				previous.map((notification) => {
+					if (!targetSet.has(notification.id) || notification.isRead) {
+						return notification;
+					}
+					newlyRead += 1;
+					return {
+						...notification,
+						isRead: true,
+						readAt: notification.readAt ?? timestamp,
+					};
+				}),
+			);
+
+			if (newlyRead > 0) {
+				setUnreadCount((previous) => Math.max(0, previous - newlyRead));
+			}
+
+			try {
+				const { unreadCount: nextUnread } =
+					await notificationApi.markReviewNotificationsRead(targetIds);
+				setUnreadCount(nextUnread);
+			} catch (apiError) {
+				const message =
+					apiError instanceof Error
+						? apiError.message
+						: "通知の更新に失敗しました";
+				setError(message);
+				await refresh();
+			}
 		},
-		[persistReadIds],
+		[refresh],
 	);
 
-	const markAllAsRead = useCallback(() => {
+	const markAllAsRead = useCallback(async () => {
 		if (notifications.length === 0) {
 			return;
 		}
-		markAsRead(notifications.map((notification) => notification.id));
-	}, [markAsRead, notifications]);
+
+		const timestamp = new Date().toISOString();
+		setNotifications((previous) =>
+			previous.map((notification) =>
+				notification.isRead
+					? notification
+					: {
+							...notification,
+							isRead: true,
+							readAt: notification.readAt ?? timestamp,
+						},
+			),
+		);
+		setUnreadCount(0);
+
+		try {
+			const { unreadCount: nextUnread } =
+				await notificationApi.markAllReviewNotificationsRead();
+			setUnreadCount(nextUnread);
+		} catch (apiError) {
+			const message =
+				apiError instanceof Error
+					? apiError.message
+					: "通知の更新に失敗しました";
+			setError(message);
+			await refresh();
+		}
+	}, [notifications.length, refresh]);
 
 	const unreadNotifications = useMemo(
-		() => notifications.filter((notification) => !readIds.has(notification.id)),
-		[notifications, readIds],
+		() => notifications.filter((notification) => !notification.isRead),
+		[notifications],
 	);
-
-	const unreadCount = unreadNotifications.length;
 
 	const value = useMemo<NotificationContextValue>(
 		() => ({

@@ -29,6 +29,11 @@ export const API_ENDPOINTS = {
 		HISTORY: "/users/me/history",
 		FOLLOW: (userId: number | string) => `/users/${userId}/follow`,
 	},
+	NOTIFICATIONS: {
+		REVIEW_LIST: "/users/me/notifications/reviews",
+		REVIEW_MARK_READ: "/users/me/notifications/reviews/read",
+		REVIEW_MARK_ALL_READ: "/users/me/notifications/reviews/read-all",
+	},
 } as const;
 
 // エラーメッセージ
@@ -48,6 +53,10 @@ export const ERROR_MESSAGES = {
 		HISTORY_ADD_FAILED: "履歴の追加に失敗しました",
 		FOLLOW_FAILED: "フォローに失敗しました",
 		UNFOLLOW_FAILED: "フォロー解除に失敗しました",
+	},
+	NOTIFICATION: {
+		FETCH_FAILED: "通知の取得に失敗しました",
+		MARK_FAILED: "通知の更新に失敗しました",
 	},
 	NETWORK: {
 		CONNECTION_ERROR: "ネットワークエラーが発生しました",
