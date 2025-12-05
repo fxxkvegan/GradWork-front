@@ -1,5 +1,6 @@
 import {
 	Article,
+	ChatBubbleOutline,
 	Login,
 	Logout,
 	Notifications,
@@ -147,6 +148,23 @@ const UserMenu: React.FC<UserMenuProps> = ({
 							>
 								マイメニュー
 							</ListSubheader>
+
+							<ListItemButton
+								component={RouterLink}
+								to="/dm"
+								onClick={handleClose}
+							>
+								<ListItemIcon sx={{ color: "rgba(255,255,255,0.7)" }}>
+									<Badge
+										badgeContent={messageCount}
+										color="error"
+										invisible={messageCount === 0}
+									>
+										<ChatBubbleOutline />
+									</Badge>
+								</ListItemIcon>
+								<ListItemText primary="DM" />
+							</ListItemButton>
 
 							<ListItemButton
 								component={RouterLink}

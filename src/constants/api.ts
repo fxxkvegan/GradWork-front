@@ -29,6 +29,11 @@ export const API_ENDPOINTS = {
 		HISTORY: "/users/me/history",
 		FOLLOW: (userId: number | string) => `/users/${userId}/follow`,
 	},
+	DM: {
+		CONVERSATIONS: "/dm/conversations",
+		MESSAGES: (conversationId: number | string) =>
+			`/dm/conversations/${conversationId}/messages`,
+	},
 } as const;
 
 // エラーメッセージ
@@ -48,6 +53,13 @@ export const ERROR_MESSAGES = {
 		HISTORY_ADD_FAILED: "履歴の追加に失敗しました",
 		FOLLOW_FAILED: "フォローに失敗しました",
 		UNFOLLOW_FAILED: "フォロー解除に失敗しました",
+	},
+	DM: {
+		CONVERSATIONS_FETCH_FAILED: "会話リストの取得に失敗しました",
+		CREATE_CONVERSATION_FAILED: "会話の作成に失敗しました",
+		MESSAGES_FETCH_FAILED: "メッセージの取得に失敗しました",
+		SEND_MESSAGE_FAILED: "メッセージの送信に失敗しました",
+		USER_LIST_FETCH_FAILED: "ユーザー一覧の取得に失敗しました",
 	},
 	NETWORK: {
 		CONNECTION_ERROR: "ネットワークエラーが発生しました",
