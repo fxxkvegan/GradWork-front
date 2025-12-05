@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import DirectMessagePage from "./DirectMessage/DirectMessagePage";
 import AddItemsPage from "./pages/admin/AddItemsPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
@@ -53,6 +54,7 @@ const router = createBrowserRouter([
 			{ path: "settings", element: <SettingsPage /> },
 			{ path: "edit/:itemId", element: <ItemFormPage /> },
 			{ path: "notifications", element: <NoticePage /> },
+			{ path: "dm", element: <DirectMessagePage /> },
 			{ path: "*", element: <NotFoundPage /> },
 		],
 	},
