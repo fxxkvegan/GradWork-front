@@ -14,6 +14,14 @@ export const HTTP_STATUS = {
 	UNAUTHORIZED: 401,
 } as const;
 
+const joinPath = (base: string, suffix?: string) =>
+	suffix ? `${base}/${suffix}` : base;
+
+const userPath = (userId: number | string, suffix?: string) =>
+	joinPath(`/users/${userId}`, suffix);
+
+const userMePath = (suffix?: string) => joinPath("/users/me", suffix);
+
 // API エンドポイント
 export const API_ENDPOINTS = {
 	AUTH: {
@@ -23,16 +31,16 @@ export const API_ENDPOINTS = {
 		REFRESH: "/auth/refresh",
 	},
 	USERS: {
-		PROFILE: "/users/me",
-		PUBLIC_PROFILE: (userId: number | string) => `/users/${userId}`,
-		SETTINGS: "/users/me/settings",
-		HISTORY: "/users/me/history",
-		FOLLOW: (userId: number | string) => `/users/${userId}/follow`,
+		PROFILE: userMePath(),
+		PUBLIC_PROFILE: (userId: number | string) => userPath(userId),
+		SETTINGS: userMePath("settings"),
+		HISTORY: userMePath("history"),
+		FOLLOW: (userId: number | string) => userPath(userId, "follow"),
 	},
 	NOTIFICATIONS: {
-		REVIEW_LIST: "/users/me/notifications/reviews",
-		REVIEW_MARK_READ: "/users/me/notifications/reviews/read",
-		REVIEW_MARK_ALL_READ: "/users/me/notifications/reviews/read-all",
+		REVIEW_LIST: userMePath("notifications/reviews"),
+		REVIEW_MARK_READ: userMePath("notifications/reviews/read"),
+		REVIEW_MARK_ALL_READ: userMePath("notifications/reviews/read-all"),
 	},
 	DM: {
 		CONVERSATIONS: "/dm/conversations",
