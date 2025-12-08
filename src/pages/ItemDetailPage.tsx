@@ -12,7 +12,6 @@ import {
 } from "@mui/icons-material";
 import {
 	Alert,
-	Avatar,
 	Box,
 	Breadcrumbs,
 	Button,
@@ -29,6 +28,8 @@ import {
 	Stack,
 	TextField,
 	Typography,
+	useMediaQuery,
+	useTheme,
 } from "@mui/material";
 import {
 	type ChangeEvent,
@@ -46,11 +47,14 @@ import {
 	useParams,
 } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
+import UserAvatarButton from "../components/UserAvatarButton";
 import "./ItemDetailPage.css";
 import axios from "axios";
-import { API_CONFIG } from "../constants/api";
+import { API_CONFIG, createProductReview, fetchProductReviews } from "../api";
+// import { API_CONFIG } from "../constants/api";
 import { useAuth } from "../context/AuthContext";
-import productApi from "../services/productApi";
+import { fetchCategories } from "../services/categoryApi";
+import type { Category } from "../types/category";
 import type { Review } from "../types/review";
 
 // プロジェクト詳細の型定義
@@ -83,8 +87,8 @@ interface ProjectDetail {
 	created_at?: string;
 	updated_at?: string;
 	lastUpdated?: string;
-	categoryIds?: number[];
-	categories?: Array<{ id: number; name: string }>;
+	categoryIds?: Array<number | string>;
+	categories?: Array<{ id?: number | string; name?: string | null }>;
 	price?: number;
 	isFree?: boolean;
 	features?: string[];
@@ -383,7 +387,7 @@ const StarRating = ({
 	);
 };
 
-const formatReviewTimestamp = (value: string): string => {
+const formatJapaneseDateTime = (value?: string | null): string => {
 	if (!value) {
 		return "";
 	}
@@ -391,13 +395,14 @@ const formatReviewTimestamp = (value: string): string => {
 	if (Number.isNaN(parsed.getTime())) {
 		return value;
 	}
-	return new Intl.DateTimeFormat("ja-JP", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	}).format(parsed);
+	const pad = (input: number) => String(input).padStart(2, "0");
+	const year = parsed.getFullYear();
+	const month = pad(parsed.getMonth() + 1);
+	const day = pad(parsed.getDate());
+	const hours = pad(parsed.getHours());
+	const minutes = pad(parsed.getMinutes());
+	const seconds = pad(parsed.getSeconds());
+	return `${year}年${month}月${day}日 ${hours}:${minutes}:${seconds}`;
 };
 
 interface ReviewFormState {
@@ -425,6 +430,8 @@ export default function ItemDetailPage({
 	const isDemoMode =
 		demoMode || new URLSearchParams(search).get("demo") === "true";
 	const { isLoggedIn, user } = useAuth();
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
 	const productNumericId = useMemo(() => {
 		if (!itemId) {
@@ -455,7 +462,33 @@ export default function ItemDetailPage({
 		null,
 	);
 	const [submittingReview, setSubmittingReview] = useState(false);
-	const [isReviewSectionOpen, setReviewSectionOpen] = useState(true);
+	const [isReviewSectionOpen, setReviewSectionOpen] = useState(false);
+	const [categories, setCategories] = useState<Category[]>([]);
+
+	useEffect(() => {
+		let cancelled = false;
+		const loadCategories = async () => {
+			try {
+				const items = await fetchCategories();
+				if (!cancelled) {
+					setCategories(items);
+				}
+			} catch (categoryError) {
+				console.error("カテゴリの取得に失敗しました", categoryError);
+			}
+		};
+		loadCategories();
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	const categoryMap = useMemo(() => {
+		return categories.reduce((map, category) => {
+			map.set(String(category.id), category);
+			return map;
+		}, new Map<string, Category>());
+	}, [categories]);
 
 	const applyReviewSummary = useCallback(
 		(average: number, count: number) => {
@@ -492,7 +525,8 @@ export default function ItemDetailPage({
 				review_count: 0,
 			};
 		}
-		return productApi.fetchProductReviews(productNumericId);
+		// return productApi.fetchProductReviews(productNumericId);
+		return fetchProductReviews(productNumericId);
 	}, [isDemoMode, productNumericId]);
 
 	useEffect(() => {
@@ -715,11 +749,6 @@ export default function ItemDetailPage({
 	const ownerDisplayNameRaw = trimString(project?.owner?.displayName);
 	const ownerNameRaw = trimString(project?.owner?.name);
 	const ownerDisplayName = ownerDisplayNameRaw || ownerNameRaw || null;
-	const ownerInitialSource = ownerDisplayName ?? "";
-	const ownerInitial =
-		ownerInitialSource.length > 0
-			? ownerInitialSource.charAt(0).toUpperCase()
-			: "U";
 	const ownerAvatarUrl = project?.owner?.avatarUrl ?? null;
 	const ownerBioValue = trimString(project?.owner?.bio);
 	const ownerBio = ownerBioValue.length > 0 ? ownerBioValue : null;
@@ -730,20 +759,78 @@ export default function ItemDetailPage({
 		user.id === project.owner.id;
 
 	const primaryCategory = useMemo(() => {
-		if (
-			!Array.isArray(project?.categories) ||
-			project.categories.length === 0
-		) {
-			return null;
+		if (Array.isArray(project?.categories) && project.categories.length > 0) {
+			const validCategory = project.categories.find(
+				(category): category is { id: number; name: string } =>
+					category !== null &&
+					typeof category?.id === "number" &&
+					Number.isFinite(category.id),
+			);
+			if (validCategory) {
+				return {
+					id: validCategory.id,
+					name: validCategory.name ?? "",
+				};
+			}
 		}
-		const validCategory = project.categories.find(
-			(category): category is { id: number; name: string } =>
-				category !== null &&
-				typeof category?.id === "number" &&
-				Number.isFinite(category.id),
-		);
-		return validCategory ?? null;
-	}, [project?.categories]);
+
+		if (Array.isArray(project?.categoryIds) && project.categoryIds.length > 0) {
+			for (const rawId of project.categoryIds) {
+				const mapKey = String(rawId);
+				const category = categoryMap.get(mapKey);
+				if (category) {
+					return { id: category.id, name: category.name };
+				}
+			}
+		}
+
+		return null;
+	}, [project?.categories, project?.categoryIds, categoryMap]);
+
+	const resolvedCategoryChips = useMemo(() => {
+		if (!project) {
+			return [] as Array<{ id: number; name: string }>;
+		}
+
+		if (Array.isArray(project.categories) && project.categories.length > 0) {
+			return project.categories
+				.filter(
+					(category): category is { id: number; name: string } =>
+						category !== null &&
+						typeof category?.id === "number" &&
+						Number.isFinite(category.id) &&
+						typeof category.name === "string" &&
+						category.name.trim().length > 0,
+				)
+				.map((category) => ({ id: category.id, name: category.name.trim() }));
+		}
+
+		if (Array.isArray(project.categoryIds) && project.categoryIds.length > 0) {
+			return project.categoryIds
+				.map((categoryId) => {
+					const mapKey = String(categoryId);
+					const category = categoryMap.get(mapKey);
+					if (category && category.name.trim().length > 0) {
+						return { id: category.id, name: category.name.trim() };
+					}
+
+					const numericId =
+						typeof categoryId === "string" ? Number(categoryId) : categoryId;
+					if (Number.isFinite(numericId)) {
+						return {
+							id: numericId,
+							name: `カテゴリID: ${numericId}`,
+						};
+					}
+					return null;
+				})
+				.filter(
+					(value): value is { id: number; name: string } => value !== null,
+				);
+		}
+
+		return [] as Array<{ id: number; name: string }>;
+	}, [project, categoryMap]);
 
 	const categoryBreadcrumbLabel =
 		primaryCategory?.name?.trim() || "プロジェクト一覧";
@@ -839,10 +926,12 @@ export default function ItemDetailPage({
 				body: reviewForm.body.trim(),
 				rating: reviewForm.rating,
 			};
-			const response = await productApi.createProductReview(
-				productNumericId,
-				payload,
-			);
+			// const response = await productApi.createProductReview(
+			// 	productNumericId,
+			// 	payload,
+			// );
+			const response = await createProductReview(productNumericId, payload);
+
 			applyReviewSummary(response.average_rating, response.review_count);
 			if (response.data) {
 				const newReview = response.data;
@@ -879,6 +968,205 @@ export default function ItemDetailPage({
 			setSubmittingReview(false);
 		}
 	};
+
+	const renderReviewSection = () => (
+		<Paper sx={{ p: { xs: 2, md: 3 } }}>
+			<Stack
+				direction={{ xs: "column", sm: "row" }}
+				alignItems={{ xs: "flex-start", sm: "center" }}
+				justifyContent="space-between"
+				spacing={{ xs: 1, sm: 2 }}
+			>
+				<Stack
+					direction={{ xs: "column", sm: "row" }}
+					alignItems={{ xs: "flex-start", sm: "center" }}
+					spacing={{ xs: 0.75, sm: 1.5 }}
+				>
+					<Typography variant="h6">レビュー</Typography>
+					<Stack
+						direction="row"
+						alignItems="center"
+						spacing={1}
+						sx={{ flexWrap: "wrap", rowGap: 0.5 }}
+					>
+						<StarRating
+							value={displayedAverageRating}
+							readOnly
+							size={20}
+							ariaLabel="平均評価"
+						/>
+						<Typography variant="body2" fontWeight={600}>
+							{formattedAverageRating} / {MAX_RATING}
+						</Typography>
+						<Typography variant="body2" color="text.secondary">
+							（{displayedReviewCount}件）
+						</Typography>
+					</Stack>
+				</Stack>
+				<Button
+					variant="text"
+					size="small"
+					onClick={handleToggleReviews}
+					endIcon={
+						<ExpandMoreIcon
+							sx={{
+								transform: isReviewSectionOpen
+									? "rotate(180deg)"
+									: "rotate(0deg)",
+								transition: "transform 0.2s ease",
+							}}
+						/>
+					}
+					sx={{
+						alignSelf: { xs: "flex-start", sm: "center" },
+						fontWeight: 600,
+						px: 1.5,
+					}}
+					aria-expanded={isReviewSectionOpen}
+					aria-controls="review-section-content"
+				>
+					{isReviewSectionOpen ? "閉じる" : "開く"}
+				</Button>
+			</Stack>
+			<Collapse in={isReviewSectionOpen}>
+				<Box id="review-section-content" sx={{ mt: 2 }}>
+					{isLoggedIn && isOwnProject ? (
+						<Alert severity="info" sx={{ mt: 1.5 }}>
+							自分の投稿にはレビューを投稿できません。
+						</Alert>
+					) : (
+						<Box
+							component="form"
+							onSubmit={handleReviewSubmit}
+							sx={{ mt: 1.5 }}
+							noValidate
+						>
+							<Stack spacing={2}>
+								<Box>
+									<Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+										あなたの評価
+									</Typography>
+									<StarRating
+										value={reviewForm.rating}
+										onChange={handleReviewRatingChange}
+										size={28}
+										ariaLabel="レビュー評価を選択"
+									/>
+								</Box>
+								<TextField
+									label="タイトル"
+									value={reviewForm.title}
+									onChange={handleReviewFieldChange("title")}
+									required
+									fullWidth
+								/>
+								<TextField
+									label="レビュー内容"
+									value={reviewForm.body}
+									onChange={handleReviewFieldChange("body")}
+									fullWidth
+									required
+									multiline
+									minRows={4}
+								/>
+								{reviewSubmitError && (
+									<Alert severity="error">{reviewSubmitError}</Alert>
+								)}
+								<Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+									<Button
+										type="submit"
+										variant="contained"
+										disabled={submittingReview}
+									>
+										{submittingReview ? "送信中..." : "レビューを投稿"}
+									</Button>
+								</Box>
+							</Stack>
+						</Box>
+					)}
+					<Divider sx={{ my: { xs: 2, md: 3 } }} />
+					{reviewsLoading ? (
+						<Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+							<CircularProgress size={28} />
+						</Box>
+					) : reviewsError ? (
+						<Alert severity="error">{reviewsError}</Alert>
+					) : reviews.length === 0 ? (
+						<Typography variant="body2" color="text.secondary">
+							まだレビューは投稿されていません。
+						</Typography>
+					) : (
+						<Stack spacing={2}>
+							{reviews.map((review) => {
+								const authorName = review.author_name?.trim().length
+									? review.author_name.trim()
+									: "匿名ユーザー";
+								const authorAvatarUrl = review.author_avatar_url ?? null;
+
+								return (
+									<Box
+										key={review.id}
+										sx={{
+											border: "1px solid",
+											borderColor: "divider",
+											borderRadius: 2,
+											p: { xs: 1.75, md: 2 },
+										}}
+									>
+										<Stack
+											direction={{ xs: "column", sm: "row" }}
+											alignItems={{ xs: "flex-start", sm: "center" }}
+											justifyContent="space-between"
+											spacing={{ xs: 1, sm: 2 }}
+										>
+											<Stack direction="row" spacing={1.5} alignItems="center">
+												<UserAvatarButton
+													userId={review.author_id}
+													name={review.author_name ?? undefined}
+													displayName={review.author_name ?? undefined}
+													avatarUrl={authorAvatarUrl}
+													size={36}
+												/>
+												<Box>
+													<Typography variant="subtitle2">
+														{authorName}
+													</Typography>
+													<Typography variant="caption" color="text.secondary">
+														{formatJapaneseDateTime(review.created_at)}
+													</Typography>
+												</Box>
+											</Stack>
+											<StarRating
+												value={review.rating}
+												readOnly
+												size={18}
+												ariaLabel="ユーザーレビュー評価"
+											/>
+										</Stack>
+										{review.title && (
+											<Typography variant="subtitle1" sx={{ mt: 1 }}>
+												{review.title}
+											</Typography>
+										)}
+										<Typography
+											variant="body2"
+											sx={{
+												mt: review.title ? 0.5 : 1,
+												whiteSpace: "pre-line",
+												lineHeight: 1.7,
+											}}
+										>
+											{review.body}
+										</Typography>
+									</Box>
+								);
+							})}
+						</Stack>
+					)}
+				</Box>
+			</Collapse>
+		</Paper>
+	);
 
 	if (loading) {
 		return (
@@ -1080,334 +1368,8 @@ export default function ItemDetailPage({
 								{project.longDescription || project.description}
 							</Typography>
 						</Paper>
-						<Paper sx={{ p: { xs: 2, md: 3 } }}>
-							<Typography variant="h6" gutterBottom>
-								使用技術・主要機能・システム要件
-							</Typography>
-							{project.technicalDetails && (
-								<>
-									<Box sx={{ mb: 3 }}>
-										<Typography
-											variant="subtitle2"
-											color="text.secondary"
-											gutterBottom
-										>
-											フレームワーク・ライブラリ
-										</Typography>
-										<Box sx={{ mb: 2 }}>
-											{project.technicalDetails.framework.map((t, i) => (
-												<Chip
-													key={i}
-													label={t}
-													size="small"
-													sx={{ mr: 1, mb: 1 }}
-												/>
-											))}
-										</Box>
-									</Box>
-									<Box sx={{ mb: 3 }}>
-										<Typography
-											variant="subtitle2"
-											color="text.secondary"
-											gutterBottom
-										>
-											プログラミング言語
-										</Typography>
-										<Box>
-											{project.technicalDetails.language.map((l, i) => (
-												<Chip
-													key={i}
-													label={l}
-													variant="outlined"
-													size="small"
-													sx={{ mr: 1, mb: 1 }}
-												/>
-											))}
-										</Box>
-									</Box>
-								</>
-							)}
-							{project.features && (
-								<>
-									<Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-										主要機能
-									</Typography>
-									<Box sx={{ mb: 3 }}>
-										{project.features.map((f, i) => (
-											<Chip
-												key={i}
-												label={f}
-												variant="outlined"
-												sx={{ mr: 1, mb: 1 }}
-											/>
-										))}
-									</Box>
-								</>
-							)}
-							{project.systemRequirements && (
-								<>
-									<Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-										システム要件
-									</Typography>
-									<Box
-										sx={{
-											display: "grid",
-											gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
-											gap: 2,
-											mb: 2,
-										}}
-									>
-										<Box>
-											<Typography
-												variant="subtitle2"
-												color="text.secondary"
-												gutterBottom
-											>
-												OS
-											</Typography>
-											<Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
-												{project.systemRequirements.os}
-											</Typography>
-										</Box>
-										<Box>
-											<Typography
-												variant="subtitle2"
-												color="text.secondary"
-												gutterBottom
-											>
-												ブラウザ
-											</Typography>
-											<Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
-												{project.systemRequirements.browser}
-											</Typography>
-										</Box>
-										<Box>
-											<Typography
-												variant="subtitle2"
-												color="text.secondary"
-												gutterBottom
-											>
-												メモリ
-											</Typography>
-											<Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
-												{project.systemRequirements.memory}
-											</Typography>
-										</Box>
-									</Box>
-								</>
-							)}
-						</Paper>
-						<Paper sx={{ p: { xs: 2, md: 3 }, mt: 3 }}>
-							<Stack
-								direction={{ xs: "column", sm: "row" }}
-								alignItems={{ xs: "flex-start", sm: "center" }}
-								justifyContent="space-between"
-								spacing={{ xs: 1, sm: 2 }}
-							>
-								<Stack
-									direction={{ xs: "column", sm: "row" }}
-									alignItems={{ xs: "flex-start", sm: "center" }}
-									spacing={{ xs: 0.75, sm: 1.5 }}
-								>
-									<Typography variant="h6">レビュー</Typography>
-									<Stack
-										direction="row"
-										alignItems="center"
-										spacing={1}
-										sx={{ flexWrap: "wrap", rowGap: 0.5 }}
-									>
-										<StarRating
-											value={displayedAverageRating}
-											readOnly
-											size={20}
-											ariaLabel="平均評価"
-										/>
-										<Typography variant="body2" fontWeight={600}>
-											{formattedAverageRating} / {MAX_RATING}
-										</Typography>
-										<Typography variant="body2" color="text.secondary">
-											（{displayedReviewCount}件）
-										</Typography>
-									</Stack>
-								</Stack>
-								<Button
-									variant="text"
-									size="small"
-									onClick={handleToggleReviews}
-									endIcon={
-										<ExpandMoreIcon
-											sx={{
-												transform: isReviewSectionOpen
-													? "rotate(180deg)"
-													: "rotate(0deg)",
-												transition: "transform 0.2s ease",
-											}}
-										/>
-									}
-									sx={{
-										alignSelf: { xs: "flex-start", sm: "center" },
-										fontWeight: 600,
-										px: 1.5,
-									}}
-									aria-expanded={isReviewSectionOpen}
-									aria-controls="review-section-content"
-								>
-									{isReviewSectionOpen ? "閉じる" : "開く"}
-								</Button>
-							</Stack>
-							<Collapse in={isReviewSectionOpen}>
-								<Box id="review-section-content" sx={{ mt: 2 }}>
-									{isLoggedIn && isOwnProject ? (
-										<Alert severity="info" sx={{ mt: 1.5 }}>
-											自分の投稿にはレビューを投稿できません。
-										</Alert>
-									) : (
-										<Box
-											component="form"
-											onSubmit={handleReviewSubmit}
-											sx={{ mt: 1.5 }}
-											noValidate
-										>
-											<Stack spacing={2}>
-												<Box>
-													<Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-														あなたの評価
-													</Typography>
-													<StarRating
-														value={reviewForm.rating}
-														onChange={handleReviewRatingChange}
-														size={28}
-														ariaLabel="レビュー評価を選択"
-													/>
-												</Box>
-												<TextField
-													label="タイトル"
-													value={reviewForm.title}
-													onChange={handleReviewFieldChange("title")}
-													required
-													fullWidth
-												/>
-												<TextField
-													label="レビュー内容"
-													value={reviewForm.body}
-													onChange={handleReviewFieldChange("body")}
-													fullWidth
-													required
-													multiline
-													minRows={4}
-												/>
-												{reviewSubmitError && (
-													<Alert severity="error">{reviewSubmitError}</Alert>
-												)}
-												<Box
-													sx={{ display: "flex", justifyContent: "flex-end" }}
-												>
-													<Button
-														type="submit"
-														variant="contained"
-														disabled={submittingReview}
-													>
-														{submittingReview ? "送信中..." : "レビューを投稿"}
-													</Button>
-												</Box>
-											</Stack>
-										</Box>
-									)}
-									<Divider sx={{ my: { xs: 2, md: 3 } }} />
-									{reviewsLoading ? (
-										<Box
-											sx={{ display: "flex", justifyContent: "center", py: 2 }}
-										>
-											<CircularProgress size={28} />
-										</Box>
-									) : reviewsError ? (
-										<Alert severity="error">{reviewsError}</Alert>
-									) : reviews.length === 0 ? (
-										<Typography variant="body2" color="text.secondary">
-											まだレビューは投稿されていません。
-										</Typography>
-									) : (
-										<Stack spacing={2}>
-											{reviews.map((review) => {
-												const authorName = review.author_name?.trim().length
-													? review.author_name.trim()
-													: "匿名ユーザー";
-												const authorInitial = authorName
-													.charAt(0)
-													.toUpperCase();
-												const authorAvatarUrl =
-													review.author_avatar_url ?? null;
-
-												return (
-													<Box
-														key={review.id}
-														sx={{
-															border: "1px solid",
-															borderColor: "divider",
-															borderRadius: 2,
-															p: { xs: 1.75, md: 2 },
-														}}
-													>
-														<Stack
-															direction={{ xs: "column", sm: "row" }}
-															alignItems={{ xs: "flex-start", sm: "center" }}
-															justifyContent="space-between"
-															spacing={{ xs: 1, sm: 2 }}
-														>
-															<Stack
-																direction="row"
-																spacing={1.5}
-																alignItems="center"
-															>
-																<Avatar
-																	src={authorAvatarUrl ?? undefined}
-																	alt={authorName}
-																	sx={{ width: 36, height: 36 }}
-																>
-																	{authorInitial}
-																</Avatar>
-																<Box>
-																	<Typography variant="subtitle2">
-																		{authorName}
-																	</Typography>
-																	<Typography
-																		variant="caption"
-																		color="text.secondary"
-																	>
-																		{formatReviewTimestamp(review.created_at)}
-																	</Typography>
-																</Box>
-															</Stack>
-															<StarRating
-																value={review.rating}
-																readOnly
-																size={18}
-																ariaLabel="ユーザーレビュー評価"
-															/>
-														</Stack>
-														{review.title && (
-															<Typography variant="subtitle1" sx={{ mt: 1 }}>
-																{review.title}
-															</Typography>
-														)}
-														<Typography
-															variant="body2"
-															sx={{
-																mt: review.title ? 0.5 : 1,
-																whiteSpace: "pre-line",
-																lineHeight: 1.7,
-															}}
-														>
-															{review.body}
-														</Typography>
-													</Box>
-												);
-											})}
-										</Stack>
-									)}
-								</Box>
-							</Collapse>
-						</Paper>
+						{/* レビューセクション */}
+						{!isMobile && <Box sx={{ mt: 3 }}>{renderReviewSection()}</Box>}
 					</Box>
 					{/* 右側：サイド */}
 					<Box sx={{ flex: 1, minWidth: { xs: "100%", md: 300 } }}>
@@ -1418,8 +1380,7 @@ export default function ItemDetailPage({
 							<Typography variant="body2" color="text.secondary" paragraph>
 								{project.shortDescription || project.description}
 							</Typography>
-							{((project.categories && project.categories.length > 0) ||
-								(project.categoryIds && project.categoryIds.length > 0)) && (
+							{resolvedCategoryChips.length > 0 && (
 								<Box sx={{ mb: 2 }}>
 									<Typography
 										variant="body2"
@@ -1429,7 +1390,7 @@ export default function ItemDetailPage({
 										カテゴリー
 									</Typography>
 									<Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-										{project.categories?.map((category) => (
+										{resolvedCategoryChips.map((category) => (
 											<Chip
 												key={category.id}
 												label={category.name}
@@ -1437,15 +1398,6 @@ export default function ItemDetailPage({
 												variant="outlined"
 											/>
 										))}
-										{!project.categories?.length &&
-											project.categoryIds?.map((id) => (
-												<Chip
-													key={id}
-													label={`カテゴリID: ${id}`}
-													size="small"
-													variant="outlined"
-												/>
-											))}
 									</Box>
 								</Box>
 							)}
@@ -1562,7 +1514,9 @@ export default function ItemDetailPage({
 									最終更新
 								</Typography>
 								<Typography variant="body1">
-									{project.lastUpdated || project.updated_at}
+									{formatJapaneseDateTime(
+										project.lastUpdated || project.updated_at,
+									) || "-"}
 								</Typography>
 							</Box>
 							{project.version && (
@@ -1577,13 +1531,14 @@ export default function ItemDetailPage({
 								<>
 									<Divider sx={{ my: 2 }} />
 									<Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-										<Avatar
-											src={ownerAvatarUrl ?? undefined}
-											alt={(ownerDisplayName ?? ownerNameRaw) || "投稿者"}
-											sx={{ width: 48, height: 48 }}
-										>
-											{ownerInitial}
-										</Avatar>
+										<UserAvatarButton
+											userId={project.owner.id}
+											name={ownerNameRaw ?? undefined}
+											displayName={ownerDisplayName ?? undefined}
+											avatarUrl={ownerAvatarUrl}
+											headerUrl={project.owner.headerUrl ?? null}
+											size={48}
+										/>
 										<Box>
 											<Typography variant="body2" fontWeight="medium">
 												{(ownerDisplayName ?? ownerNameRaw) || "投稿者"}
@@ -1600,6 +1555,7 @@ export default function ItemDetailPage({
 						</Paper>
 					</Box>
 				</Box>
+				{isMobile && <Box sx={{ mt: 3 }}>{renderReviewSection()}</Box>}
 			</Container>
 		</div>
 	);

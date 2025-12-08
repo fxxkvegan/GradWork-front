@@ -5,7 +5,6 @@ import {
 } from "@mui/icons-material";
 import {
 	Alert,
-	Avatar,
 	Box,
 	Button,
 	Card,
@@ -25,7 +24,9 @@ import React, {
 	useState,
 } from "react";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
-import { fetchCategories } from "../services/categoryApi";
+import UserAvatarButton from "../components/UserAvatarButton";
+import { useCategoriesList } from "../hooks/useCategoriesList";
+import { useRankingProjects } from "../hooks/useRankingProjects";
 import * as favorites from "../utils/favorites";
 
 import "./HomePage.css";
@@ -33,32 +34,11 @@ import "./carousel-extra.css";
 import "./category.css";
 
 import { useNavigate } from "react-router-dom";
-import {
-	fetchRankingProjects,
-	type RankingItemResponse,
-} from "../services/productApi";
-import type { Category as ApiCategory } from "../types/category";
+import type { HomeProject } from "../types/home";
 
-/* ---------- 型定義 ---------- */
-export interface Project {
-	id: number;
-	title: string;
-	subtitle: string;
-	img: string;
-	category: string;
-	rating: number;
-	downloads: number;
-	tags: string[];
-	owner?: {
-		id: number;
-		name: string;
-		displayName?: string | null;
-		avatarUrl?: string | null;
-	} | null;
-}
 /* ---------- プロジェクトカード ---------- */
 const ProjectCard: React.FC<{
-	project: Project;
+	project: HomeProject;
 	onView?: (id: number) => void;
 }> = ({ project, onView }) => {
 	// お気に入り状態の管理
@@ -80,7 +60,6 @@ const ProjectCard: React.FC<{
 
 	const ownerName =
 		project.owner?.displayName?.trim() || project.owner?.name?.trim() || "";
-	const ownerInitial = ownerName ? ownerName.charAt(0).toUpperCase() : "U";
 
 	return (
 		<Card className="project-card">
@@ -122,13 +101,13 @@ const ProjectCard: React.FC<{
 					<Box
 						sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}
 					>
-						<Avatar
-							src={project.owner.avatarUrl ?? undefined}
-							alt={ownerName || project.owner.name || "投稿者"}
-							sx={{ width: 32, height: 32 }}
-						>
-							{ownerInitial}
-						</Avatar>
+						<UserAvatarButton
+							userId={project.owner.id}
+							name={project.owner.name}
+							displayName={project.owner.displayName ?? project.owner.name}
+							avatarUrl={project.owner.avatarUrl ?? null}
+							size={32}
+						/>
 						<Typography variant="body2" fontWeight="medium">
 							{ownerName || project.owner?.name || "投稿者"}
 						</Typography>
@@ -184,17 +163,19 @@ const ProjectCard: React.FC<{
 const HomePage: React.FC = () => {
 	const navigate = useNavigate();
 	const carouselRef = useRef<HTMLDivElement | null>(null);
-	const [rankingProjects, setRankingProjects] = useState<Project[]>([]);
-	const [rankingLoading, setRankingLoading] = useState(true);
-	const [rankingError, setRankingError] = useState<string | null>(null);
-	const [rankingEmptyMessage, setRankingEmptyMessage] = useState<string | null>(
-		null,
-	);
+	const {
+		projects: rankingProjects,
+		loading: rankingLoading,
+		error: rankingError,
+		emptyMessage: rankingEmptyMessage,
+	} = useRankingProjects();
+	const {
+		categories,
+		loading: categoryLoading,
+		error: categoryError,
+	} = useCategoriesList();
 	const [isCarouselPaused, setIsCarouselPaused] = useState(false);
 	const [activeIndex, setActiveIndex] = useState(0);
-	const [categories, setCategories] = useState<ApiCategory[]>([]);
-	const [categoryLoading, setCategoryLoading] = useState(true);
-	const [categoryError, setCategoryError] = useState<string | null>(null);
 	const handleViewProject = useCallback(
 		(projectId: number) => {
 			navigate(`/item/${projectId}`);
@@ -347,47 +328,6 @@ const HomePage: React.FC = () => {
 			track.scrollLeft = baseWidth;
 		}
 	}, [rankingProjects.length, repeatedProjects.length]);
-
-	useEffect(() => {
-		let cancelled = false;
-
-		const loadCategories = async () => {
-			setCategoryLoading(true);
-			setCategoryError(null);
-			try {
-				const items = await fetchCategories();
-				if (!cancelled) {
-					setCategories(
-						items.map((item) => ({
-							...item,
-							image:
-								item.image && item.image.trim().length > 0 ? item.image : null,
-						})),
-					);
-				}
-			} catch (error) {
-				console.error("カテゴリ取得失敗:", error);
-				if (!cancelled) {
-					const message =
-						error instanceof Error
-							? error.message
-							: "カテゴリの取得に失敗しました";
-					setCategoryError(message);
-					setCategories([]);
-				}
-			} finally {
-				if (!cancelled) {
-					setCategoryLoading(false);
-				}
-			}
-		};
-
-		loadCategories();
-
-		return () => {
-			cancelled = true;
-		};
-	}, []);
 
 	useEffect(() => {
 		const track = carouselRef.current;
@@ -572,11 +512,7 @@ const HomePage: React.FC = () => {
 													src={category.image}
 													alt={category.name}
 													loading="lazy"
-													style={{
-														width: "100%",
-														height: "100%",
-														objectFit: "cover",
-													}}
+													className="category-icon-image"
 												/>
 											) : (
 												<CodeIcon fontSize="large" color="primary" />

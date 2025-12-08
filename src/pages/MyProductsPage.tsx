@@ -139,12 +139,14 @@ const MyProductsPage = () => {
 						<Button variant="contained" onClick={() => navigate("/create")}>
 							新しい作品を投稿
 						</Button>
-						<Button
-							variant={selectionMode ? "contained" : "outlined"}
-							onClick={toggleSelectionMode}
-						>
-							{selectionMode ? "選択モードを終了" : "選択して削除"}
-						</Button>
+						{hasProducts && (
+							<Button
+								variant={selectionMode ? "contained" : "outlined"}
+								onClick={toggleSelectionMode}
+							>
+								{selectionMode ? "選択モードを終了" : "選択して削除"}
+							</Button>
+						)}
 						{selectionMode && hasSelection && (
 							<Button
 								variant="contained"

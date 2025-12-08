@@ -3,8 +3,10 @@ import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./context/AuthContext";
+import { DmNotificationProvider } from "./context/DmNotificationContext";
+import { NotificationProvider } from "./context/NotificationContext";
+import DirectMessagePage from "./DirectMessage/DirectMessagePage";
 import AddItemsPage from "./pages/admin/AddItemsPage";
-import GitHubCallbackPage from "./pages/auth/GitHubCallbackPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import HomePage from "./pages/HomePage";
@@ -13,6 +15,7 @@ import ItemFormPage from "./pages/ItemFormPage";
 import ItemListPage from "./pages/ItemListPage";
 import Legal from "./pages/Legal";
 import MyProductsPage from "./pages/MyProductsPage";
+import NoticePage from "./pages/NoticePage";
 import ProjectList from "./pages/ProjectList";
 import SettingsPage from "./pages/SettingsPage";
 
@@ -26,7 +29,11 @@ const NotFoundPage = () => (
 
 const RootLayout = () => (
 	<AuthProvider>
-		<Layout />
+		<NotificationProvider>
+			<DmNotificationProvider>
+				<Layout />
+			</DmNotificationProvider>
+		</NotificationProvider>
 	</AuthProvider>
 );
 
@@ -40,7 +47,6 @@ const router = createBrowserRouter([
 			{ path: "projects", element: <ProjectList /> },
 			{ path: "register", element: <RegisterPage /> },
 			{ path: "login", element: <LoginPage /> },
-			{ path: "login/github-callback", element: <GitHubCallbackPage /> },
 			{ path: "Legal", element: <Legal /> },
 			{ path: "item", element: <ItemListPage /> },
 			{ path: "item/:itemId", element: <ItemDetailPage /> },
@@ -50,6 +56,8 @@ const router = createBrowserRouter([
 			{ path: "my-products", element: <MyProductsPage /> },
 			{ path: "settings", element: <SettingsPage /> },
 			{ path: "edit/:itemId", element: <ItemFormPage /> },
+			{ path: "notifications", element: <NoticePage /> },
+			{ path: "dm", element: <DirectMessagePage /> },
 			{ path: "*", element: <NotFoundPage /> },
 		],
 	},

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import useScrollDirection from "../hooks/useScrollDirection";
 import styles from "./AppHeader.module.css";
 import UserMenu from "./UserMenu";
@@ -66,18 +66,19 @@ const MenuIcon = () => (
 const navItems = [
 	{ label: "HOME", path: "/home" },
 	{ label: "プロジェクト一覧", path: "/item" },
-	{ label: "iOS 開発", path: "/projects?category=iOS開発" },
-	{ label: "Android 開発", path: "/projects?category=Android開発" },
+	{ label: "WEB開発", path: "/item?categoryId=1" },
+	{ label: "モバイル開発", path: "/item?categoryId=2" },
 	{
-		label: "プログラミング 学習",
-		path: "/projects?category=プログラミング学習",
+		label: "AI開発",
+		path: "/item?categoryId=3",
 	},
 ];
 
 interface AppHeaderProps {
 	activePath?: string;
 	isLoggedIn?: boolean;
-	messageCount?: number;
+	dmUnreadCount?: number;
+	notificationUnreadCount?: number;
 	onLogout?: () => void;
 	userName?: string;
 	avatarUrl?: string;
@@ -86,11 +87,13 @@ interface AppHeaderProps {
 const AppHeader: React.FC<AppHeaderProps> = ({
 	activePath = "",
 	isLoggedIn = false,
-	messageCount = 0,
+	dmUnreadCount = 0,
+	notificationUnreadCount = 0,
 	onLogout,
 	userName,
 	avatarUrl,
 }) => {
+	const navigate = useNavigate();
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isSearchClosing, setIsSearchClosing] = useState(false);
@@ -173,6 +176,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 		handleCloseSearch();
 	};
 
+	// 詳細ページへ遷移する関数を追加
+	const handleNavigateToDetail = (productId: number) => {
+		handleCloseSearch(); // 検索窓を閉じる
+		navigate(`/item/${productId}`); // 詳細ページへ遷移
+	};
+
+	const totalUnread = dmUnreadCount + notificationUnreadCount;
+
 	return (
 		<header
 			className={`${styles.header} ${scrollDirection === "down" && isScrolled ? styles.headerHidden : ""}`}
@@ -223,10 +234,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 					</button>
 					<UserMenu
 						isLoggedIn={isLoggedIn}
-						messageCount={messageCount}
+						dmUnreadCount={dmUnreadCount}
+						notificationUnreadCount={notificationUnreadCount}
 						onLogout={onLogout}
 						userName={userName}
 						avatarUrl={avatarUrl}
+						totalUnreadCount={totalUnread}
 					/>
 				</div>
 			</div>
@@ -267,15 +280,39 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 						{searchTerm && suggestions.length > 0 && (
 							<ul className={styles.suggestionList}>
 								{suggestions.map((item, index) => {
-									const img = JSON.parse(item.image_url || "[]")[0];
+									// 画像処理: fetchProductsは配列か文字列を返す可能性があるため安全に処理
+									let img = "";
+									if (
+										Array.isArray(item.image_url) &&
+										item.image_url.length > 0
+									) {
+										img = item.image_url[0];
+									} else if (typeof item.image_url === "string") {
+										try {
+											// JSON文字列の場合のパース
+											const parsed = JSON.parse(item.image_url || "[]");
+											img = Array.isArray(parsed) ? parsed[0] : item.image_url;
+										} catch {
+											// JSONパース失敗ならそのまま文字列として扱う
+											img = item.image_url;
+										}
+									}
 
 									return (
-										<li key={index} className={styles.suggestionCard}>
+										<li
+											key={index}
+											className={styles.suggestionCard}
+											onClick={() => handleNavigateToDetail(item.id)}
+											style={{ cursor: "pointer" }}
+										>
 											{/* 画像 */}
 											<img
-												src={img}
+												src={img || "/nice_dig.png"}
 												alt=""
 												className={styles.suggestionThumb}
+												onError={(e) => {
+													(e.target as HTMLImageElement).src = "/nice_dig.png";
+												}}
 											/>
 
 											{/* カテゴリ */}

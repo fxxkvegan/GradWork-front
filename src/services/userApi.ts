@@ -3,6 +3,8 @@ import { API_CONFIG, API_ENDPOINTS, ERROR_MESSAGES } from "../constants/api";
 import type {
 	AuthResponse,
 	LoginRequest,
+	PublicUserProfile,
+	PublicUserResponse,
 	RegisterRequest,
 	TokenRefreshResponse,
 	UpdateUserSettingsRequest,
@@ -21,9 +23,6 @@ const REFRESH_TOKEN_KEY = "refreshToken";
 const api = axios.create({
 	baseURL: API_CONFIG.BASE_URL,
 	timeout: API_CONFIG.TIMEOUT,
-	headers: {
-		"Content-Type": "application/json",
-	},
 });
 
 const mapAuthResponse = (data: AuthResponse): AuthResponse => ({
@@ -157,18 +156,58 @@ export const getUserProfile = async (): Promise<UserProfile> => {
 	}
 };
 
+export const getPublicUserProfile = async (
+	userId: number | string,
+): Promise<PublicUserProfile> => {
+	try {
+		const { data } = await api.get<PublicUserResponse>(
+			API_ENDPOINTS.USERS.PUBLIC_PROFILE(userId),
+		);
+		return data.data;
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.USER.PROFILE_FETCH_FAILED);
+	}
+};
+
+export const followUser = async (
+	userId: number | string,
+): Promise<PublicUserProfile> => {
+	try {
+		const { data } = await api.post<PublicUserResponse>(
+			API_ENDPOINTS.USERS.FOLLOW(userId),
+		);
+		return data.data;
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.USER.FOLLOW_FAILED);
+	}
+};
+
+export const unfollowUser = async (
+	userId: number | string,
+): Promise<PublicUserProfile> => {
+	try {
+		const { data } = await api.delete<PublicUserResponse>(
+			API_ENDPOINTS.USERS.FOLLOW(userId),
+		);
+		return data.data;
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.USER.UNFOLLOW_FAILED);
+	}
+};
+
 export const updateUserProfile = async (
 	formData: FormData,
 ): Promise<UserProfile> => {
 	try {
-		const { data } = await api.put<UserResponse>(
+		const payload = new FormData();
+		formData.forEach((value, key) => {
+			payload.append(key, value);
+		});
+		payload.append("_method", "PUT");
+
+		const { data } = await api.post<UserResponse>(
 			API_ENDPOINTS.USERS.PROFILE,
-			formData,
-			{
-				headers: {
-					"Content-Type": "multipart/form-data",
-				},
-			},
+			payload,
 		);
 		return data.data;
 	} catch (error) {
@@ -253,11 +292,14 @@ export const userApi = {
 	logout: logoutUser,
 	refreshToken,
 	getProfile: getUserProfile,
+	getPublicProfile: getPublicUserProfile,
 	updateProfile: updateUserProfile,
 	getSettings: getUserSettings,
 	updateSettings: updateUserSettings,
 	getHistory: getUserHistory,
 	addHistory: addHistoryItem,
+	follow: followUser,
+	unfollow: unfollowUser,
 };
 
 export default userApi;

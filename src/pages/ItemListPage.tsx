@@ -1,6 +1,7 @@
 import {
 	Alert,
 	Box,
+	Breadcrumbs,
 	Button,
 	Card,
 	CardContent,
@@ -19,13 +20,18 @@ import {
 	Typography,
 } from "@mui/material";
 import { type ChangeEvent, type FC, useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+	Link as RouterLink,
+	useNavigate,
+	useSearchParams,
+} from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import { fetchCategories } from "../services/categoryApi";
 import { fetchProducts } from "../services/productApi";
 import type { Category } from "../types/category";
 import type { Product } from "../types/product";
 import "./ItemListPage.css";
+import { Link as MuiLink } from "@mui/material";
 
 const ITEMS_PER_PAGE = 9;
 const FALLBACK_IMAGE = "/nice_dig.png";
@@ -135,6 +141,16 @@ const ItemListPage: FC = () => {
 		}, new Map<string, Category>());
 	}, [categories]);
 
+	const headingTitle = useMemo(() => {
+		if (selectedCategoryIds.length === 1) {
+			const category = categoryMap.get(String(selectedCategoryIds[0]));
+			if (category) {
+				return `${category.name}プロジェクト一覧`;
+			}
+		}
+		return "プロジェクト一覧";
+	}, [categoryMap, selectedCategoryIds]);
+
 	useEffect(() => {
 		let isMounted = true;
 		const loadProducts = async () => {
@@ -231,6 +247,51 @@ const ItemListPage: FC = () => {
 		updateCategoryQuery([]);
 	};
 
+	const selectedCategoryNames = useMemo(() => {
+		if (selectedCategoryIds.length === 0) {
+			return [] as string[];
+		}
+		return categories
+			.filter((category) => selectedCategoryIds.includes(category.id))
+			.map((category) => category.name);
+	}, [categories, selectedCategoryIds]);
+
+	const multiCategoryLabel = useMemo(() => {
+		if (selectedCategoryIds.length <= 1) {
+			return "";
+		}
+		if (selectedCategoryNames.length === 0) {
+			return `カテゴリを${selectedCategoryIds.length}件選択中`;
+		}
+		const preview = selectedCategoryNames.slice(0, 2).join("、");
+		const remaining = selectedCategoryNames.length - 2;
+		return remaining > 0 ? `${preview} 、ほか${remaining}件` : preview;
+	}, [selectedCategoryIds.length, selectedCategoryNames]);
+
+	const breadcrumbItems = useMemo(() => {
+		const items: Array<{ label: string; to?: string }> = [
+			{ label: "Home", to: "/" },
+		];
+		if (selectedCategoryIds.length === 1) {
+			const selectedId = selectedCategoryIds[0];
+			const category = categoryMap.get(String(selectedId));
+			const label = category?.name?.trim().length
+				? category.name.trim()
+				: `カテゴリID: ${selectedId}`;
+			const params = new URLSearchParams();
+			params.set(CATEGORY_ID_PARAM, String(selectedId));
+			if (category?.name?.trim()) {
+				params.set("category", category.name.trim());
+			}
+			items.push({ label, to: `/item?${params.toString()}` });
+		} else if (selectedCategoryIds.length > 1) {
+			items.push({ label: multiCategoryLabel });
+		} else {
+			items.push({ label: "プロジェクト一覧" });
+		}
+		return items;
+	}, [categoryMap, multiCategoryLabel, selectedCategoryIds]);
+
 	const headingMessage = useMemo(() => {
 		if (loading) {
 			return "読み込み中...";
@@ -244,15 +305,6 @@ const ItemListPage: FC = () => {
 		return "公開中のプロジェクトはまだありません";
 	}, [loading, totalItems, selectedCategoryIds.length]);
 
-	const selectedCategoryNames = useMemo(() => {
-		if (selectedCategoryIds.length === 0) {
-			return [] as string[];
-		}
-		return categories
-			.filter((category) => selectedCategoryIds.includes(category.id))
-			.map((category) => category.name);
-	}, [categories, selectedCategoryIds]);
-
 	const isFiltering = selectedCategoryIds.length > 0;
 
 	return (
@@ -260,8 +312,34 @@ const ItemListPage: FC = () => {
 			<AppHeaderWithAuth />
 			<Box component="main" className="item-list-page">
 				<Container maxWidth="lg" sx={{ py: 4 }}>
+					<Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }} separator="/">
+						{breadcrumbItems.map((item, index) => {
+							const isLast = index === breadcrumbItems.length - 1;
+							if (!isLast && item.to) {
+								return (
+									<MuiLink
+										component={RouterLink}
+										to={item.to}
+										underline="hover"
+										color="inherit"
+										key={`${item.label}-${index}`}
+									>
+										{item.label}
+									</MuiLink>
+								);
+							}
+							return (
+								<Typography
+									key={`${item.label}-${index}`}
+									color={isLast ? "text.primary" : "text.secondary"}
+								>
+									{item.label}
+								</Typography>
+							);
+						})}
+					</Breadcrumbs>
 					<Typography variant="h4" component="h1" gutterBottom align="center">
-						プロジェクト一覧
+						{headingTitle}
 					</Typography>
 					<Typography
 						variant="body1"
