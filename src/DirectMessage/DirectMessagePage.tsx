@@ -51,6 +51,8 @@ const DirectMessagePage = () => {
 		loading: messagesLoading,
 		error: messagesError,
 		send,
+		deleteMessage,
+		editMessage,
 	} = useMessages(selectedConversationId);
 	const { refresh: refreshDmUnread } = useDmNotifications();
 
@@ -61,9 +63,8 @@ const DirectMessagePage = () => {
 		useState<SendMessagePayload | null>(null);
 	const [pendingError, setPendingError] = useState<string | null>(null);
 	const pendingTimerRef = useRef<number | null>(null);
-	const refreshDmIndicators = useCallback(() => {
-		void refreshConversations();
-		void refreshDmUnread();
+	const refreshDmIndicators = useCallback(async () => {
+		await Promise.all([refreshConversations(), refreshDmUnread()]);
 	}, [refreshConversations, refreshDmUnread]);
 
 	const clearPendingTimer = useCallback(() => {
@@ -93,7 +94,7 @@ const DirectMessagePage = () => {
 			try {
 				await send(messageToSend.payload);
 				setPendingError(null);
-				void refreshDmIndicators();
+				await refreshDmIndicators();
 			} catch (error) {
 				const message =
 					error instanceof Error
@@ -104,6 +105,26 @@ const DirectMessagePage = () => {
 			}
 		},
 		[clearPendingTimer, pendingSend, refreshDmIndicators, send],
+	);
+
+	const handleDeleteMessage = useCallback(
+		async (messageId: number) => {
+			await deleteMessage(messageId);
+			await refreshDmIndicators();
+		},
+		[deleteMessage, refreshDmIndicators],
+	);
+
+	const handleEditMessage = useCallback(
+		async (messageId: number, body: string) => {
+			const trimmed = body.trim();
+			if (!trimmed) {
+				throw new Error("メッセージを入力してください");
+			}
+			await editMessage(messageId, trimmed);
+			await refreshDmIndicators();
+		},
+		[editMessage, refreshDmIndicators],
 	);
 
 	const scheduleSend = useCallback(
@@ -371,6 +392,8 @@ const DirectMessagePage = () => {
 									error={messagesError}
 									currentUserId={user?.id}
 									extraPendingMessage={pendingMessage}
+									onDeleteMessage={handleDeleteMessage}
+									onEditMessage={handleEditMessage}
 								/>
 								<MessageInput
 									onSend={handleSendMessage}

@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchMessages, sendMessage } from "../api/dm";
+import {
+	deleteMessage as deleteMessageRequest,
+	fetchMessages,
+	sendMessage,
+	updateMessage as updateMessageRequest,
+} from "../api/dm";
 import type { DMMessage, SendMessagePayload } from "../types";
 
 interface UseMessagesResult {
@@ -8,6 +13,8 @@ interface UseMessagesResult {
 	error: string | null;
 	send: (payload: SendMessagePayload) => Promise<DMMessage>;
 	refresh: () => Promise<void>;
+	deleteMessage: (messageId: number) => Promise<DMMessage>;
+	editMessage: (messageId: number, body: string) => Promise<DMMessage>;
 }
 
 export const useMessages = (
@@ -93,7 +100,52 @@ export const useMessages = (
 		[conversationId, sortByOldest],
 	);
 
-	return { messages, loading, error, send, refresh };
+	const deleteMessage = useCallback(
+		async (messageId: number) => {
+			if (!conversationId) {
+				throw new Error("会話が選択されていません");
+			}
+
+			const updated = await deleteMessageRequest(conversationId, messageId);
+			setMessages((previous) =>
+				previous.map((message) =>
+					message.id === messageId ? { ...message, ...updated } : message,
+				),
+			);
+			return updated;
+		},
+		[conversationId],
+	);
+
+	const editMessage = useCallback(
+		async (messageId: number, body: string) => {
+			if (!conversationId) {
+				throw new Error("会話が選択されていません");
+			}
+			const updated = await updateMessageRequest(
+				conversationId,
+				messageId,
+				body,
+			);
+			setMessages((previous) =>
+				previous.map((message) =>
+					message.id === messageId ? { ...message, ...updated } : message,
+				),
+			);
+			return updated;
+		},
+		[conversationId],
+	);
+
+	return {
+		messages,
+		loading,
+		error,
+		send,
+		refresh,
+		deleteMessage,
+		editMessage,
+	};
 };
 
 export default useMessages;

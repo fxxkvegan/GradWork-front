@@ -110,6 +110,36 @@ export const sendMessage = async (
 	}
 };
 
+export const updateMessage = async (
+	conversationId: number,
+	messageId: number,
+	body: string,
+): Promise<DMMessage> => {
+	try {
+		const { data } = await dmClient.put<DMMessage>(
+			API_ENDPOINTS.DM.MESSAGE(conversationId, messageId),
+			{ body },
+		);
+		return data;
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.DM.UPDATE_MESSAGE_FAILED);
+	}
+};
+
+export const deleteMessage = async (
+	conversationId: number,
+	messageId: number,
+): Promise<DMMessage> => {
+	try {
+		const { data } = await dmClient.delete<DMMessage>(
+			API_ENDPOINTS.DM.MESSAGE(conversationId, messageId),
+		);
+		return data;
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.DM.DELETE_MESSAGE_FAILED);
+	}
+};
+
 export const fetchUnreadCount = async (): Promise<number> => {
 	try {
 		const { data } = await dmClient.get<{ total?: number }>(

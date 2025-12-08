@@ -21,6 +21,9 @@ export interface DMMessage {
 	sender: DMParticipant | null;
 	readAt?: string | null;
 	createdAt?: string | null;
+	isDeleted?: boolean;
+	deletedAt?: string | null;
+	editedAt?: string | null;
 	isPending?: boolean;
 	pendingExpiresAt?: string | null;
 }
