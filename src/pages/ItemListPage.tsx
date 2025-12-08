@@ -498,7 +498,7 @@ const ItemListPage: FC = () => {
 														size="small"
 													/>
 													<Typography variant="caption" sx={{ ml: 1 }}>
-														DL {product.download_count ?? 0}
+														DL {product.access_count ?? 0}
 													</Typography>
 												</Box>
 

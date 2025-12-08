@@ -39,6 +39,9 @@ interface EditFormState {
 	newImageFiles: File[];
 	newImagePreviews: string[];
 	removeImageUrls: string[];
+	googlePlayUrl: string;
+	appStoreUrl: string;
+	webAppUrl: string;
 }
 
 const toInitialState = (): EditFormState => ({
@@ -49,6 +52,9 @@ const toInitialState = (): EditFormState => ({
 	newImageFiles: [],
 	newImagePreviews: [],
 	removeImageUrls: [],
+	googlePlayUrl: "",
+	appStoreUrl: "",
+	webAppUrl: "",
 });
 
 const ItemFormPage = () => {
@@ -156,6 +162,9 @@ const ItemFormPage = () => {
 					newImageFiles: [],
 					newImagePreviews: [],
 					removeImageUrls: [],
+					googlePlayUrl: data.google_play_url ?? "",
+					appStoreUrl: data.app_store_url ?? "",
+					webAppUrl: data.web_app_url ?? "",
 				});
 				setActiveImageIndex(images.length > 0 ? 0 : 0);
 				setImageNotice(null);
@@ -178,7 +187,14 @@ const ItemFormPage = () => {
 	}, [itemId]);
 
 	const handleInputChange =
-		(key: "name" | "description") =>
+		(
+			key:
+				| "name"
+				| "description"
+				| "googlePlayUrl"
+				| "appStoreUrl"
+				| "webAppUrl",
+		) =>
 		(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 			setForm((prev) => ({ ...prev, [key]: event.target.value }));
 		};
@@ -321,6 +337,9 @@ const ItemFormPage = () => {
 					remove_image_urls: form.removeImageUrls.length
 						? form.removeImageUrls
 						: undefined,
+					google_play_url: form.googlePlayUrl || undefined,
+					app_store_url: form.appStoreUrl || undefined,
+					web_app_url: form.webAppUrl || undefined,
 				});
 			} else {
 				await productApi.createProduct({
@@ -328,6 +347,9 @@ const ItemFormPage = () => {
 					description: form.description,
 					categoryIds: form.categoryIds,
 					image_url: form.newImageFiles,
+					google_play_url: form.googlePlayUrl || undefined,
+					app_store_url: form.appStoreUrl || undefined,
+					web_app_url: form.webAppUrl || undefined,
 				});
 			}
 			navigate("/my-products", { replace: true });
@@ -573,6 +595,45 @@ const ItemFormPage = () => {
 										multiline
 										minRows={6}
 										fullWidth
+									/>
+								</Stack>
+							</Paper>
+
+							<Paper sx={{ p: 3 }}>
+								<Typography variant="h6" gutterBottom>
+									アプリリンク（任意）
+								</Typography>
+								<Typography
+									variant="body2"
+									color="text.secondary"
+									sx={{ mb: 2 }}
+								>
+									ユーザーがアプリにアクセスできるリンクを設定してください
+								</Typography>
+								<Stack spacing={2}>
+									<TextField
+										label="Google Play Store URL"
+										value={form.googlePlayUrl}
+										onChange={handleInputChange("googlePlayUrl")}
+										placeholder="https://play.google.com/store/apps/details?id=..."
+										fullWidth
+										type="url"
+									/>
+									<TextField
+										label="App Store URL"
+										value={form.appStoreUrl}
+										onChange={handleInputChange("appStoreUrl")}
+										placeholder="https://apps.apple.com/app/..."
+										fullWidth
+										type="url"
+									/>
+									<TextField
+										label="Webアプリ URL"
+										value={form.webAppUrl}
+										onChange={handleInputChange("webAppUrl")}
+										placeholder="https://example.com"
+										fullWidth
+										type="url"
 									/>
 								</Stack>
 							</Paper>

@@ -22,7 +22,10 @@ export interface RankingItemResponse {
 	name: string;
 	description?: string | null;
 	rating?: number | null;
-	download_count?: number | null;
+	access_count?: number | null;
+	google_play_url?: string | null;
+	app_store_url?: string | null;
+	web_app_url?: string | null;
 	image_urls?: string[] | null;
 	image_url?: string[] | string | null;
 	category_ids?: Array<number | string> | null;
@@ -55,7 +58,7 @@ export interface FetchProductsParams {
 	page?: number;
 	limit?: number;
 	q?: string;
-	sort?: "name" | "rating" | "download_count" | "created_at";
+	sort?: "name" | "rating" | "access_count" | "created_at";
 	categoryIds?: number[];
 }
 
@@ -199,6 +202,15 @@ export const createProduct = async (
 	if (payload.description) {
 		formData.append("description", payload.description);
 	}
+	if (payload.google_play_url) {
+		formData.append("google_play_url", payload.google_play_url);
+	}
+	if (payload.app_store_url) {
+		formData.append("app_store_url", payload.app_store_url);
+	}
+	if (payload.web_app_url) {
+		formData.append("web_app_url", payload.web_app_url);
+	}
 	appendCategoryIds(formData, payload.categoryIds);
 	appendImages(formData, payload.image_url);
 
@@ -217,14 +229,23 @@ export const updateProduct = async (
 	if (payload.description) {
 		formData.append("description", payload.description);
 	}
+	if (payload.google_play_url !== undefined) {
+		formData.append("google_play_url", payload.google_play_url ?? "");
+	}
+	if (payload.app_store_url !== undefined) {
+		formData.append("app_store_url", payload.app_store_url ?? "");
+	}
+	if (payload.web_app_url !== undefined) {
+		formData.append("web_app_url", payload.web_app_url ?? "");
+	}
 	appendCategoryIds(formData, payload.categoryIds);
 	appendImages(formData, payload.image_url);
 	appendRemoveImageUrls(formData, payload.remove_image_urls);
 	if (typeof payload.rating === "number") {
 		formData.append("rating", String(payload.rating));
 	}
-	if (typeof payload.download_count === "number") {
-		formData.append("download_count", String(payload.download_count));
+	if (typeof payload.access_count === "number") {
+		formData.append("access_count", String(payload.access_count));
 	}
 
 	const { data } = await authClient.post<Product>(
@@ -315,6 +336,20 @@ export const fetchProducts = async (
 	};
 };
 
+export interface IncrementAccessCountResponse {
+	message: string;
+	access_count: number;
+}
+
+export const incrementAccessCount = async (
+	productId: number,
+): Promise<IncrementAccessCountResponse> => {
+	const { data } = await client.post<IncrementAccessCountResponse>(
+		`/products/${productId}/access`,
+	);
+	return data;
+};
+
 export default {
 	fetchRankingProjects,
 	createProduct,
@@ -324,4 +359,5 @@ export default {
 	fetchProductReviews,
 	createProductReview,
 	fetchProducts,
+	incrementAccessCount,
 };
