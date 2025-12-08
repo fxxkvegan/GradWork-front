@@ -16,7 +16,10 @@ export interface Product {
 	name: string;
 	description: string | null;
 	rating: number;
-	download_count: number;
+	access_count: number;
+	google_play_url: string | null;
+	app_store_url: string | null;
+	web_app_url: string | null;
 	image_url: string | string[] | null;
 	categoryIds: string[];
 	categories?: Category[];
@@ -47,6 +50,9 @@ export interface ProductCreateRequest {
 	description?: string;
 	categoryIds?: number[];
 	image_url?: File[];
+	google_play_url?: string;
+	app_store_url?: string;
+	web_app_url?: string;
 }
 
 export interface ProductUpdateRequest {
@@ -55,6 +61,9 @@ export interface ProductUpdateRequest {
 	categoryIds?: number[];
 	image_url?: File[];
 	rating?: number;
-	download_count?: number;
+	access_count?: number;
+	google_play_url?: string;
+	app_store_url?: string;
+	web_app_url?: string;
 	remove_image_urls?: string[];
 }

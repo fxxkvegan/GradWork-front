@@ -22,7 +22,7 @@ export interface RankingItemResponse {
 	name: string;
 	description?: string | null;
 	rating?: number | null;
-	download_count?: number | null;
+	access_count?: number | null;
 	image_urls?: string[] | null;
 	image_url?: string[] | string | null;
 	category_ids?: Array<number | string> | null;
@@ -55,7 +55,7 @@ export interface FetchProductsParams {
 	page?: number;
 	limit?: number;
 	q?: string;
-	sort?: "name" | "rating" | "download_count" | "created_at";
+	sort?: "name" | "rating" | "access_count" | "created_at";
 	categoryIds?: number[];
 }
 
@@ -223,8 +223,8 @@ export const updateProduct = async (
 	if (typeof payload.rating === "number") {
 		formData.append("rating", String(payload.rating));
 	}
-	if (typeof payload.download_count === "number") {
-		formData.append("download_count", String(payload.download_count));
+	if (typeof payload.access_count === "number") {
+		formData.append("access_count", String(payload.access_count));
 	}
 
 	const { data } = await authClient.post<Product>(

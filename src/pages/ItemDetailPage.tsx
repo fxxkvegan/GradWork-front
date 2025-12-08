@@ -1,9 +1,11 @@
 import {
+	Android as AndroidIcon,
+	Apple as AppleIcon,
 	ArrowBack as ArrowBackIcon,
-	Download as DownloadIcon,
 	ExpandMore as ExpandMoreIcon,
 	FavoriteBorder as FavoriteBorderIcon,
 	Favorite as FavoriteIcon,
+	Language as LanguageIcon,
 	Share as ShareIcon,
 	StarBorderRounded as StarBorderRoundedIcon,
 	StarRounded as StarRoundedIcon,
@@ -52,6 +54,7 @@ import { API_CONFIG, createProductReview, fetchProductReviews } from "../api";
 // import { API_CONFIG } from "../constants/api";
 import { useAuth } from "../context/AuthContext";
 import { fetchCategories } from "../services/categoryApi";
+import * as productApi from "../services/productApi";
 import type { Category } from "../types/category";
 import type { Review } from "../types/review";
 
@@ -77,8 +80,11 @@ interface ProjectDetail {
 	image_url: string[];
 	images?: string[];
 	rating: number | { average: number; count: number };
-	download_count?: number;
-	downloadCount?: number;
+	access_count?: number;
+	accessCount?: number;
+	google_play_url?: string | null;
+	app_store_url?: string | null;
+	web_app_url?: string | null;
 	created_at?: string;
 	updated_at?: string;
 	lastUpdated?: string;
@@ -158,8 +164,7 @@ const getDemoProjectDetail = (id: string): ProjectDetail => ({
 		website: null,
 	},
 	author: { name: "TechDeveloper", avatar: "/nice_dig.png", rating: 4.8 },
-	downloadCount: 1250,
-	download_count: 1250,
+	access_count: 1250,
 	lastUpdated: "2024-06-15",
 	updated_at: "2024-06-15",
 	version: "2.1.0",
@@ -843,8 +848,29 @@ export default function ItemDetailPage({
 		return `/item?${params.toString()}`;
 	}, [primaryCategory]);
 
-	const handleDownload = () => {
-		alert("ダウンロード機能はデモ版のため利用できません");
+	const hasExternalLinks = useMemo(() => {
+		return Boolean(
+			project?.google_play_url ||
+				project?.app_store_url ||
+				project?.web_app_url,
+		);
+	}, [project]);
+
+	const handleLinkClick = async (url: string) => {
+		if (isDemoMode) {
+			alert("デモモードではリンクを開けません");
+			return;
+		}
+
+		if (productNumericId) {
+			try {
+				await productApi.incrementAccessCount(productNumericId);
+			} catch (incrementError) {
+				console.error("Failed to increment access count:", incrementError);
+			}
+		}
+
+		window.open(url, "_blank", "noopener,noreferrer");
 	};
 
 	const handleFavorite = () => {
@@ -1404,15 +1430,61 @@ export default function ItemDetailPage({
 								</Box>
 							)}
 							<Stack spacing={2} sx={{ mb: 3 }}>
-								<Button
-									variant="contained"
-									size="large"
-									fullWidth
-									startIcon={<DownloadIcon />}
-									onClick={handleDownload}
-								>
-									ダウンロード
-								</Button>
+								{hasExternalLinks ? (
+									<Stack spacing={1}>
+										{project.google_play_url && (
+											<Button
+												variant="contained"
+												size="large"
+												fullWidth
+												startIcon={<AndroidIcon />}
+												onClick={() =>
+													handleLinkClick(project.google_play_url!)
+												}
+												sx={{
+													backgroundColor: "#3DDC84",
+													"&:hover": { backgroundColor: "#32B86C" },
+												}}
+											>
+												Google Play で入手
+											</Button>
+										)}
+										{project.app_store_url && (
+											<Button
+												variant="contained"
+												size="large"
+												fullWidth
+												startIcon={<AppleIcon />}
+												onClick={() => handleLinkClick(project.app_store_url!)}
+												sx={{
+													backgroundColor: "#000000",
+													"&:hover": { backgroundColor: "#333333" },
+												}}
+											>
+												App Store で入手
+											</Button>
+										)}
+										{project.web_app_url && (
+											<Button
+												variant="contained"
+												size="large"
+												fullWidth
+												startIcon={<LanguageIcon />}
+												onClick={() => handleLinkClick(project.web_app_url!)}
+											>
+												Webアプリを開く
+											</Button>
+										)}
+									</Stack>
+								) : (
+									<Typography
+										variant="body2"
+										color="text.secondary"
+										sx={{ textAlign: "center", py: 2 }}
+									>
+										リンクが設定されていません
+									</Typography>
+								)}
 								<Box sx={{ display: "flex", gap: 1 }}>
 									<IconButton
 										onClick={handleFavorite}
@@ -1428,12 +1500,12 @@ export default function ItemDetailPage({
 							<Divider sx={{ my: 2 }} />
 							<Box sx={{ mb: 2 }}>
 								<Typography variant="body2" color="text.secondary">
-									ダウンロード数
+									アクセス回数
 								</Typography>
 								<Typography variant="body1">
 									{(
-										project.downloadCount ||
-										project.download_count ||
+										project.accessCount ||
+										project.access_count ||
 										0
 									).toLocaleString()}
 								</Typography>
