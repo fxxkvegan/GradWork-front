@@ -3,10 +3,8 @@ import {
 	Button,
 	Card,
 	CardContent,
-	Checkbox,
 	Container,
 	Divider,
-	FormControlLabel,
 	Link as MuiLink,
 	Stack,
 	TextField,
@@ -22,7 +20,6 @@ const Register: React.FC = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
-	const [agree, setAgree] = useState(false);
 	const [error, setError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -36,10 +33,6 @@ const Register: React.FC = () => {
 		// front-side validation
 		if (password !== confirmPassword) {
 			setError("Passwords do not match");
-			return;
-		}
-		if (!agree) {
-			setError("You must agree to the terms");
 			return;
 		}
 		if (!email || !password) {
@@ -120,25 +113,6 @@ const Register: React.FC = () => {
 								required
 								fullWidth
 								disabled={isLoading}
-							/>
-
-							<FormControlLabel
-								control={
-									<Checkbox
-										checked={agree}
-										onChange={(e) => setAgree(e.target.checked)}
-										required
-										disabled={isLoading}
-									/>
-								}
-								label={
-									<>
-										I agree to the{" "}
-										<MuiLink href="#" target="_blank" rel="noopener">
-											terms and conditions
-										</MuiLink>
-									</>
-								}
 							/>
 
 							{error && <Alert severity="error">{error}</Alert>}

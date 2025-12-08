@@ -4,9 +4,7 @@ import {
 	Button,
 	Card,
 	CardContent,
-	Checkbox,
 	Container,
-	FormControlLabel,
 	Link,
 	Stack,
 	TextField,
@@ -23,7 +21,6 @@ const RegisterPage: React.FC = () => {
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [username, setUsername] = useState("");
-	const [agree, setAgree] = useState(false);
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 	const navigate = useNavigate();
@@ -36,11 +33,6 @@ const RegisterPage: React.FC = () => {
 
 		if (password !== confirmPassword) {
 			setError("パスワードが一致しません");
-			setLoading(false);
-			return;
-		}
-		if (!agree) {
-			setError("利用規約への同意が必要です");
 			setLoading(false);
 			return;
 		}
@@ -169,27 +161,6 @@ const RegisterPage: React.FC = () => {
 											fullWidth
 											disabled={loading}
 										/>
-
-										<FormControlLabel
-											control={
-												<Checkbox
-													checked={agree}
-													onChange={(e) => setAgree(e.target.checked)}
-													required
-													disabled={loading}
-												/>
-											}
-											label={
-												<>
-													利用規約に同意します（
-													<Link href="#" target="_blank" rel="noopener">
-														詳細を確認
-													</Link>
-													）
-												</>
-											}
-										/>
-
 										<Button
 											type="submit"
 											variant="contained"
