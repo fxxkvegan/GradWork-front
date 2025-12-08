@@ -405,7 +405,10 @@ const ItemFormPage = () => {
 	return (
 		<div className="item-form-page">
 			<AppHeaderWithAuth />
-			<Container maxWidth="lg" sx={{ py: 4 }}>
+			<Container
+				maxWidth="lg"
+				sx={{ py: 4, mt: { xs: 8, md: 10 } }} // ヘッダーが被らないよう余白を確保
+			>
 				<Stack spacing={3}>
 					<Typography variant="h4" fontWeight="bold">
 						{itemId ? "作品を編集" : "新しい作品を投稿"}
