@@ -7,7 +7,6 @@ import {
 	Container,
 	Divider,
 	Grid,
-	Link,
 	Paper,
 	Stack,
 	TextField,
@@ -15,7 +14,7 @@ import {
 } from "@mui/material";
 import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import { useAuth } from "../context/AuthContext";
 import userApi from "../services/userApi";
@@ -428,6 +427,7 @@ export default function SettingsPage() {
 				locale: updated.locale ?? null,
 				theme: updated.theme ?? null,
 			});
+			navigate("/home");
 		} catch (err) {
 			if (err instanceof Error) {
 				setError(err.message);
@@ -714,15 +714,13 @@ export default function SettingsPage() {
 							>
 								入力内容をリセット
 							</Button>
-							<Link component={RouterLink} to="/home">
-								<Button
-									type="submit"
-									variant="contained"
-									disabled={saving || loading || !isDirty}
-								>
-									{saving ? "保存中..." : "保存する"}
-								</Button>
-							</Link>
+							<Button
+								type="submit"
+								variant="contained"
+								disabled={saving || loading || !isDirty}
+							>
+								{saving ? "保存中..." : "保存する"}
+							</Button>
 						</Box>
 					</Stack>
 				</Paper>
