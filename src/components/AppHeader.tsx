@@ -324,7 +324,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
 											{/* 評価・DL */}
 											<div className={styles.suggestionMeta}>
-												{item.download_count} DL　★ {item.rating}
+												{item.access_count} アクセス　★ {item.rating}
 											</div>
 
 											{/* タイトル */}

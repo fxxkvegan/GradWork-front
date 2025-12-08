@@ -55,7 +55,7 @@ export interface FetchProductsParams {
 	page?: number;
 	limit?: number;
 	q?: string;
-	sort?: "name" | "rating" | "download_count" | "created_at";
+	sort?: "name" | "rating" | "access_count" | "created_at";
 	categoryIds?: number[];
 }
 
