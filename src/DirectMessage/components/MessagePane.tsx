@@ -1,6 +1,13 @@
 import { Menu, MenuItem } from "@mui/material";
 import type { FC, FormEvent, MouseEvent } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import type { DMMessage } from "../types";
 import {
 	formatDateLabel,
@@ -19,6 +26,9 @@ interface MessagePaneProps {
 	onEditMessage: (messageId: number, body: string) => Promise<unknown>;
 }
 
+const EDIT_TEXTAREA_MIN_HEIGHT = 96;
+const SCROLL_BOTTOM_THRESHOLD_PX = 32;
+
 const MessagePane: FC<MessagePaneProps> = ({
 	messages,
 	isLoading,
@@ -29,6 +39,8 @@ const MessagePane: FC<MessagePaneProps> = ({
 	onEditMessage,
 }) => {
 	const containerRef = useRef<HTMLDivElement | null>(null);
+	const messageBubbleRefs = useRef(new Map<number, HTMLDivElement>());
+	const editTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 	const [contextMenu, setContextMenu] = useState<{
 		mouseX: number;
 		mouseY: number;
@@ -36,18 +48,83 @@ const MessagePane: FC<MessagePaneProps> = ({
 	} | null>(null);
 	const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
 	const [editValue, setEditValue] = useState("");
+	const [editDimensions, setEditDimensions] = useState<{
+		width: number;
+		height: number;
+	} | null>(null);
 	const [editError, setEditError] = useState<string | null>(null);
 	const [isSavingEdit, setIsSavingEdit] = useState(false);
+	const [isAtBottom, setIsAtBottom] = useState(true);
+	const [hasNewMessagesBelow, setHasNewMessagesBelow] = useState(false);
+	const resizeEditTextarea = useCallback(() => {
+		const textarea = editTextareaRef.current;
+		if (!textarea) {
+			return;
+		}
+		textarea.style.height = "auto";
+		const baseHeight = editDimensions?.height ?? EDIT_TEXTAREA_MIN_HEIGHT;
+		textarea.style.height = `${Math.max(textarea.scrollHeight, baseHeight)}px`;
+	}, [editDimensions]);
 
-	useEffect(() => {
+	const scrollToBottom = useCallback(() => {
 		const container = containerRef.current;
-		if (!container) return;
+		if (!container) {
+			return;
+		}
 		container.scrollTop = container.scrollHeight;
-	}, [messages]);
+	}, []);
+
+	const handleScroll = useCallback(() => {
+		const container = containerRef.current;
+		if (!container) {
+			return;
+		}
+		const distanceFromBottom =
+			container.scrollHeight - (container.scrollTop + container.clientHeight);
+		const atBottom = distanceFromBottom <= SCROLL_BOTTOM_THRESHOLD_PX;
+		setIsAtBottom(atBottom);
+		if (atBottom) {
+			setHasNewMessagesBelow(false);
+		}
+	}, []);
 
 	const visibleMessages = extraPendingMessage
 		? [...messages, extraPendingMessage]
 		: messages;
+	const previousMessageCountRef = useRef(visibleMessages.length);
+
+	useEffect(() => {
+		const nextCount = visibleMessages.length;
+		const prevCount = previousMessageCountRef.current;
+		if (nextCount <= prevCount) {
+			previousMessageCountRef.current = nextCount;
+			return;
+		}
+		if (isAtBottom) {
+			requestAnimationFrame(() => {
+				scrollToBottom();
+				setHasNewMessagesBelow(false);
+				setIsAtBottom(true);
+			});
+		} else {
+			setHasNewMessagesBelow(true);
+		}
+		previousMessageCountRef.current = nextCount;
+	}, [isAtBottom, scrollToBottom, visibleMessages.length]);
+
+	const handleNewMessagesClick = useCallback(() => {
+		scrollToBottom();
+		setHasNewMessagesBelow(false);
+		setIsAtBottom(true);
+	}, [scrollToBottom]);
+
+	// Keep the edit textarea sized to its content so longer messages stay readable.
+	useLayoutEffect(() => {
+		if (editingMessageId === null) {
+			return;
+		}
+		resizeEditTextarea();
+	}, [editingMessageId, editValue, resizeEditTextarea]);
 
 	const closeContextMenu = () => {
 		setContextMenu(null);
@@ -74,6 +151,15 @@ const MessagePane: FC<MessagePaneProps> = ({
 		if (!message.body) {
 			return;
 		}
+		const bubble = messageBubbleRefs.current.get(message.id);
+		if (bubble) {
+			setEditDimensions({
+				width: bubble.clientWidth,
+				height: bubble.clientHeight,
+			});
+		} else {
+			setEditDimensions(null);
+		}
 		setEditingMessageId(message.id);
 		setEditValue(message.body);
 		setEditError(null);
@@ -83,6 +169,7 @@ const MessagePane: FC<MessagePaneProps> = ({
 		setEditingMessageId(null);
 		setEditValue("");
 		setEditError(null);
+		setEditDimensions(null);
 	};
 
 	const handleEditSubmit = async (
@@ -158,7 +245,11 @@ const MessagePane: FC<MessagePaneProps> = ({
 	}, [contextMenu, currentUserId]);
 
 	return (
-		<div className="dm-messages-container" ref={containerRef}>
+		<div
+			className="dm-messages-container"
+			ref={containerRef}
+			onScroll={handleScroll}
+		>
 			{isLoading ? (
 				<div className="dm-messages-placeholder">読み込み中...</div>
 			) : error ? (
@@ -184,9 +275,13 @@ const MessagePane: FC<MessagePaneProps> = ({
 						);
 						const isEditing = editingMessageId === message.id;
 						const isDeleted = Boolean(message.isDeleted);
+						const showMeta =
+							!isEditing &&
+							(Boolean(timestamp) || (!isDeleted && Boolean(message.editedAt)));
 						return (
 							<div
 								key={`${message.id}-${message.isPending ? "pending" : "sent"}`}
+								className="dm-message-item"
 							>
 								{showDateSeparator && (
 									<div className="dm-date-separator">
@@ -211,15 +306,15 @@ const MessagePane: FC<MessagePaneProps> = ({
 										</div>
 									)}
 									<div className={`dm-message-content ${isMine ? "own" : ""}`}>
-										{!isMine && (
-											<span className="dm-message-sender">
-												{message.sender?.displayName ||
-													message.sender?.name ||
-													"ユーザー"}
-											</span>
-										)}
 										<div
 											className={`dm-message-bubble ${isMine ? "own" : ""} ${message.isPending ? "pending" : ""} ${isDeleted ? "deleted" : ""}`}
+											ref={(element) => {
+												if (!element) {
+													messageBubbleRefs.current.delete(message.id);
+													return;
+												}
+												messageBubbleRefs.current.set(message.id, element);
+											}}
 											onContextMenu={(event) =>
 												handleContextMenu(event, message, isMine)
 											}
@@ -227,6 +322,11 @@ const MessagePane: FC<MessagePaneProps> = ({
 											{isEditing ? (
 												<form
 													className="dm-message-edit-form"
+													style={
+														editDimensions
+															? { width: `${editDimensions.width}px` }
+															: undefined
+													}
 													onSubmit={(event) =>
 														handleEditSubmit(event, message.id)
 													}
@@ -234,11 +334,20 @@ const MessagePane: FC<MessagePaneProps> = ({
 													<textarea
 														className="dm-message-edit-textarea"
 														value={editValue}
+														ref={editTextareaRef}
 														onChange={(event) =>
 															setEditValue(event.target.value)
 														}
 														placeholder="メッセージを編集"
 														autoFocus
+														style={{
+															minHeight: Math.max(
+																editDimensions?.height || 0,
+																EDIT_TEXTAREA_MIN_HEIGHT,
+															),
+															width: "100%",
+															boxSizing: "border-box",
+														}}
 													/>
 													<div className="dm-message-edit-actions">
 														<button type="button" onClick={cancelEdit}>
@@ -278,11 +387,6 @@ const MessagePane: FC<MessagePaneProps> = ({
 															) : null}
 														</>
 													)}
-													{!isDeleted && message.editedAt && (
-														<span className="dm-message-edited-label">
-															編集済み
-														</span>
-													)}
 													{message.isPending && (
 														<span className="dm-message-status">
 															送信待ち...
@@ -290,13 +394,24 @@ const MessagePane: FC<MessagePaneProps> = ({
 													)}
 												</>
 											)}
+										</div>
+									</div>
+									{showMeta && (
+										<div
+											className={`dm-message-meta-row ${isMine ? "own" : ""}`}
+										>
 											{timestamp && (
 												<span className="dm-message-timestamp">
 													{timestamp}
 												</span>
 											)}
+											{!isDeleted && message.editedAt && (
+												<span className="dm-message-edited-label">
+													編集済み
+												</span>
+											)}
 										</div>
-									</div>
+									)}
 								</div>
 							</div>
 						);
@@ -328,6 +443,15 @@ const MessagePane: FC<MessagePaneProps> = ({
 						</MenuItem>
 					</Menu>
 				</>
+			)}
+			{!isLoading && !error && hasNewMessagesBelow && (
+				<button
+					type="button"
+					className="dm-new-messages-banner"
+					onClick={handleNewMessagesClick}
+				>
+					新着メッセージが下にあります
+				</button>
 			)}
 		</div>
 	);

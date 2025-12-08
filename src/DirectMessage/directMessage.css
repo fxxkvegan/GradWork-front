@@ -267,6 +267,11 @@
 	margin-left: 12px;
 }
 
+.dm-message-item {
+	display: flex;
+	flex-direction: column;
+}
+
 .dm-message-group {
 	display: flex;
 	align-items: flex-end;
@@ -341,11 +346,25 @@
 	align-self: flex-end;
 }
 
-.dm-message-timestamp {
+.dm-message-meta-row {
+	display: flex;
+	gap: 6px;
+	font-size: 11px;
+	color: var(--dm-muted-light);
+	margin: 4px 0 4px;
+	align-self: flex-start;
+}
+
+.dm-message-meta-row.own {
+	justify-content: flex-end;
+	align-self: flex-end;
+}
+
+.dm-message-timestamp,
+.dm-message-edited-label {
 	font-size: 11px;
 	opacity: 0.7;
-	margin-top: 2px;
-	align-self: flex-end;
+	margin-top: 0;
 }
 
 .dm-message-status {
