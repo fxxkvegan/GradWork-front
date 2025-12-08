@@ -2,6 +2,7 @@
 // File: src/pages/ItemFormPage.tsx
 
 import CloseIcon from "@mui/icons-material/Close";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
 	Alert,
 	Box,
@@ -12,6 +13,11 @@ import {
 	Checkbox,
 	CircularProgress,
 	Container,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
 	Divider,
 	FormControlLabel,
 	IconButton,
@@ -65,6 +71,8 @@ const ItemFormPage = () => {
 
 	const [form, setForm] = useState<EditFormState>(toInitialState);
 	const [submitting, setSubmitting] = useState(false);
+	const [deleting, setDeleting] = useState(false);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [loadingCategories, setLoadingCategories] = useState(true);
 	const [loadingProduct, setLoadingProduct] = useState(Boolean(itemId));
@@ -360,6 +368,35 @@ const ItemFormPage = () => {
 			);
 		} finally {
 			setSubmitting(false);
+		}
+	};
+
+	const handleDeleteClick = () => {
+		setDeleteDialogOpen(true);
+	};
+
+	const handleDeleteCancel = () => {
+		setDeleteDialogOpen(false);
+	};
+
+	const handleDeleteConfirm = async () => {
+		if (!itemId || deleting) {
+			return;
+		}
+
+		setDeleting(true);
+		setError(null);
+
+		try {
+			await productApi.deleteProduct(Number(itemId));
+			setDeleteDialogOpen(false);
+			navigate("/my-products", { replace: true });
+		} catch (deleteError) {
+			console.error(deleteError);
+			setError("作品の削除に失敗しました");
+			setDeleteDialogOpen(false);
+		} finally {
+			setDeleting(false);
 		}
 	};
 
@@ -674,16 +711,27 @@ const ItemFormPage = () => {
 							</Paper>
 
 							<Stack direction="row" spacing={2} justifyContent="flex-end">
+								{itemId && (
+									<Button
+										variant="outlined"
+										color="error"
+										disabled={submitting || deleting}
+										onClick={handleDeleteClick}
+										startIcon={<DeleteIcon />}
+									>
+										削除
+									</Button>
+								)}
 								<Button
 									variant="outlined"
-									disabled={submitting}
+									disabled={submitting || deleting}
 									onClick={() => navigate(-1)}
 								>
 									キャンセル
 								</Button>
 								<Button
 									variant="contained"
-									disabled={!canSubmit || submitting}
+									disabled={!canSubmit || submitting || deleting}
 									onClick={handleSubmit}
 								>
 									{submitting ? "送信中..." : itemId ? "更新する" : "投稿する"}
@@ -693,6 +741,34 @@ const ItemFormPage = () => {
 					</Box>
 				</Stack>
 			</Container>
+
+			<Dialog
+				open={deleteDialogOpen}
+				onClose={handleDeleteCancel}
+				aria-labelledby="delete-dialog-title"
+				aria-describedby="delete-dialog-description"
+			>
+				<DialogTitle id="delete-dialog-title">作品を削除しますか？</DialogTitle>
+				<DialogContent>
+					<DialogContentText id="delete-dialog-description">
+						この操作は取り消すことができません。作品「{form.name}
+						」を完全に削除してもよろしいですか？
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleDeleteCancel} disabled={deleting}>
+						キャンセル
+					</Button>
+					<Button
+						onClick={handleDeleteConfirm}
+						color="error"
+						variant="contained"
+						disabled={deleting}
+					>
+						{deleting ? "削除中..." : "削除する"}
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</div>
 	);
 };
