@@ -54,6 +54,7 @@ import { API_CONFIG, createProductReview, fetchProductReviews } from "../api";
 // import { API_CONFIG } from "../constants/api";
 import { useAuth } from "../context/AuthContext";
 import { fetchCategories } from "../services/categoryApi";
+import * as productApi from "../services/productApi";
 import type { Category } from "../types/category";
 import type { Review } from "../types/review";
 
