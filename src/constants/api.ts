@@ -46,6 +46,7 @@ export const API_ENDPOINTS = {
 		CONVERSATIONS: "/dm/conversations",
 		MESSAGES: (conversationId: number | string) =>
 			`/dm/conversations/${conversationId}/messages`,
+		UNREAD_COUNT: "/dm/unread-count",
 	},
 } as const;
 
@@ -76,6 +77,7 @@ export const ERROR_MESSAGES = {
 		CREATE_CONVERSATION_FAILED: "会話の作成に失敗しました",
 		MESSAGES_FETCH_FAILED: "メッセージの取得に失敗しました",
 		SEND_MESSAGE_FAILED: "メッセージの送信に失敗しました",
+		UNREAD_COUNT_FETCH_FAILED: "未読DM件数の取得に失敗しました",
 		USER_LIST_FETCH_FAILED: "ユーザー一覧の取得に失敗しました",
 	},
 	NETWORK: {

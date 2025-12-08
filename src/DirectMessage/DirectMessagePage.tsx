@@ -3,6 +3,7 @@ import { Button, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import { useAuth } from "../context/AuthContext";
+import { useDmNotifications } from "../context/DmNotificationContext";
 import ConversationList from "./components/ConversationList";
 import MessageInput from "./components/MessageInput";
 import MessagePane from "./components/MessagePane";
@@ -42,6 +43,7 @@ const DirectMessagePage = () => {
 		error: conversationsError,
 		refresh: refreshConversations,
 		createConversation,
+		markConversationAsRead,
 	} = useConversations();
 
 	const {
@@ -50,6 +52,7 @@ const DirectMessagePage = () => {
 		error: messagesError,
 		send,
 	} = useMessages(selectedConversationId);
+	const { refresh: refreshDmUnread } = useDmNotifications();
 
 	const [pendingSend, setPendingSend] = useState<PendingSendState | null>(null);
 	const [pendingCountdownMs, setPendingCountdownMs] =
@@ -58,6 +61,10 @@ const DirectMessagePage = () => {
 		useState<SendMessagePayload | null>(null);
 	const [pendingError, setPendingError] = useState<string | null>(null);
 	const pendingTimerRef = useRef<number | null>(null);
+	const refreshDmIndicators = useCallback(() => {
+		void refreshConversations();
+		void refreshDmUnread();
+	}, [refreshConversations, refreshDmUnread]);
 
 	const clearPendingTimer = useCallback(() => {
 		if (pendingTimerRef.current) {
@@ -86,7 +93,7 @@ const DirectMessagePage = () => {
 			try {
 				await send(messageToSend.payload);
 				setPendingError(null);
-				void refreshConversations();
+				void refreshDmIndicators();
 			} catch (error) {
 				const message =
 					error instanceof Error
@@ -96,7 +103,7 @@ const DirectMessagePage = () => {
 				setRestorePayload(messageToSend.payload);
 			}
 		},
-		[clearPendingTimer, pendingSend, refreshConversations, send],
+		[clearPendingTimer, pendingSend, refreshDmIndicators, send],
 	);
 
 	const scheduleSend = useCallback(
@@ -318,6 +325,8 @@ const DirectMessagePage = () => {
 							activeConversationId={selectedConversationId}
 							onSelect={(conversationId) => {
 								setSelectedConversationId(conversationId);
+								markConversationAsRead(conversationId);
+								void refreshDmUnread();
 								if (isMobile) {
 									setMobileView("chat");
 								}

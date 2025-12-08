@@ -3,6 +3,7 @@ import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import Layout from "./components/Layout";
 import { AuthProvider } from "./context/AuthContext";
+import { DmNotificationProvider } from "./context/DmNotificationContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import DirectMessagePage from "./DirectMessage/DirectMessagePage";
 import AddItemsPage from "./pages/admin/AddItemsPage";
@@ -29,7 +30,9 @@ const NotFoundPage = () => (
 const RootLayout = () => (
 	<AuthProvider>
 		<NotificationProvider>
-			<Layout />
+			<DmNotificationProvider>
+				<Layout />
+			</DmNotificationProvider>
 		</NotificationProvider>
 	</AuthProvider>
 );

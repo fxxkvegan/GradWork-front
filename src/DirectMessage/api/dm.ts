@@ -110,6 +110,17 @@ export const sendMessage = async (
 	}
 };
 
+export const fetchUnreadCount = async (): Promise<number> => {
+	try {
+		const { data } = await dmClient.get<{ total?: number }>(
+			API_ENDPOINTS.DM.UNREAD_COUNT,
+		);
+		return typeof data.total === "number" ? data.total : 0;
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.DM.UNREAD_COUNT_FETCH_FAILED);
+	}
+};
+
 interface RawUser {
 	id: number;
 	name: string;

@@ -30,7 +30,9 @@ const getInitial = (name: string) => name.trim().charAt(0).toUpperCase() || "U";
 /* ---------- Props ---------- */
 interface UserMenuProps {
 	isLoggedIn: boolean;
-	messageCount?: number;
+	dmUnreadCount?: number;
+	notificationUnreadCount?: number;
+	totalUnreadCount?: number;
 	onLogout?: () => void;
 	userName?: string;
 	avatarUrl?: string;
@@ -39,13 +41,19 @@ interface UserMenuProps {
 /* ---------- Component ---------- */
 const UserMenu: React.FC<UserMenuProps> = ({
 	isLoggedIn = false,
-	messageCount = 0,
+	dmUnreadCount = 0,
+	notificationUnreadCount = 0,
+	totalUnreadCount,
 	onLogout,
 	userName = "ゲスト",
 	avatarUrl,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const userInitial = getInitial(userName);
+	const totalUnread =
+		typeof totalUnreadCount === "number"
+			? totalUnreadCount
+			: dmUnreadCount + notificationUnreadCount;
 
 	const handleToggle = () => setIsOpen((prev) => !prev);
 	const handleClose = () => setIsOpen(false);
@@ -67,7 +75,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
 					<Badge
 						color="error"
 						variant="dot"
-						invisible={messageCount === 0}
+						invisible={totalUnread === 0}
 						overlap="circular"
 					>
 						{avatarUrl ? (
@@ -156,9 +164,9 @@ const UserMenu: React.FC<UserMenuProps> = ({
 							>
 								<ListItemIcon sx={{ color: "rgba(255,255,255,0.7)" }}>
 									<Badge
-										badgeContent={messageCount}
+										badgeContent={dmUnreadCount}
 										color="error"
-										invisible={messageCount === 0}
+										invisible={dmUnreadCount === 0}
 									>
 										<ChatBubbleOutline />
 									</Badge>
@@ -195,9 +203,9 @@ const UserMenu: React.FC<UserMenuProps> = ({
 							>
 								<ListItemIcon sx={{ color: "rgba(255,255,255,0.7)" }}>
 									<Badge
-										badgeContent={messageCount}
+										badgeContent={notificationUnreadCount}
 										color="error"
-										invisible={messageCount === 0}
+										invisible={notificationUnreadCount === 0}
 									>
 										<Notifications />
 									</Badge>
@@ -205,7 +213,9 @@ const UserMenu: React.FC<UserMenuProps> = ({
 								<ListItemText
 									primary="通知"
 									secondary={
-										messageCount > 0 ? `${messageCount} 件未読` : undefined
+										notificationUnreadCount > 0
+											? `${notificationUnreadCount} 件未読`
+											: undefined
 									}
 									secondaryTypographyProps={{ color: "error.main" }}
 								/>

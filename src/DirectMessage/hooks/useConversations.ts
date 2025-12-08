@@ -10,6 +10,7 @@ interface UseConversationsResult {
 	createConversation: (
 		payload: CreateConversationPayload,
 	) => Promise<DMConversation>;
+	markConversationAsRead: (conversationId: number) => void;
 }
 
 export const useConversations = (): UseConversationsResult => {
@@ -56,12 +57,23 @@ export const useConversations = (): UseConversationsResult => {
 		[],
 	);
 
+	const markConversationAsRead = useCallback((conversationId: number) => {
+		setConversations((previous) =>
+			previous.map((conversation) =>
+				conversation.id === conversationId
+					? { ...conversation, unreadCount: 0 }
+					: conversation,
+			),
+		);
+	}, []);
+
 	return {
 		conversations,
 		loading,
 		error,
 		refresh,
 		createConversation: handleCreateConversation,
+		markConversationAsRead,
 	};
 };
 
