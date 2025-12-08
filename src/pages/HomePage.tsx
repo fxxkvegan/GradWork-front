@@ -275,9 +275,9 @@ const HomePage: React.FC = () => {
 						? item.rating
 						: Number((item?.rating as unknown) ?? 0) || 0,
 				downloads:
-					typeof item?.download_count === "number"
-						? item.download_count
-						: Number((item?.download_count as unknown) ?? 0) || 0,
+					typeof item?.access_count === "number"
+						? item.access_count
+						: Number((item?.access_count as unknown) ?? 0) || 0,
 				tags: tags.length ? tags : [firstCategory],
 				owner,
 			};
