@@ -77,7 +77,8 @@ const navItems = [
 interface AppHeaderProps {
 	activePath?: string;
 	isLoggedIn?: boolean;
-	messageCount?: number;
+	dmUnreadCount?: number;
+	notificationUnreadCount?: number;
 	onLogout?: () => void;
 	userName?: string;
 	avatarUrl?: string;
@@ -86,7 +87,8 @@ interface AppHeaderProps {
 const AppHeader: React.FC<AppHeaderProps> = ({
 	activePath = "",
 	isLoggedIn = false,
-	messageCount = 0,
+	dmUnreadCount = 0,
+	notificationUnreadCount = 0,
 	onLogout,
 	userName,
 	avatarUrl,
@@ -180,6 +182,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 		navigate(`/item/${productId}`); // 詳細ページへ遷移
 	};
 
+	const totalUnread = dmUnreadCount + notificationUnreadCount;
+
 	return (
 		<header
 			className={`${styles.header} ${scrollDirection === "down" && isScrolled ? styles.headerHidden : ""}`}
@@ -230,10 +234,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 					</button>
 					<UserMenu
 						isLoggedIn={isLoggedIn}
-						messageCount={messageCount}
+						dmUnreadCount={dmUnreadCount}
+						notificationUnreadCount={notificationUnreadCount}
 						onLogout={onLogout}
 						userName={userName}
 						avatarUrl={avatarUrl}
+						totalUnreadCount={totalUnread}
 					/>
 				</div>
 			</div>

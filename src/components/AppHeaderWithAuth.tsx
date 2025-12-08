@@ -1,5 +1,6 @@
 import React from "react";
 import { useAuth } from "../context/AuthContext";
+import { useDmNotifications } from "../context/DmNotificationContext";
 import { useNotifications } from "../context/NotificationContext";
 import AppHeader from "./AppHeader";
 
@@ -11,7 +12,8 @@ const AppHeaderWithAuth: React.FC<AppHeaderWithAuthProps> = ({
 	activePath,
 }) => {
 	const { isLoggedIn, user, logout } = useAuth();
-	const { unreadCount } = useNotifications();
+	const { unreadCount: notificationUnreadCount } = useNotifications();
+	const { unreadCount: dmUnreadCount } = useDmNotifications();
 
 	const handleLogout = () => {
 		logout();
@@ -24,7 +26,8 @@ const AppHeaderWithAuth: React.FC<AppHeaderWithAuthProps> = ({
 			userName={user?.name}
 			avatarUrl={user?.avatarUrl ?? undefined}
 			onLogout={handleLogout}
-			messageCount={unreadCount}
+			dmUnreadCount={dmUnreadCount}
+			notificationUnreadCount={notificationUnreadCount}
 		/>
 	);
 };
