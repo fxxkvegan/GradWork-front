@@ -64,7 +64,19 @@ const ProjectCard: React.FC<{
 	return (
 		<Card className="project-card">
 			<Box className="card-image-container">
-				<CardMedia component="img" image={project.img} alt={project.title} />
+				<CardMedia
+					component="img"
+					image={project.img}
+					alt={project.title}
+					loading="lazy"
+					className="card-image"
+					sx={{
+						height: { xs: 220, sm: 260, md: 280 },
+						width: "100%",
+						objectFit: "cover",
+						objectPosition: "center",
+					}}
+				/>
 				<Box className="card-overlay">
 					<Chip
 						label={project.category}

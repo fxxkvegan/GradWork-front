@@ -201,8 +201,6 @@
 
 /* カード画像 - 注意: 高さを変更する場合はレスポンシブ設定も確認 */
 .card-image {
-	height: 280px !important;
-	/* モバイルでも表示しやすい高さ - デザイン変更時に調整 */
 	width: 100% !important;
 	object-fit: cover !important;
 	/* 重要: 画像比率を維持しつつ領域を埋める */
