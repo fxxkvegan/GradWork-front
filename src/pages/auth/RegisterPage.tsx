@@ -52,7 +52,7 @@ const RegisterPage: React.FC = () => {
 
 			const response = await registerUser(registerData);
 
-			login({ ...response.user, token: response.token }, false);
+			login({ ...response.user, token: response.token });
 			navigate("/home");
 		} catch (error) {
 			console.error("💥 RegisterPage: API呼び出しエラー", {
@@ -71,7 +71,7 @@ const RegisterPage: React.FC = () => {
 					token: "debug-token",
 				};
 
-				login(testUser, false);
+				login(testUser);
 				navigate("/home");
 			} else {
 				setError(

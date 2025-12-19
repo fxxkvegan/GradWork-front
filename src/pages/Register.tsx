@@ -52,7 +52,7 @@ const Register: React.FC = () => {
 			});
 
 			// token をまだ使わない場合は 2 引数で OK
-			login(data.user, true);
+			login(data.user);
 
 			navigate("/");
 		} catch (err: unknown) {

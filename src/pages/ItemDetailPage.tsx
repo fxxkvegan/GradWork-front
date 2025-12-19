@@ -28,8 +28,6 @@ import {
 	Stack,
 	TextField,
 	Typography,
-	useMediaQuery,
-	useTheme,
 } from "@mui/material";
 import {
 	type ChangeEvent,
@@ -47,6 +45,8 @@ import {
 	useParams,
 } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
+import DistributionFilesCard from "../components/itemDetail/DistributionFilesCard";
+import ProjectReadmeCard from "../components/itemDetail/ProjectReadmeCard";
 import UserAvatarButton from "../components/UserAvatarButton";
 import "./ItemDetailPage.css";
 import axios from "axios";
@@ -77,6 +77,7 @@ interface ProjectDetail {
 	description: string;
 	shortDescription?: string;
 	longDescription?: string;
+	file_status?: string;
 	image_url: string[];
 	images?: string[];
 	rating: number | { average: number; count: number };
@@ -431,8 +432,6 @@ export default function ItemDetailPage({
 	const isDemoMode =
 		demoMode || new URLSearchParams(search).get("demo") === "true";
 	const { isLoggedIn, user } = useAuth();
-	const theme = useTheme();
-	const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
 	const productNumericId = useMemo(() => {
 		if (!itemId) {
@@ -1358,19 +1357,21 @@ export default function ItemDetailPage({
 								</Box>
 							))}
 						</Box>
-						<Paper sx={{ p: { xs: 2, md: 3 }, mb: 3 }}>
-							<Typography variant="h6" gutterBottom>
-								プロジェクト詳細
-							</Typography>
-							<Typography
-								variant="body1"
-								sx={{ whiteSpace: "pre-line", lineHeight: 1.7 }}
-							>
-								{project.longDescription || project.description}
-							</Typography>
-						</Paper>
-						{/* レビューセクション */}
-						{!isMobile && <Box sx={{ mt: 3 }}>{renderReviewSection()}</Box>}
+						<Box sx={{ mb: 3 }}>
+							<ProjectReadmeCard
+								productId={productNumericId}
+								fallbackText={project.longDescription || project.description}
+								isDemoMode={isDemoMode}
+							/>
+						</Box>
+						<Box sx={{ mb: 3 }}>
+							<DistributionFilesCard
+								productId={productNumericId}
+								fileStatus={project.file_status}
+								isDemoMode={isDemoMode}
+							/>
+						</Box>
+						<Box sx={{ mb: 3 }}>{renderReviewSection()}</Box>
 					</Box>
 					{/* 右側：サイド */}
 					<Box sx={{ flex: 1, minWidth: { xs: "100%", md: 300 } }}>
@@ -1381,6 +1382,33 @@ export default function ItemDetailPage({
 							<Typography variant="body2" color="text.secondary" paragraph>
 								{project.shortDescription || project.description}
 							</Typography>
+							{project.file_status === "approved" ? (
+								<Box
+									sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+								>
+									<Typography variant="body2" color="text.secondary">
+										📦 ファイル状態：
+									</Typography>
+									<Chip
+										size="small"
+										color="success"
+										label="🟢 承認済み（DL可）"
+									/>
+								</Box>
+							) : project.file_status === "pending" ? (
+								<Box
+									sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+								>
+									<Typography variant="body2" color="text.secondary">
+										📦 ファイル状態：
+									</Typography>
+									<Chip
+										size="small"
+										color="warning"
+										label="🟡 確認中（DL制限）"
+									/>
+								</Box>
+							) : null}
 							{resolvedCategoryChips.length > 0 && (
 								<Box sx={{ mb: 2 }}>
 									<Typography
@@ -1556,7 +1584,6 @@ export default function ItemDetailPage({
 						</Paper>
 					</Box>
 				</Box>
-				{isMobile && <Box sx={{ mt: 3 }}>{renderReviewSection()}</Box>}
 			</Container>
 		</div>
 	);
