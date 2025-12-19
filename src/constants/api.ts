@@ -29,6 +29,8 @@ export const API_ENDPOINTS = {
 		REGISTER: "/auth/signup",
 		LOGOUT: "/auth/logout",
 		REFRESH: "/auth/refresh",
+		EMAIL_STATUS: "/auth/email/status",
+		EMAIL_VERIFICATION_NOTIFICATION: "/auth/email/verification-notification",
 	},
 	USERS: {
 		PROFILE: userMePath(),

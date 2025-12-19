@@ -23,9 +23,11 @@
 		"@splidejs/splide-extension-auto-scroll": "^0.5.3",
 		"axios": "^1.9.0",
 		"date-fns": "^4.1.0",
+		"github-markdown-css": "^5.8.1",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"react-markdown": "^10.1.0",
+		"remark-gfm": "^4.0.1",
 		"react-router": "^7.6.0",
 		"react-router-dom": "^7.6.1",
 		"swiper": "^11.2.8"

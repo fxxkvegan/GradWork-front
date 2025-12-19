@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from "react";
 import {
 	createContext,
@@ -28,7 +29,7 @@ export const DmNotificationProvider = ({
 }: {
 	children: ReactNode;
 }) => {
-	const { isLoggedIn } = useAuth();
+	const { isLoggedIn, isVerified } = useAuth();
 	const [unreadCount, setUnreadCount] = useState(0);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -39,6 +40,17 @@ export const DmNotificationProvider = ({
 			if (!isLoggedIn) {
 				setUnreadCount(0);
 				setError(null);
+				if (!silent) {
+					setLoading(false);
+				}
+				return;
+			}
+
+			if (!isVerified) {
+				setUnreadCount(0);
+				setError(
+					"メール認証が完了していません。DMを確認するには認証が必要です。",
+				);
 				if (!silent) {
 					setLoading(false);
 				}
@@ -64,7 +76,7 @@ export const DmNotificationProvider = ({
 				}
 			}
 		},
-		[isLoggedIn],
+		[isLoggedIn, isVerified],
 	);
 
 	const refresh = useCallback(async () => {
@@ -78,7 +90,7 @@ export const DmNotificationProvider = ({
 	}, [loadUnreadCount]);
 
 	useEffect(() => {
-		if (!isLoggedIn) {
+		if (!isLoggedIn || !isVerified) {
 			return;
 		}
 		const intervalId = window.setInterval(() => {
@@ -89,7 +101,7 @@ export const DmNotificationProvider = ({
 		return () => {
 			window.clearInterval(intervalId);
 		};
-	}, [isLoggedIn, loadUnreadCount]);
+	}, [isLoggedIn, isVerified, loadUnreadCount]);
 
 	const value = useMemo<DmNotificationContextValue>(
 		() => ({ unreadCount, loading, error, refresh }),

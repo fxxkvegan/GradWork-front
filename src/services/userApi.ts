@@ -1,5 +1,10 @@
 import axios from "axios";
-import { API_CONFIG, API_ENDPOINTS, ERROR_MESSAGES } from "../constants/api";
+import {
+	API_CONFIG,
+	API_ENDPOINTS,
+	ERROR_MESSAGES,
+	STORAGE_KEYS,
+} from "../constants/api";
 import type {
 	AuthResponse,
 	LoginRequest,
@@ -14,11 +19,11 @@ import type {
 	UserResponse,
 	UserSettings,
 	UserSettingsResponse,
+	VerificationStatusResponse,
 } from "../types/user";
+import { clearAllTokens, getAuthToken } from "../utils/auth";
 
-const AUTH_TOKEN_KEY = "AUTH_TOKEN";
 const AUTH_USER_KEY = "AUTH_USER";
-const REFRESH_TOKEN_KEY = "refreshToken";
 
 const api = axios.create({
 	baseURL: API_CONFIG.BASE_URL,
@@ -34,21 +39,40 @@ const mapAuthResponse = (data: AuthResponse): AuthResponse => ({
 });
 
 const clearStoredAuth = () => {
-	localStorage.removeItem(AUTH_TOKEN_KEY);
+	clearAllTokens();
 	localStorage.removeItem(AUTH_USER_KEY);
-	localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
+
+const pickFirstValidationMessage = (errors: unknown): string | null => {
+	if (!errors || typeof errors !== "object") return null;
+	const values = Object.values(errors as Record<string, unknown>);
+	for (const value of values) {
+		if (typeof value === "string" && value.trim()) return value;
+		if (Array.isArray(value) && value.length > 0) {
+			const first = value.find((v) => typeof v === "string" && v.trim());
+			if (typeof first === "string") return first;
+		}
+	}
+	return null;
 };
 
 const handleAxiosError = (error: unknown, fallbackMessage: string): never => {
 	if (axios.isAxiosError(error) && error.response) {
-		const payload = error.response.data as { message?: string } | undefined;
-		throw new Error(payload?.message || fallbackMessage);
+		const payload = error.response.data as
+			| {
+					message?: string;
+					errors?: Record<string, string[] | string>;
+			  }
+			| undefined;
+		const validationMessage = pickFirstValidationMessage(payload?.errors);
+		const message = validationMessage || payload?.message || fallbackMessage;
+		throw new Error(message);
 	}
 	throw new Error(ERROR_MESSAGES.NETWORK.CONNECTION_ERROR);
 };
 
 api.interceptors.request.use((config) => {
-	const token = localStorage.getItem(AUTH_TOKEN_KEY);
+	const token = getAuthToken();
 	if (token) {
 		const headers = config.headers ?? {};
 		if (typeof (headers as { set?: unknown }).set === "function") {
@@ -113,7 +137,7 @@ export const registerUser = async (
 };
 
 export const refreshToken = async (): Promise<TokenRefreshResponse> => {
-	const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+	const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
 	if (!refreshToken) {
 		throw new Error(ERROR_MESSAGES.AUTH.NO_REFRESH_TOKEN);
 	}
@@ -125,9 +149,12 @@ export const refreshToken = async (): Promise<TokenRefreshResponse> => {
 		);
 
 		if (data.success && data.data.token) {
-			localStorage.setItem(AUTH_TOKEN_KEY, data.data.token);
+			localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, data.data.token);
 			if (data.data.refreshToken) {
-				localStorage.setItem(REFRESH_TOKEN_KEY, data.data.refreshToken);
+				localStorage.setItem(
+					STORAGE_KEYS.REFRESH_TOKEN,
+					data.data.refreshToken,
+				);
 			}
 		}
 
@@ -153,6 +180,40 @@ export const getUserProfile = async (): Promise<UserProfile> => {
 		return data.data;
 	} catch (error) {
 		return handleAxiosError(error, ERROR_MESSAGES.USER.PROFILE_FETCH_FAILED);
+	}
+};
+
+export const getEmailVerificationStatus = async (): Promise<{
+	verified: boolean;
+	email_verified_at: string | null;
+}> => {
+	try {
+		const { data } = await api.get<VerificationStatusResponse>(
+			API_ENDPOINTS.AUTH.EMAIL_STATUS,
+		);
+		return {
+			verified: Boolean(data?.data?.verified),
+			email_verified_at: data?.data?.email_verified_at ?? null,
+		};
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.AUTH.LOGIN_FAILED);
+	}
+};
+
+export const resendEmailVerification = async (): Promise<{
+	verified: boolean;
+	email_verified_at: string | null;
+}> => {
+	try {
+		const { data } = await api.post<VerificationStatusResponse>(
+			API_ENDPOINTS.AUTH.EMAIL_VERIFICATION_NOTIFICATION,
+		);
+		return {
+			verified: Boolean(data?.data?.verified),
+			email_verified_at: data?.data?.email_verified_at ?? null,
+		};
+	} catch (error) {
+		return handleAxiosError(error, ERROR_MESSAGES.AUTH.LOGIN_FAILED);
 	}
 };
 

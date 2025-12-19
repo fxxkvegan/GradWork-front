@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from "react";
 import {
 	createContext,
@@ -8,7 +9,12 @@ import {
 	useState,
 } from "react";
 import { useNavigate } from "react-router";
+import {
+	getEmailVerificationStatus,
+	resendEmailVerification,
+} from "../services/userApi";
 import type { User } from "../types/user";
+import { clearAllTokens, getAuthToken, saveAuthToken } from "../utils/auth";
 
 type StoredUser = Pick<User, "id" | "name" | "email"> & {
 	avatarUrl?: string | null;
@@ -26,13 +32,16 @@ interface AuthContextType {
 	user: StoredUser | null;
 	token: string | null;
 	isLoggedIn: boolean;
+	isVerified: boolean;
+	emailVerifiedAt: string | null;
 	login: (userData: User) => void;
 	logout: () => void;
 	updateUser: (payload: Partial<StoredUser>) => void;
+	refreshEmailStatus: () => Promise<void>;
+	resendVerificationEmail: () => Promise<void>;
 }
 
 const AUTH_USER_KEY = "AUTH_USER";
-const AUTH_TOKEN_KEY = "AUTH_TOKEN";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -53,10 +62,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const [user, setUser] = useState<StoredUser | null>(null);
 	const [token, setToken] = useState<string | null>(null);
+	const [isVerified, setIsVerified] = useState<boolean>(false);
+	const [emailVerifiedAt, setEmailVerifiedAt] = useState<string | null>(null);
 
 	useEffect(() => {
-		setToken(localStorage.getItem(AUTH_TOKEN_KEY));
+		// cleanup legacy token key
+		localStorage.removeItem("AUTH_TOKEN");
+		sessionStorage.removeItem("AUTH_TOKEN");
+		setToken(getAuthToken());
 		setUser(readStoredUser());
+	}, []);
+
+	const refreshEmailStatus = useCallback(async () => {
+		if (!getAuthToken()) {
+			setIsVerified(false);
+			setEmailVerifiedAt(null);
+			return;
+		}
+		try {
+			const status = await getEmailVerificationStatus();
+			setIsVerified(status.verified);
+			setEmailVerifiedAt(status.email_verified_at);
+		} catch (error) {
+			console.warn("AuthContext: failed to fetch email status", error);
+		}
 	}, []);
 
 	const login = useCallback((userData: User) => {
@@ -81,20 +110,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 			theme: userData.theme ?? null,
 		};
 
-		localStorage.setItem(AUTH_TOKEN_KEY, tokenFromResponse);
+		saveAuthToken(tokenFromResponse, true);
 		localStorage.setItem(AUTH_USER_KEY, JSON.stringify(sanitizedUser));
 
 		setToken(tokenFromResponse);
 		setUser(sanitizedUser);
+		setIsVerified(Boolean(userData.email_verified_at));
+		setEmailVerifiedAt(userData.email_verified_at ?? null);
 	}, []);
 
 	const logout = useCallback(() => {
 		setToken(null);
 		setUser(null);
-		localStorage.removeItem(AUTH_TOKEN_KEY);
+		setIsVerified(false);
+		setEmailVerifiedAt(null);
+		clearAllTokens();
 		localStorage.removeItem(AUTH_USER_KEY);
 		router("/home");
-	}, []);
+	}, [router]);
 
 	const updateUser = useCallback((payload: Partial<StoredUser>) => {
 		setUser((previous) => {
@@ -112,12 +145,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 			user,
 			token,
 			isLoggedIn: Boolean(token),
+			isVerified,
+			emailVerifiedAt,
 			login,
 			logout,
 			updateUser,
+			refreshEmailStatus,
+			resendVerificationEmail: async () => {
+				try {
+					const status = await resendEmailVerification();
+					setIsVerified(status.verified);
+					setEmailVerifiedAt(status.email_verified_at);
+				} catch (error) {
+					console.warn("AuthContext: failed to resend verification", error);
+				}
+			},
 		}),
-		[user, token, login, logout, updateUser],
+		[
+			user,
+			token,
+			isVerified,
+			emailVerifiedAt,
+			login,
+			logout,
+			updateUser,
+			refreshEmailStatus,
+		],
 	);
+
+	useEffect(() => {
+		if (token) {
+			void refreshEmailStatus();
+		}
+	}, [token, refreshEmailStatus]);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

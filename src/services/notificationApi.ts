@@ -5,8 +5,7 @@ import type {
 	ReviewNotificationApiItem,
 	ReviewNotificationListResponse,
 } from "../types/notification";
-
-const AUTH_TOKEN_KEY = "AUTH_TOKEN";
+import { getAuthToken } from "../utils/auth";
 
 const client = axios.create({
 	baseURL: API_CONFIG.BASE_URL,
@@ -14,7 +13,7 @@ const client = axios.create({
 });
 
 client.interceptors.request.use((config) => {
-	const token = localStorage.getItem(AUTH_TOKEN_KEY);
+	const token = getAuthToken();
 	if (token) {
 		config.headers = config.headers ?? {};
 		(config.headers as Record<string, string>).Authorization =

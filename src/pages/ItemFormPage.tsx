@@ -5,6 +5,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
 	Alert,
+	AlertTitle,
 	Box,
 	Button,
 	Card,
@@ -26,16 +27,33 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
+import {
+	ChangeEvent,
+	DragEvent,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
+import ReactMarkdown from "react-markdown";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import remarkGfm from "remark-gfm";
+import {
+	getProductFilePreview,
+	postProductReadme,
+} from "../api/productFilesApi";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import { API_CONFIG } from "../constants/api";
 import { useAuth } from "../context/AuthContext";
 import productApi from "../services/productApi";
+import "github-markdown-css/github-markdown-light.css";
 import type { Category } from "../types/category";
 import type { Product } from "../types/product";
 
 const MAX_IMAGES = 5;
+const README_FILE_ACCEPT = ".md,text/markdown,text/plain";
+const DEFAULT_README = `# README\n\nこのプロジェクトの目的や特徴を簡潔にまとめてください。\n\n## 使い方\n\n- 機能を箇条書き\n- 使い方の説明\n\n## 準備\n\n- 環境や前提条件\n- インストール手順\n`;
 
 interface EditFormState {
 	name: string;
@@ -67,7 +85,10 @@ const ItemFormPage = () => {
 	const { itemId } = useParams<{ itemId?: string }>();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { isLoggedIn } = useAuth();
+	const { isLoggedIn, isVerified } = useAuth();
+	const [resendLoading, setResendLoading] = useState(false);
+	const [resendMessage, setResendMessage] = useState<string | null>(null);
+	const [resendError, setResendError] = useState<string | null>(null);
 
 	const [form, setForm] = useState<EditFormState>(toInitialState);
 	const [submitting, setSubmitting] = useState(false);
@@ -79,8 +100,13 @@ const ItemFormPage = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [activeImageIndex, setActiveImageIndex] = useState(0);
 	const [imageNotice, setImageNotice] = useState<string | null>(null);
+	const [readme, setReadme] = useState("");
+	const [isReadmeDragActive, setIsReadmeDragActive] = useState(false);
+	const [readmeLoading, setReadmeLoading] = useState(false);
 
 	const objectURLRef = useRef<string[]>([]);
+	const readmeInputRef = useRef<HTMLInputElement | null>(null);
+	const readmeTouchedRef = useRef(false);
 
 	useEffect(() => {
 		return () => {
@@ -189,6 +215,47 @@ const ItemFormPage = () => {
 		};
 
 		fetchProduct();
+		return () => {
+			active = false;
+		};
+	}, [itemId]);
+
+	useEffect(() => {
+		if (!itemId) {
+			setReadme("");
+			readmeTouchedRef.current = false;
+			setReadmeLoading(false);
+			return;
+		}
+
+		let active = true;
+		const fetchReadme = async () => {
+			setReadmeLoading(true);
+			try {
+				const preview = await getProductFilePreview(
+					Number(itemId),
+					"README.md",
+				);
+				if (!active) {
+					return;
+				}
+				setReadme(preview.content ?? "");
+				readmeTouchedRef.current = false;
+			} catch (previewError) {
+				console.error(previewError);
+				if (active) {
+					setReadme("");
+					readmeTouchedRef.current = false;
+				}
+			} finally {
+				if (active) {
+					setReadmeLoading(false);
+				}
+			}
+		};
+
+		fetchReadme();
+
 		return () => {
 			active = false;
 		};
@@ -308,6 +375,59 @@ const ItemFormPage = () => {
 		setImageNotice(itemId ? "削除は保存すると反映されます" : null);
 	};
 
+	const markReadmeTouched = () => {
+		if (!readmeTouchedRef.current) {
+			readmeTouchedRef.current = true;
+		}
+	};
+
+	const handleReadmeFile = (file: File) => {
+		const reader = new FileReader();
+		reader.onload = () => {
+			if (typeof reader.result === "string") {
+				markReadmeTouched();
+				setReadme(reader.result);
+			}
+		};
+		reader.onerror = () => {
+			console.error(reader.error);
+			setError("READMEファイルの読み込みに失敗しました");
+		};
+		reader.readAsText(file);
+	};
+
+	const handleReadmeFileInputChange = (
+		event: ChangeEvent<HTMLInputElement>,
+	) => {
+		const file = event.target.files?.[0];
+		if (file) {
+			handleReadmeFile(file);
+		}
+		event.target.value = "";
+	};
+
+	const handleReadmeDragOver = (event: DragEvent<HTMLDivElement>) => {
+		event.preventDefault();
+		event.stopPropagation();
+		setIsReadmeDragActive(true);
+	};
+
+	const handleReadmeDragLeave = (event: DragEvent<HTMLDivElement>) => {
+		event.preventDefault();
+		event.stopPropagation();
+		setIsReadmeDragActive(false);
+	};
+
+	const handleReadmeDrop = (event: DragEvent<HTMLDivElement>) => {
+		event.preventDefault();
+		event.stopPropagation();
+		setIsReadmeDragActive(false);
+		const file = event.dataTransfer?.files?.[0];
+		if (file) {
+			handleReadmeFile(file);
+		}
+	};
+
 	const combinedImages = useMemo(
 		() => [...form.existingImageUrls, ...form.newImagePreviews],
 		[form.existingImageUrls, form.newImagePreviews],
@@ -327,8 +447,18 @@ const ItemFormPage = () => {
 		return form.name.trim().length > 0 && form.categoryIds.length > 0;
 	}, [form.name, form.categoryIds.length]);
 
+	const readmePreviewContent = useMemo(() => {
+		return readme.trim().length > 0 ? readme : DEFAULT_README;
+	}, [readme]);
+
 	const handleSubmit = async () => {
 		if (!canSubmit || submitting) {
+			return;
+		}
+		if (!isVerified) {
+			setError(
+				"メール認証が完了していません。確認メールのリンクを開いて認証を完了してください。",
+			);
 			return;
 		}
 
@@ -336,38 +466,89 @@ const ItemFormPage = () => {
 		setError(null);
 
 		try {
-			if (itemId) {
-				await productApi.updateProduct(Number(itemId), {
-					name: form.name,
-					description: form.description,
-					categoryIds: form.categoryIds,
-					image_url: form.newImageFiles.length ? form.newImageFiles : undefined,
-					remove_image_urls: form.removeImageUrls.length
-						? form.removeImageUrls
-						: undefined,
-					google_play_url: form.googlePlayUrl || undefined,
-					app_store_url: form.appStoreUrl || undefined,
-					web_app_url: form.webAppUrl || undefined,
-				});
-			} else {
-				await productApi.createProduct({
-					name: form.name,
-					description: form.description,
-					categoryIds: form.categoryIds,
-					image_url: form.newImageFiles,
-					google_play_url: form.googlePlayUrl || undefined,
-					app_store_url: form.appStoreUrl || undefined,
-					web_app_url: form.webAppUrl || undefined,
-				});
+			const savedProduct = itemId
+				? await productApi.updateProduct(Number(itemId), {
+						name: form.name,
+						description: form.description,
+						categoryIds: form.categoryIds,
+						image_url: form.newImageFiles.length
+							? form.newImageFiles
+							: undefined,
+						remove_image_urls: form.removeImageUrls.length
+							? form.removeImageUrls
+							: undefined,
+						google_play_url: form.googlePlayUrl || undefined,
+						app_store_url: form.appStoreUrl || undefined,
+						web_app_url: form.webAppUrl || undefined,
+					})
+				: await productApi.createProduct({
+						name: form.name,
+						description: form.description,
+						categoryIds: form.categoryIds,
+						image_url: form.newImageFiles,
+						google_play_url: form.googlePlayUrl || undefined,
+						app_store_url: form.appStoreUrl || undefined,
+						web_app_url: form.webAppUrl || undefined,
+					});
+
+			if (readmeTouchedRef.current) {
+				try {
+					await postProductReadme(savedProduct.id, readme);
+				} catch (readmeError) {
+					console.error(readmeError);
+					setError("READMEの保存に失敗しました");
+					return;
+				}
 			}
+
 			navigate("/my-products", { replace: true });
 		} catch (submitError) {
 			console.error(submitError);
-			setError(
-				itemId ? "作品の更新に失敗しました" : "作品の投稿に失敗しました",
-			);
+			if (axios.isAxiosError(submitError) && submitError.response) {
+				if (submitError.response.status === 403) {
+					setError(
+						"メール認証が完了していません。確認メールのリンクを開いてから再度お試しください。",
+					);
+				} else if (
+					submitError.response.data &&
+					typeof submitError.response.data.message === "string"
+				) {
+					setError(submitError.response.data.message);
+				} else {
+					setError(
+						itemId ? "作品の更新に失敗しました" : "作品の投稿に失敗しました",
+					);
+				}
+			} else {
+				setError(
+					itemId ? "作品の更新に失敗しました" : "作品の投稿に失敗しました",
+				);
+			}
 		} finally {
 			setSubmitting(false);
+		}
+	};
+
+	const handleResendVerification = async () => {
+		if (resendLoading) return;
+		setResendLoading(true);
+		setResendMessage(null);
+		setResendError(null);
+		try {
+			await import("../services/userApi").then((m) =>
+				m.resendEmailVerification(),
+			);
+			setResendMessage(
+				"確認メールを再送しました。メール内のリンクを開いて認証を完了してください。",
+			);
+		} catch (resendErr) {
+			const message =
+				axios.isAxiosError(resendErr) && resendErr.response?.data?.message
+					? String(resendErr.response.data.message)
+					: "確認メールの再送に失敗しました。時間をおいて再度お試しください。";
+			setResendError(message);
+		} finally {
+			setResendLoading(false);
 		}
 	};
 
@@ -413,7 +594,34 @@ const ItemFormPage = () => {
 					<Typography variant="h4" fontWeight="bold">
 						{itemId ? "作品を編集" : "新しい作品を投稿"}
 					</Typography>
-					{error && <Alert severity="error">{error}</Alert>}
+					{error && (
+						<Alert severity="error">
+							<AlertTitle>メール認証が必要です</AlertTitle>
+							{error}
+							{!isVerified && (
+								<Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
+									<Button
+										variant="outlined"
+										size="small"
+										onClick={handleResendVerification}
+										disabled={resendLoading}
+									>
+										{resendLoading ? "再送中..." : "確認メールを再送"}
+									</Button>
+									{resendMessage && (
+										<Typography variant="body2" color="success.main">
+											{resendMessage}
+										</Typography>
+									)}
+									{resendError && (
+										<Typography variant="body2" color="error.main">
+											{resendError}
+										</Typography>
+									)}
+								</Box>
+							)}
+						</Alert>
+					)}
 					<Box
 						sx={{
 							display: "flex",
@@ -562,6 +770,126 @@ const ItemFormPage = () => {
 											画像を追加するとここに一覧表示されます。
 										</Typography>
 									)}
+								</Stack>
+							</Paper>
+
+							<Paper sx={{ p: 3 }}>
+								<Stack spacing={2}>
+									<Box
+										sx={{
+											display: "flex",
+											alignItems: "center",
+											justifyContent: "space-between",
+											gap: 2,
+										}}
+									>
+										<Typography variant="h6">README.md</Typography>
+										<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+											<Button
+												variant="text"
+												onClick={() => readmeInputRef.current?.click()}
+											>
+												ファイル選択
+											</Button>
+											<Typography variant="caption" color="text.secondary">
+												README.md をドラッグ＆ドロップで読み込めます
+											</Typography>
+										</Box>
+									</Box>
+									<input
+										type="file"
+										ref={readmeInputRef}
+										accept={README_FILE_ACCEPT}
+										onChange={handleReadmeFileInputChange}
+										hidden
+									/>
+									<Box
+										sx={{
+											display: "grid",
+											gap: 2,
+											gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+										}}
+									>
+										<Box
+											component="div"
+											onDrop={handleReadmeDrop}
+											onDragOver={handleReadmeDragOver}
+											onDragLeave={handleReadmeDragLeave}
+											sx={{
+												borderRadius: 2,
+												border: "1px dashed",
+												borderColor: isReadmeDragActive
+													? "primary.main"
+													: "divider",
+												px: 1.25,
+												py: 0.75,
+												minHeight: 280,
+												transition: "border-color 0.2s ease",
+											}}
+										>
+											<Typography variant="caption" color="text.secondary">
+												直接編集・貼り付けで Markdown を更新できます
+											</Typography>
+											<TextField
+												label="README (Markdown)"
+												value={readme}
+												onChange={(event) => {
+													markReadmeTouched();
+													setReadme(event.target.value);
+												}}
+												multiline
+												minRows={10}
+												fullWidth
+												placeholder={DEFAULT_README}
+												name="readme"
+												inputProps={{ spellCheck: "false" }}
+											/>
+										</Box>
+										<Box
+											component="div"
+											sx={{
+												borderRadius: 2,
+												border: "1px solid",
+												borderColor: "divider",
+												p: 2,
+												minHeight: 280,
+											}}
+										>
+											<Typography variant="subtitle2" color="text.secondary">
+												プレビュー
+											</Typography>
+											<Divider sx={{ my: 1 }} />
+											<Box
+												className="markdown-body"
+												sx={{
+													minHeight: 220,
+													overflow: "auto",
+													backgroundColor: "common.white",
+													borderRadius: 1,
+													p: 2,
+												}}
+											>
+												{readmeLoading ? (
+													<Box
+														sx={{
+															display: "flex",
+															alignItems: "center",
+															gap: 1,
+														}}
+													>
+														<CircularProgress size={20} />
+														<Typography variant="body2" color="text.secondary">
+															README を読み込み中です
+														</Typography>
+													</Box>
+												) : (
+													<ReactMarkdown remarkPlugins={[remarkGfm]}>
+														{readmePreviewContent}
+													</ReactMarkdown>
+												)}
+											</Box>
+										</Box>
+									</Box>
 								</Stack>
 							</Paper>
 

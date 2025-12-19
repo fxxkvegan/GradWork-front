@@ -131,3 +131,11 @@ export interface TokenRefreshResponse {
 	};
 	message?: string;
 }
+
+export interface VerificationStatusResponse {
+	message?: string;
+	data?: {
+		verified?: boolean;
+		email_verified_at?: string | null;
+	};
+}

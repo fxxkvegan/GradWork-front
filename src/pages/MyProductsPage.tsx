@@ -21,7 +21,7 @@ import type { Product } from "../types/product";
 
 const MyProductsPage = () => {
 	const navigate = useNavigate();
-	const { isLoggedIn } = useAuth();
+	const { isLoggedIn, isVerified } = useAuth();
 	const [products, setProducts] = useState<Product[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -36,7 +36,7 @@ const MyProductsPage = () => {
 	}, [isLoggedIn, navigate]);
 
 	useEffect(() => {
-		if (!isLoggedIn) return;
+		if (!isLoggedIn || !isVerified) return;
 		let active = true;
 
 		const fetchProducts = async () => {
@@ -58,7 +58,7 @@ const MyProductsPage = () => {
 		return () => {
 			active = false;
 		};
-	}, [isLoggedIn]);
+	}, [isLoggedIn, isVerified]);
 
 	const hasProducts = useMemo(() => products.length > 0, [products.length]);
 	const hasSelection = selectedIds.length > 0;
@@ -118,6 +118,19 @@ const MyProductsPage = () => {
 
 	if (!isLoggedIn) {
 		return null;
+	}
+
+	if (!isVerified) {
+		return (
+			<div>
+				<AppHeaderWithAuth activePath="/my-products" />
+				<Container maxWidth="lg" sx={{ py: 4, mt: 6 }}>
+					<Alert severity="warning">
+						メール認証が完了していません。認証後に投稿一覧を表示できます。
+					</Alert>
+				</Container>
+			</div>
+		);
 	}
 
 	return (
