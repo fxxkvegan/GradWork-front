@@ -1,5 +1,5 @@
 import { Menu, MenuItem } from "@mui/material";
-import type { FC, FormEvent, MouseEvent } from "react";
+import type { FC, FormEvent, KeyboardEvent, MouseEvent } from "react";
 import {
 	useCallback,
 	useEffect,
@@ -165,34 +165,59 @@ const MessagePane: FC<MessagePaneProps> = ({
 		setEditError(null);
 	}, []);
 
-	const cancelEdit = () => {
+	const cancelEdit = useCallback(() => {
 		setEditingMessageId(null);
 		setEditValue("");
 		setEditError(null);
 		setEditDimensions(null);
-	};
+	}, []);
 
-	const handleEditSubmit = async (
+	const submitEdit = useCallback(
+		async (messageId: number) => {
+			if (isSavingEdit) {
+				return;
+			}
+			const trimmed = editValue.trim();
+			if (!trimmed) {
+				setEditError("メッセージを入力してください");
+				return;
+			}
+			setIsSavingEdit(true);
+			setEditError(null);
+			try {
+				await onEditMessage(messageId, trimmed);
+				cancelEdit();
+			} catch (error) {
+				setEditError(
+					error instanceof Error ? error.message : "編集に失敗しました",
+				);
+			} finally {
+				setIsSavingEdit(false);
+			}
+		},
+		[cancelEdit, editValue, isSavingEdit, onEditMessage],
+	);
+
+	const handleEditSubmit = (
 		event: FormEvent<HTMLFormElement>,
 		messageId: number,
 	) => {
 		event.preventDefault();
-		const trimmed = editValue.trim();
-		if (!trimmed) {
-			setEditError("メッセージを入力してください");
+		void submitEdit(messageId);
+	};
+
+	const handleEditKeyDown = (
+		event: KeyboardEvent<HTMLTextAreaElement>,
+		messageId: number,
+	) => {
+		if (event.key === "Escape") {
+			event.preventDefault();
+			cancelEdit();
 			return;
 		}
-		setIsSavingEdit(true);
-		setEditError(null);
-		try {
-			await onEditMessage(messageId, trimmed);
-			cancelEdit();
-		} catch (error) {
-			setEditError(
-				error instanceof Error ? error.message : "編集に失敗しました",
-			);
-		} finally {
-			setIsSavingEdit(false);
+		if (event.key === "Enter" && !event.shiftKey) {
+			event.preventDefault();
+			void submitEdit(messageId);
 		}
 	};
 
@@ -278,6 +303,30 @@ const MessagePane: FC<MessagePaneProps> = ({
 						const showMeta =
 							!isEditing &&
 							(Boolean(timestamp) || (!isDeleted && Boolean(message.editedAt)));
+						if (isDeleted) {
+							return (
+								<div
+									key={`${message.id}-${message.isPending ? "pending" : "sent"}`}
+									className="dm-message-item dm-message-item-deleted"
+								>
+									{showDateSeparator && (
+										<div className="dm-date-separator">
+											{formatDateLabel(message.createdAt)}
+										</div>
+									)}
+									<div className="dm-system-message">
+										<span className="dm-system-message-text">
+											{buildDeletedLabel(message)}
+										</span>
+										{timestamp && (
+											<span className="dm-system-message-time">
+												{timestamp}
+											</span>
+										)}
+									</div>
+								</div>
+							);
+						}
 						return (
 							<div
 								key={`${message.id}-${message.isPending ? "pending" : "sent"}`}
@@ -307,111 +356,115 @@ const MessagePane: FC<MessagePaneProps> = ({
 									)}
 									<div className={`dm-message-content ${isMine ? "own" : ""}`}>
 										<div
-											className={`dm-message-bubble ${isMine ? "own" : ""} ${message.isPending ? "pending" : ""} ${isDeleted ? "deleted" : ""}`}
-											ref={(element) => {
-												if (!element) {
-													messageBubbleRefs.current.delete(message.id);
-													return;
-												}
-												messageBubbleRefs.current.set(message.id, element);
-											}}
-											onContextMenu={(event) =>
-												handleContextMenu(event, message, isMine)
-											}
+											className={`dm-message-bubble-row ${isMine ? "own" : ""}`}
 										>
-											{isEditing ? (
-												<form
-													className="dm-message-edit-form"
-													style={
-														editDimensions
-															? { width: `${editDimensions.width}px` }
-															: undefined
+											<div
+												className={`dm-message-bubble ${isMine ? "own" : ""} ${message.isPending ? "pending" : ""} ${isDeleted ? "deleted" : ""}`}
+												ref={(element) => {
+													if (!element) {
+														messageBubbleRefs.current.delete(message.id);
+														return;
 													}
-													onSubmit={(event) =>
-														handleEditSubmit(event, message.id)
-													}
-												>
-													<textarea
-														className="dm-message-edit-textarea"
-														value={editValue}
-														ref={editTextareaRef}
-														onChange={(event) =>
-															setEditValue(event.target.value)
+													messageBubbleRefs.current.set(message.id, element);
+												}}
+												onContextMenu={(event) =>
+													handleContextMenu(event, message, isMine)
+												}
+											>
+												{isEditing ? (
+													<form
+														className={`dm-message-edit-form ${isMine ? "own" : "other"}`}
+														style={
+															editDimensions
+																? { width: `${editDimensions.width}px` }
+																: undefined
 														}
-														placeholder="メッセージを編集"
-														autoFocus
-														style={{
-															minHeight: Math.max(
-																editDimensions?.height || 0,
-																EDIT_TEXTAREA_MIN_HEIGHT,
-															),
-															width: "100%",
-															boxSizing: "border-box",
-														}}
-													/>
-													<div className="dm-message-edit-actions">
-														<button type="button" onClick={cancelEdit}>
-															キャンセル
-														</button>
-														<button type="submit" disabled={isSavingEdit}>
-															{isSavingEdit ? "保存中..." : "保存"}
-														</button>
-													</div>
-													{editError && (
-														<p className="dm-message-edit-error">{editError}</p>
-													)}
-												</form>
-											) : (
-												<>
-													{isDeleted ? (
-														<span className="dm-message-placeholder-text">
-															{buildDeletedLabel(message)}
+														onSubmit={(event) =>
+															handleEditSubmit(event, message.id)
+														}
+													>
+														<textarea
+															className="dm-message-edit-textarea"
+															value={editValue}
+															ref={editTextareaRef}
+															onChange={(event) =>
+																setEditValue(event.target.value)
+															}
+															onKeyDown={(event) =>
+																handleEditKeyDown(event, message.id)
+															}
+															placeholder="メッセージを編集"
+															autoFocus
+															style={{
+																minHeight: Math.max(
+																	editDimensions?.height || 0,
+																	EDIT_TEXTAREA_MIN_HEIGHT,
+																),
+																width: "100%",
+																boxSizing: "border-box",
+															}}
+														/>
+														<div className="dm-message-edit-actions">
+															<button type="button" onClick={cancelEdit}>
+																キャンセル
+															</button>
+															<button type="submit" disabled={isSavingEdit}>
+																{isSavingEdit ? "保存中..." : "保存"}
+															</button>
+														</div>
+														<p className="dm-message-edit-hint">
+															Escキーでキャンセル・Enterキーで保存
+														</p>
+														{editError && (
+															<p className="dm-message-edit-error">
+																{editError}
+															</p>
+														)}
+													</form>
+												) : (
+													<>
+														{message.body && <span>{message.body}</span>}
+														{message.attachments?.length ? (
+															<div className="dm-message-attachments">
+																{message.attachments.map((attachment) => (
+																	<div
+																		key={attachment.id}
+																		className="dm-message-attachment"
+																	>
+																		<img
+																			src={attachment.url}
+																			alt="attachment"
+																		/>
+																	</div>
+																))}
+															</div>
+														) : null}
+														{message.isPending && (
+															<span className="dm-message-status">
+																送信待ち...
+															</span>
+														)}
+													</>
+												)}
+											</div>
+											{showMeta && (
+												<div
+													className={`dm-message-meta-side ${isMine ? "own" : "other"}`}
+												>
+													{timestamp && (
+														<span className="dm-message-timestamp">
+															{timestamp}
 														</span>
-													) : (
-														<>
-															{message.body && <span>{message.body}</span>}
-															{message.attachments?.length ? (
-																<div className="dm-message-attachments">
-																	{message.attachments.map((attachment) => (
-																		<div
-																			key={attachment.id}
-																			className="dm-message-attachment"
-																		>
-																			<img
-																				src={attachment.url}
-																				alt="attachment"
-																			/>
-																		</div>
-																	))}
-																</div>
-															) : null}
-														</>
 													)}
-													{message.isPending && (
-														<span className="dm-message-status">
-															送信待ち...
+													{!isDeleted && message.editedAt && (
+														<span className="dm-message-edited-label">
+															編集済み
 														</span>
 													)}
-												</>
+												</div>
 											)}
 										</div>
 									</div>
-									{showMeta && (
-										<div
-											className={`dm-message-meta-row ${isMine ? "own" : ""}`}
-										>
-											{timestamp && (
-												<span className="dm-message-timestamp">
-													{timestamp}
-												</span>
-											)}
-											{!isDeleted && message.editedAt && (
-												<span className="dm-message-edited-label">
-													編集済み
-												</span>
-											)}
-										</div>
-									)}
 								</div>
 							</div>
 						);

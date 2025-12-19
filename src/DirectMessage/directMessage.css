@@ -313,6 +313,125 @@
 	margin-left: auto;
 }
 
+.dm-message-item-deleted {
+	align-items: center;
+}
+
+.dm-system-message {
+	margin: 6px auto 12px;
+	padding: 6px 14px;
+	border-radius: 999px;
+	background-color: var(--dm-placeholder-bg);
+	color: var(--dm-muted);
+	font-size: 12px;
+	line-height: 1.4;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.dm-system-message-text {
+	font-weight: 500;
+}
+
+.dm-system-message-time {
+	font-size: 11px;
+	color: var(--dm-muted-light);
+}
+
+.dm-message-bubble-row {
+	display: flex;
+	align-items: flex-end;
+	gap: 6px;
+	width: 100%;
+	justify-content: flex-start;
+}
+
+.dm-message-bubble-row.own {
+	flex-direction: row-reverse;
+}
+
+.dm-message-edit-form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 12px;
+	background-color: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 12px;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+	color: var(--dm-bg);
+}
+
+.dm-message-edit-form.other {
+	background-color: #2b2f38;
+	border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dm-message-edit-textarea {
+	background: transparent;
+	border: none;
+	color: inherit;
+	font: inherit;
+	resize: none;
+	line-height: 1.5;
+	min-height: 90px;
+	outline: none;
+}
+
+.dm-message-edit-textarea:focus {
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+	border-radius: 8px;
+}
+
+.dm-message-edit-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.dm-message-edit-actions button {
+	border-radius: 999px;
+	padding: 6px 16px;
+	background-color: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	color: var(--dm-bg);
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition:
+		background-color 0.2s ease,
+		border-color 0.2s ease;
+}
+
+.dm-message-edit-actions button:hover {
+	background-color: rgba(255, 255, 255, 0.16);
+	border-color: rgba(255, 255, 255, 0.35);
+}
+
+.dm-message-edit-actions button:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.dm-message-edit-actions button[type="submit"] {
+	background-color: #0ba5ec;
+	color: #021625;
+	border-color: #0ba5ec;
+}
+
+.dm-message-edit-hint {
+	margin: 0;
+	font-size: 11px;
+	color: rgba(255, 255, 255, 0.65);
+}
+
+.dm-message-edit-error {
+	margin: 0;
+	font-size: 12px;
+	color: #ff8585;
+}
+
 .dm-message-sender {
 	font-size: 12px;
 	font-weight: 500;
@@ -346,18 +465,24 @@
 	align-self: flex-end;
 }
 
-.dm-message-meta-row {
-	display: flex;
-	gap: 6px;
+.dm-message-meta-side {
 	font-size: 11px;
+	line-height: 1;
 	color: var(--dm-muted-light);
-	margin: 4px 0 4px;
-	align-self: flex-start;
+	min-width: 44px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 }
 
-.dm-message-meta-row.own {
-	justify-content: flex-end;
-	align-self: flex-end;
+.dm-message-meta-side.other {
+	align-items: flex-start;
+	text-align: left;
+}
+
+.dm-message-meta-side.own {
+	align-items: flex-end;
+	text-align: right;
 }
 
 .dm-message-timestamp,
