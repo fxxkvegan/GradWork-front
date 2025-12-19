@@ -61,25 +61,11 @@ const RegisterPage: React.FC = () => {
 				timestamp: new Date().toISOString(),
 			});
 
-			if (email && password && username) {
-				const testUser = {
-					id: Date.now(),
-					name: username.trim(),
-					email: email,
-					created_at: new Date().toISOString(),
-					updated_at: new Date().toISOString(),
-					token: "debug-token",
-				};
-
-				login(testUser, false);
-				navigate("/home");
-			} else {
-				setError(
-					error instanceof Error
-						? error.message
-						: "ネットワークエラーが発生しました",
-				);
-			}
+			setError(
+				error instanceof Error
+					? error.message
+					: "ネットワークエラーが発生しました",
+			);
 		} finally {
 			setLoading(false);
 		}
