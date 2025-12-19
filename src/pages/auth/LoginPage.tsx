@@ -39,7 +39,7 @@ const LoginPage: React.FC = () => {
 			// 本番用API呼び出し
 			const response = await loginUser(loginData);
 
-			login({ ...response.user, token: response.token }, remember);
+			login({ ...response.user, token: response.token });
 			navigate("/home");
 		} catch (error) {
 			console.error("💥 LoginPage: API呼び出しエラー", {

@@ -84,6 +84,17 @@ interface AppHeaderProps {
 	avatarUrl?: string;
 }
 
+type SearchProduct = {
+	id: number;
+	name?: string | null;
+	description?: string | null;
+	image_url?: string[] | string | null;
+	image_urls?: string[] | null;
+	categoryIds: Array<number | string>;
+	access_count?: number | null;
+	rating?: number | null;
+};
+
 const AppHeader: React.FC<AppHeaderProps> = ({
 	activePath = "",
 	isLoggedIn = false,
@@ -101,8 +112,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 	const scrollDirection = useScrollDirection();
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [suggestions, setSuggestions] = useState<any[]>([]);
-	const [allProducts, setAllProducts] = useState<any[]>([]);
+	const [suggestions, setSuggestions] = useState<SearchProduct[]>([]);
+	const [allProducts, setAllProducts] = useState<SearchProduct[]>([]);
 
 	// スクロール検出
 	useEffect(() => {
@@ -128,9 +139,45 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 			try {
 				const res = await fetch("https://app.nice-dig.com/api/products");
 				const data = await res.json();
+				const rawItems: unknown = data?.items;
+				const items: SearchProduct[] = Array.isArray(rawItems)
+					? rawItems
+							.filter(
+								(item): item is Record<string, unknown> =>
+									typeof item === "object" && item !== null,
+							)
+							.map((item) => {
+								const id =
+									typeof item.id === "number" ? item.id : Number(item.id);
+								return {
+									id: Number.isFinite(id) ? id : 0,
+									name: typeof item.name === "string" ? item.name : null,
+									description:
+										typeof item.description === "string"
+											? item.description
+											: null,
+									image_url:
+										Array.isArray(item.image_url) ||
+										typeof item.image_url === "string"
+											? (item.image_url as string[] | string)
+											: null,
+									image_urls: Array.isArray(item.image_urls)
+										? (item.image_urls as string[])
+										: null,
+									categoryIds: Array.isArray(item.categoryIds)
+										? (item.categoryIds as Array<number | string>)
+										: [],
+									access_count:
+										typeof item.access_count === "number"
+											? item.access_count
+											: null,
+									rating: typeof item.rating === "number" ? item.rating : null,
+								};
+							})
+							.filter((item) => item.id > 0)
+					: [];
 
-				// items の中に本体が入っている
-				setAllProducts(data.items || []);
+				setAllProducts(items);
 			} catch (err) {
 				console.error("Failed to fetch products", err);
 				setAllProducts([]); // エラーでも配列にしておく
@@ -150,9 +197,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 		const q = searchTerm.toLowerCase();
 
 		// 部分一致でフィルタ
-		const filtered = allProducts.filter((item: any) => {
-			const name = (item.name || "").toLowerCase();
-			const desc = (item.description || "").toLowerCase();
+		const filtered = allProducts.filter((item) => {
+			const name = (item.name ?? "").toLowerCase();
+			const desc = (item.description ?? "").toLowerCase();
 
 			return name.includes(q) || desc.includes(q);
 		});
@@ -310,13 +357,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 												src={img || "/nice_dig.png"}
 												alt=""
 												className={styles.suggestionThumb}
-												onError={(e) => {
-													(e.target as HTMLImageElement).src = "/nice_dig.png";
+												onError={(
+													event: React.SyntheticEvent<HTMLImageElement>,
+												) => {
+													event.currentTarget.src = "/nice_dig.png";
 												}}
 											/>
 
 											{/* カテゴリ */}
-											{item.categoryIds?.length > 0 && (
+											{item.categoryIds.length > 0 && (
 												<div className={styles.suggestionCategory}>
 													カテゴリ {item.categoryIds[0]}
 												</div>
@@ -324,7 +373,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
 											{/* 評価・DL */}
 											<div className={styles.suggestionMeta}>
-												{item.access_count} アクセス　★ {item.rating}
+												{item.access_count} アクセス ★ {item.rating}
 											</div>
 
 											{/* タイトル */}
