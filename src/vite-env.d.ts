@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-	// 他の環境変数があれば追加
+	readonly [key: string]: string;
 }
 
 interface ImportMeta {

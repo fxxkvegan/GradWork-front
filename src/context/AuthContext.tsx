@@ -26,7 +26,7 @@ interface AuthContextType {
 	user: StoredUser | null;
 	token: string | null;
 	isLoggedIn: boolean;
-	login: (userData: User, remember?: boolean) => void;
+	login: (userData: User) => void;
 	logout: () => void;
 	updateUser: (payload: Partial<StoredUser>) => void;
 }
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		setUser(readStoredUser());
 	}, []);
 
-	const login = useCallback((userData: User, _remember: boolean = false) => {
+	const login = useCallback((userData: User) => {
 		const tokenFromResponse = userData.token;
 		if (!tokenFromResponse || typeof tokenFromResponse !== "string") {
 			console.warn("AuthContext.login called without token");
