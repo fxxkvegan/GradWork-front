@@ -19,7 +19,7 @@ import NoticePage from "./pages/NoticePage";
 import ProjectList from "./pages/ProjectList";
 import SettingsPage from "./pages/SettingsPage";
 
-const NotFoundPage = () => (
+export const NotFoundPage = () => (
 	<div style={{ padding: "2rem", textAlign: "center" }}>
 		<h1>404 - ページが見つかりません</h1>
 		<p>お探しのページは存在しません。</p>
@@ -27,7 +27,7 @@ const NotFoundPage = () => (
 	</div>
 );
 
-const RootLayout = () => (
+export const RootLayout = () => (
 	<AuthProvider>
 		<NotificationProvider>
 			<DmNotificationProvider>

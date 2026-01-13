@@ -10,6 +10,7 @@ import type {
 	ReviewListResponse,
 	ReviewMutationResponse,
 } from "../types/review";
+import { getAuthToken } from "../utils/auth";
 import { API_CONFIG } from "./config";
 
 export interface RankingCategory {
@@ -76,8 +77,6 @@ const client = axios.create({
 	baseURL: API_CONFIG.BASE_URL,
 	timeout: API_CONFIG.TIMEOUT,
 });
-
-const AUTH_TOKEN_KEY = "AUTH_TOKEN";
 const normalizeReviewListResponse = (
 	source: ReviewListResponse | undefined,
 ): ReviewListResponse => ({
@@ -106,7 +105,7 @@ const authClient = axios.create({
 });
 
 authClient.interceptors.request.use((config) => {
-	const token = localStorage.getItem(AUTH_TOKEN_KEY);
+	const token = getAuthToken();
 	if (token) {
 		config.headers = config.headers ?? {};
 		(config.headers as Record<string, string>).Authorization =

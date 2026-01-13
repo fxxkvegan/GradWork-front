@@ -1,5 +1,10 @@
 export const API_CONFIG = {
-	BASE_URL: "https://app.nice-dig.com/api",
+	// 開発環境ではlocalhost、本番ではapp.nice-dig.comを使用（環境変数で上書き可能）
+	BASE_URL:
+		import.meta.env.VITE_API_BASE_URL ||
+		(import.meta.env.DEV
+			? "http://localhost:8000/api"
+			: "https://app.nice-dig.com/api"),
 	TIMEOUT: 10000,
 } as const;
 
@@ -29,6 +34,8 @@ export const API_ENDPOINTS = {
 		REGISTER: "/auth/signup",
 		LOGOUT: "/auth/logout",
 		REFRESH: "/auth/refresh",
+		EMAIL_STATUS: "/auth/email/status",
+		EMAIL_VERIFICATION_NOTIFICATION: "/auth/email/verification-notification",
 	},
 	USERS: {
 		PROFILE: userMePath(),

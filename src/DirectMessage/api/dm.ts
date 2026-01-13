@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_CONFIG, API_ENDPOINTS, ERROR_MESSAGES } from "../../constants/api";
+import { getAuthToken } from "../../utils/auth";
 import type {
 	CreateConversationPayload,
 	DMConversation,
@@ -7,15 +8,13 @@ import type {
 	DMMessagePage,
 } from "../types";
 
-const AUTH_TOKEN_KEY = "AUTH_TOKEN";
-
 const dmClient = axios.create({
 	baseURL: API_CONFIG.BASE_URL,
 	timeout: API_CONFIG.TIMEOUT,
 });
 
 dmClient.interceptors.request.use((config) => {
-	const token = localStorage.getItem(AUTH_TOKEN_KEY);
+	const token = getAuthToken();
 	if (token) {
 		config.headers = config.headers ?? {};
 		(config.headers as Record<string, string>).Authorization =

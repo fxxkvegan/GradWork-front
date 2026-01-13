@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getAuthToken } from "../utils/auth";
 import { API_CONFIG } from "./config";
 
 export type ProductFileItem = {
@@ -25,15 +26,45 @@ const client = axios.create({
 	timeout: API_CONFIG.TIMEOUT,
 });
 
+const authClient = axios.create({
+	baseURL: API_CONFIG.BASE_URL,
+	timeout: API_CONFIG.TIMEOUT,
+});
+
+authClient.interceptors.request.use((config) => {
+	const token = getAuthToken();
+	if (token) {
+		config.headers = config.headers ?? {};
+		(config.headers as Record<string, string>).Authorization =
+			`Bearer ${token}`;
+	}
+	return config;
+});
+
 export const getProductFilesTree = async (
 	productId: number,
 ): Promise<FileTreeResponse> => {
-	const { data } = await client.get<FileTreeResponse>(
-		`/products/${productId}/files/tree`,
-	);
+	const { data } = await client.get<
+		FileTreeResponse & {
+			items?: ProductFileItem[];
+			count?: number;
+		}
+	>(`/products/${productId}/files/tree`);
+
+	const files = Array.isArray(data?.files)
+		? data.files
+		: Array.isArray(data?.items)
+			? data.items
+			: [];
+
 	return {
-		files: Array.isArray(data?.files) ? data.files : [],
-		total_files: data?.total_files,
+		files,
+		total_files:
+			typeof data?.total_files === "number"
+				? data.total_files
+				: typeof data?.count === "number"
+					? data.count
+					: undefined,
 		total_size: data?.total_size,
 	};
 };
@@ -55,6 +86,17 @@ export const postProductFileDownloadIntent = async (
 	const { data } = await client.post<{ ok?: boolean }>(
 		`/products/${productId}/files/download-intent`,
 		{ path },
+	);
+	return data ?? {};
+};
+
+export const postProductReadme = async (
+	productId: number,
+	content: string,
+): Promise<{ ok?: boolean; path?: string }> => {
+	const { data } = await authClient.post<{ ok?: boolean; path?: string }>(
+		`/products/${productId}/files/readme`,
+		{ content },
 	);
 	return data ?? {};
 };

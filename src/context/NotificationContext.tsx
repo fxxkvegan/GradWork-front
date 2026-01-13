@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from "react";
 import {
 	createContext,
@@ -27,7 +28,7 @@ const NotificationContext = createContext<NotificationContextValue | undefined>(
 );
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
-	const { isLoggedIn } = useAuth();
+	const { isLoggedIn, isVerified } = useAuth();
 	const [notifications, setNotifications] = useState<ReviewNotification[]>([]);
 	const [unreadCount, setUnreadCount] = useState(0);
 	const [loading, setLoading] = useState(false);
@@ -38,6 +39,12 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 			setNotifications([]);
 			setUnreadCount(0);
 			setError(null);
+			return;
+		}
+		if (!isVerified) {
+			setNotifications([]);
+			setUnreadCount(0);
+			setError("メール認証が完了していません。確認メールを開いてください。");
 			return;
 		}
 
@@ -58,18 +65,18 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 		} finally {
 			setLoading(false);
 		}
-	}, [isLoggedIn]);
+	}, [isLoggedIn, isVerified]);
 
 	useEffect(() => {
-		if (!isLoggedIn) {
+		if (!isLoggedIn || !isVerified) {
 			setNotifications([]);
 			setUnreadCount(0);
-			setError(null);
+			setError(isLoggedIn ? "メール認証が完了していません。" : null);
 			return;
 		}
 
 		void refresh();
-	}, [isLoggedIn, refresh]);
+	}, [isLoggedIn, isVerified, refresh]);
 
 	const markAsRead = useCallback(
 		async (ids: string | string[]) => {
