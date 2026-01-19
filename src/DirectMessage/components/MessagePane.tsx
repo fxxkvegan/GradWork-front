@@ -306,7 +306,6 @@ const MessagePane: FC<MessagePaneProps> = ({
 						// For now, let's show header for every message for simplicity, or just group by user if close?
 						// Discord shows avatar for first message in a group.
 						// Let's implement simple grouping: if same sender as previous and within short time, hide avatar/header
-						const isSameSender = previous?.sender?.id === message.sender?.id;
 						// const isCloseTime = ... (omitted for simplicity, just check sender)
 
 						// NOTE: To make it truly Discord-like we should group messages.
