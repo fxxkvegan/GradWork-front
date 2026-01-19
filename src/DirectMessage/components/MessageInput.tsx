@@ -92,50 +92,6 @@ const MessageInput: FC<MessageInputProps> = ({
 
 	return (
 		<form className="dm-input-area" onSubmit={handleSubmit}>
-			<label
-				className="dm-input-button"
-				aria-label="ファイルを追加"
-				aria-disabled={disabled || isSending}
-			>
-				<Add className="dm-icon" />
-				<input
-					type="file"
-					accept="image/*"
-					multiple
-					onChange={(event) => {
-						handleFileChange(event);
-						event.target.value = "";
-					}}
-					disabled={disabled || isSending}
-					hidden
-				/>
-			</label>
-			<div className="dm-input-wrapper">
-				<textarea
-					className="dm-textarea"
-					placeholder="メッセージを入力"
-					value={text}
-					onChange={(event) => setText(event.target.value)}
-					onKeyDown={handleTextareaKeyDown}
-					disabled={disabled || isSending}
-					rows={1}
-				/>
-			</div>
-			<button
-				type="button"
-				className="dm-input-button"
-				disabled={disabled || isSending}
-			>
-				<InsertEmoticon className="dm-icon" />
-			</button>
-			<button
-				type="submit"
-				className="dm-input-button send"
-				disabled={disabled || !canSend || isSending}
-			>
-				{isSending ? "..." : <Send className="dm-icon" />}
-			</button>
-
 			{previews.length > 0 && (
 				<div className="dm-input-attachments">
 					{previews.map((preview, index) => (
@@ -148,7 +104,64 @@ const MessageInput: FC<MessageInputProps> = ({
 					))}
 				</div>
 			)}
+			<div className="dm-input-container-row">
+				<label
+					className="dm-input-button"
+					aria-label="ファイルを追加"
+					aria-disabled={disabled || isSending}
+					style={{ cursor: disabled || isSending ? "not-allowed" : "pointer" }}
+				>
+					<Add className="dm-icon" fontSize="small" />
+					<input
+						type="file"
+						accept="image/*"
+						multiple
+						onChange={(event) => {
+							handleFileChange(event);
+							event.target.value = "";
+						}}
+						disabled={disabled || isSending}
+						hidden
+					/>
+				</label>
 
+				<div className="dm-textarea-wrapper">
+					<textarea
+						className="dm-textarea"
+						placeholder={`メッセージを送信`}
+						value={text}
+						onChange={(event) => setText(event.target.value)}
+						onKeyDown={handleTextareaKeyDown}
+						disabled={disabled || isSending}
+						rows={1}
+						style={{ height: "auto", minHeight: "24px" }}
+						onInput={(e) => {
+							const target = e.target as HTMLTextAreaElement;
+							target.style.height = "auto";
+							target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
+						}}
+					/>
+				</div>
+
+				<button
+					type="button"
+					className="dm-input-button"
+					disabled={disabled || isSending}
+				>
+					<InsertEmoticon className="dm-icon" fontSize="small" />
+				</button>
+
+				{/* Send button only if strictly needed or for mobile, Discord relies on Enter mostly but keeps button on mobile */}
+				{(canSend || isSending) && (
+					<button
+						type="submit"
+						className="dm-input-button send"
+						disabled={disabled || !canSend || isSending}
+					>
+						<Send className="dm-icon" fontSize="small" />
+					</button>
+				)}
+			</div>
 			{error && <p className="dm-input-error">{error}</p>}
 		</form>
 	);

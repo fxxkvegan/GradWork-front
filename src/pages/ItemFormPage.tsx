@@ -85,10 +85,7 @@ const ItemFormPage = () => {
 	const { itemId } = useParams<{ itemId?: string }>();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { isLoggedIn, isVerified } = useAuth();
-	const [resendLoading, setResendLoading] = useState(false);
-	const [resendMessage, setResendMessage] = useState<string | null>(null);
-	const [resendError, setResendError] = useState<string | null>(null);
+	const { isLoggedIn } = useAuth();
 
 	const [form, setForm] = useState<EditFormState>(toInitialState);
 	const [submitting, setSubmitting] = useState(false);
@@ -455,12 +452,6 @@ const ItemFormPage = () => {
 		if (!canSubmit || submitting) {
 			return;
 		}
-		if (!isVerified) {
-			setError(
-				"メール認証が完了していません。確認メールのリンクを開いて認証を完了してください。",
-			);
-			return;
-		}
 
 		setSubmitting(true);
 		setError(null);
@@ -505,11 +496,7 @@ const ItemFormPage = () => {
 		} catch (submitError) {
 			console.error(submitError);
 			if (axios.isAxiosError(submitError) && submitError.response) {
-				if (submitError.response.status === 403) {
-					setError(
-						"メール認証が完了していません。確認メールのリンクを開いてから再度お試しください。",
-					);
-				} else if (
+				if (
 					submitError.response.data &&
 					typeof submitError.response.data.message === "string"
 				) {
@@ -524,31 +511,20 @@ const ItemFormPage = () => {
 					itemId ? "作品の更新に失敗しました" : "作品の投稿に失敗しました",
 				);
 			}
+			if (
+				axios.isAxiosError(submitError) &&
+				submitError.response &&
+				submitError.response.data &&
+				typeof submitError.response.data.message === "string"
+			) {
+				setError(submitError.response.data.message);
+			} else {
+				setError(
+					itemId ? "作品の更新に失敗しました" : "作品の投稿に失敗しました",
+				);
+			}
 		} finally {
 			setSubmitting(false);
-		}
-	};
-
-	const handleResendVerification = async () => {
-		if (resendLoading) return;
-		setResendLoading(true);
-		setResendMessage(null);
-		setResendError(null);
-		try {
-			await import("../services/userApi").then((m) =>
-				m.resendEmailVerification(),
-			);
-			setResendMessage(
-				"確認メールを再送しました。メール内のリンクを開いて認証を完了してください。",
-			);
-		} catch (resendErr) {
-			const message =
-				axios.isAxiosError(resendErr) && resendErr.response?.data?.message
-					? String(resendErr.response.data.message)
-					: "確認メールの再送に失敗しました。時間をおいて再度お試しください。";
-			setResendError(message);
-		} finally {
-			setResendLoading(false);
 		}
 	};
 
@@ -594,34 +570,7 @@ const ItemFormPage = () => {
 					<Typography variant="h4" fontWeight="bold">
 						{itemId ? "作品を編集" : "新しい作品を投稿"}
 					</Typography>
-					{error && (
-						<Alert severity="error">
-							<AlertTitle>メール認証が必要です</AlertTitle>
-							{error}
-							{!isVerified && (
-								<Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
-									<Button
-										variant="outlined"
-										size="small"
-										onClick={handleResendVerification}
-										disabled={resendLoading}
-									>
-										{resendLoading ? "再送中..." : "確認メールを再送"}
-									</Button>
-									{resendMessage && (
-										<Typography variant="body2" color="success.main">
-											{resendMessage}
-										</Typography>
-									)}
-									{resendError && (
-										<Typography variant="body2" color="error.main">
-											{resendError}
-										</Typography>
-									)}
-								</Box>
-							)}
-						</Alert>
-					)}
+
 					<Box
 						sx={{
 							display: "flex",

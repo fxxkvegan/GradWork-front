@@ -41,12 +41,6 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 			setError(null);
 			return;
 		}
-		if (!isVerified) {
-			setNotifications([]);
-			setUnreadCount(0);
-			setError("メール認証が完了していません。確認メールを開いてください。");
-			return;
-		}
 
 		setLoading(true);
 		setError(null);
@@ -68,10 +62,10 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 	}, [isLoggedIn, isVerified]);
 
 	useEffect(() => {
-		if (!isLoggedIn || !isVerified) {
+		if (!isLoggedIn) {
 			setNotifications([]);
 			setUnreadCount(0);
-			setError(isLoggedIn ? "メール認証が完了していません。" : null);
+			setError(null);
 			return;
 		}
 

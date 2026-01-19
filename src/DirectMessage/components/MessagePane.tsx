@@ -235,9 +235,7 @@ const MessagePane: FC<MessagePaneProps> = ({
 		if (!contextMenu) return;
 		const target = contextMenu.message;
 		closeContextMenu();
-		if (!window.confirm("このメッセージの送信を取り消しますか？")) {
-			return;
-		}
+		// Removed confirmation dialog as per user request
 		void onDeleteMessage(target.id).catch((error) => {
 			window.alert(
 				error instanceof Error ? error.message : "送信の取り消しに失敗しました",
@@ -303,6 +301,21 @@ const MessagePane: FC<MessagePaneProps> = ({
 						const showMeta =
 							!isEditing &&
 							(Boolean(timestamp) || (!isDeleted && Boolean(message.editedAt)));
+						// For Discord style, we always show timestamp in the header line if it's a new group or strict time diff
+						// But simplifying for now: show header (Avatar+Name) if different user OR time gap > X (not implemented yet)
+						// For now, let's show header for every message for simplicity, or just group by user if close?
+						// Discord shows avatar for first message in a group.
+						// Let's implement simple grouping: if same sender as previous and within short time, hide avatar/header
+						const isSameSender = previous?.sender?.id === message.sender?.id;
+						// const isCloseTime = ... (omitted for simplicity, just check sender)
+
+						// NOTE: To make it truly Discord-like we should group messages.
+						// For this iteration, let's keep it simple: EVERY message has avatar+header (Cozy mode).
+						// Or strive for "Compact" mode later. Let's do Standard Discord (Grouped).
+
+						// Actually, let's stick to "Cozy" (standard) but maybe not group strictly yet to reduce risk of logic bugs.
+						// We'll show Avatar+Header for every message for now to ensure clarity.
+
 						if (isDeleted) {
 							return (
 								<div
@@ -327,6 +340,7 @@ const MessagePane: FC<MessagePaneProps> = ({
 								</div>
 							);
 						}
+
 						return (
 							<div
 								key={`${message.id}-${message.isPending ? "pending" : "sent"}`}
@@ -338,6 +352,7 @@ const MessagePane: FC<MessagePaneProps> = ({
 									</div>
 								)}
 								<div className={`dm-message-group ${isMine ? "own" : ""}`}>
+									{/* Avatar (Only for others) */}
 									{!isMine && (
 										<div className="dm-message-avatar">
 											{message.sender?.avatarUrl ? (
@@ -354,12 +369,18 @@ const MessagePane: FC<MessagePaneProps> = ({
 											)}
 										</div>
 									)}
-									<div className={`dm-message-content ${isMine ? "own" : ""}`}>
-										<div
-											className={`dm-message-bubble-row ${isMine ? "own" : ""}`}
-										>
+
+									<div className="dm-message-content">
+										{/* Sender Name (Only for others if group start? simplified: always show for non-grouped) */}
+										{!isMine && (
+											<div className="dm-message-sender-name">
+												{message.sender?.displayName || message.sender?.name}
+											</div>
+										)}
+
+										<div className="dm-message-bubble-row">
 											<div
-												className={`dm-message-bubble ${isMine ? "own" : ""} ${message.isPending ? "pending" : ""} ${isDeleted ? "deleted" : ""}`}
+												className={`dm-message-bubble ${isMine ? "own" : ""} ${message.isPending ? "pending" : ""}`}
 												ref={(element) => {
 													if (!element) {
 														messageBubbleRefs.current.delete(message.id);
@@ -373,12 +394,7 @@ const MessagePane: FC<MessagePaneProps> = ({
 											>
 												{isEditing ? (
 													<form
-														className={`dm-message-edit-form ${isMine ? "own" : "other"}`}
-														style={
-															editDimensions
-																? { width: `${editDimensions.width}px` }
-																: undefined
-														}
+														className="dm-message-edit-form"
 														onSubmit={(event) =>
 															handleEditSubmit(event, message.id)
 														}
@@ -396,12 +412,10 @@ const MessagePane: FC<MessagePaneProps> = ({
 															placeholder="メッセージを編集"
 															autoFocus
 															style={{
-																minHeight: Math.max(
-																	editDimensions?.height || 0,
-																	EDIT_TEXTAREA_MIN_HEIGHT,
-																),
+																minHeight: "40px",
 																width: "100%",
-																boxSizing: "border-box",
+																color:
+																	"#333" /* Ensure text is visible in edit mode */,
 															}}
 														/>
 														<div className="dm-message-edit-actions">
@@ -409,7 +423,7 @@ const MessagePane: FC<MessagePaneProps> = ({
 																キャンセル
 															</button>
 															<button type="submit" disabled={isSavingEdit}>
-																{isSavingEdit ? "保存中..." : "保存"}
+																保存
 															</button>
 														</div>
 														<p className="dm-message-edit-hint">
@@ -439,14 +453,12 @@ const MessagePane: FC<MessagePaneProps> = ({
 																))}
 															</div>
 														) : null}
-														{message.isPending && (
-															<span className="dm-message-status">
-																送信待ち...
-															</span>
-														)}
+														{/* Removed pending status text as requested */}
 													</>
 												)}
 											</div>
+
+											{/* Metadata (Time, Edit Status) - Placed beside bubble */}
 											{showMeta && (
 												<div
 													className={`dm-message-meta-side ${isMine ? "own" : "other"}`}
@@ -458,7 +470,7 @@ const MessagePane: FC<MessagePaneProps> = ({
 													)}
 													{!isDeleted && message.editedAt && (
 														<span className="dm-message-edited-label">
-															編集済み
+															(編集済)
 														</span>
 													)}
 												</div>

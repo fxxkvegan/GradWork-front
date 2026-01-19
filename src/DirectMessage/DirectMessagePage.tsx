@@ -298,7 +298,12 @@ const DirectMessagePage = () => {
 	};
 
 	const handleSendMessage = async (payload: SendMessagePayload) => {
-		await scheduleSend(payload);
+		try {
+			await send(payload);
+			await refreshDmIndicators();
+		} catch (error) {
+			window.alert("メッセージの送信に失敗しました");
+		}
 	};
 
 	const handleBackToList = () => {
@@ -391,30 +396,15 @@ const DirectMessagePage = () => {
 									isLoading={messagesLoading}
 									error={messagesError}
 									currentUserId={user?.id}
-									extraPendingMessage={pendingMessage}
+									extraPendingMessage={null}
 									onDeleteMessage={handleDeleteMessage}
 									onEditMessage={handleEditMessage}
 								/>
 								<MessageInput
 									onSend={handleSendMessage}
 									disabled={!activeConversation}
-									restoredPayload={restorePayload}
+									restoredPayload={null}
 								/>
-								{pendingMessage && (
-									<div className="dm-pending-banner">
-										<span>
-											送信を取り消せます
-											{pendingCountdownSeconds > 0 &&
-												`（${pendingCountdownSeconds}秒）`}
-											{pendingError && <strong> / {pendingError}</strong>}
-										</span>
-										<div>
-											<button type="button" onClick={cancelPendingSend}>
-												取り消す
-											</button>
-										</div>
-									</div>
-								)}
 							</>
 						) : (
 							<div className="dm-empty-state">
