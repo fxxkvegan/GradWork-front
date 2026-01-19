@@ -4,8 +4,6 @@
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
-	Alert,
-	AlertTitle,
 	Box,
 	Button,
 	Card,
@@ -94,7 +92,7 @@ const ItemFormPage = () => {
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [loadingCategories, setLoadingCategories] = useState(true);
 	const [loadingProduct, setLoadingProduct] = useState(Boolean(itemId));
-	const [error, setError] = useState<string | null>(null);
+
 	const [activeImageIndex, setActiveImageIndex] = useState(0);
 	const [imageNotice, setImageNotice] = useState<string | null>(null);
 	const [readme, setReadme] = useState("");
@@ -135,7 +133,6 @@ const ItemFormPage = () => {
 			} catch (fetchError) {
 				console.error(fetchError);
 				if (active) {
-					setError("カテゴリの取得に失敗しました");
 				}
 			} finally {
 				if (active) {
@@ -202,7 +199,6 @@ const ItemFormPage = () => {
 			} catch (fetchError) {
 				console.error(fetchError);
 				if (active) {
-					setError("プロダクトの取得に失敗しました");
 				}
 			} finally {
 				if (active) {
@@ -388,7 +384,6 @@ const ItemFormPage = () => {
 		};
 		reader.onerror = () => {
 			console.error(reader.error);
-			setError("READMEファイルの読み込みに失敗しました");
 		};
 		reader.readAsText(file);
 	};
@@ -454,7 +449,6 @@ const ItemFormPage = () => {
 		}
 
 		setSubmitting(true);
-		setError(null);
 
 		try {
 			const savedProduct = itemId
@@ -487,7 +481,6 @@ const ItemFormPage = () => {
 					await postProductReadme(savedProduct.id, readme);
 				} catch (readmeError) {
 					console.error(readmeError);
-					setError("READMEの保存に失敗しました");
 					return;
 				}
 			}
@@ -500,16 +493,12 @@ const ItemFormPage = () => {
 					submitError.response.data &&
 					typeof submitError.response.data.message === "string"
 				) {
-					setError(submitError.response.data.message);
+					// No setError call
 				} else {
-					setError(
-						itemId ? "作品の更新に失敗しました" : "作品の投稿に失敗しました",
-					);
+					// No setError call
 				}
 			} else {
-				setError(
-					itemId ? "作品の更新に失敗しました" : "作品の投稿に失敗しました",
-				);
+				// No setError call
 			}
 			if (
 				axios.isAxiosError(submitError) &&
@@ -517,11 +506,6 @@ const ItemFormPage = () => {
 				submitError.response.data &&
 				typeof submitError.response.data.message === "string"
 			) {
-				setError(submitError.response.data.message);
-			} else {
-				setError(
-					itemId ? "作品の更新に失敗しました" : "作品の投稿に失敗しました",
-				);
 			}
 		} finally {
 			setSubmitting(false);
@@ -542,7 +526,6 @@ const ItemFormPage = () => {
 		}
 
 		setDeleting(true);
-		setError(null);
 
 		try {
 			await productApi.deleteProduct(Number(itemId));
@@ -550,7 +533,6 @@ const ItemFormPage = () => {
 			navigate("/my-products", { replace: true });
 		} catch (deleteError) {
 			console.error(deleteError);
-			setError("作品の削除に失敗しました");
 			setDeleteDialogOpen(false);
 		} finally {
 			setDeleting(false);
