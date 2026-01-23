@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const [user, setUser] = useState<StoredUser | null>(null);
 	const [token, setToken] = useState<string | null>(null);
-	const [isVerified, setIsVerified] = useState<boolean>(true);
+	// const [isVerified, setIsVerified] = useState<boolean>(true);
 	const [emailVerifiedAt, setEmailVerifiedAt] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -75,14 +75,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const refreshEmailStatus = useCallback(async () => {
 		if (!getAuthToken()) {
-			setIsVerified(true);
 			setEmailVerifiedAt(null);
 			return;
 		}
 		try {
 			const status = await getEmailVerificationStatus();
 			// setIsVerified(status.verified);
-			setIsVerified(true);
 			setEmailVerifiedAt(status.email_verified_at);
 		} catch (error) {
 			console.warn("AuthContext: failed to fetch email status", error);
@@ -117,14 +115,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		setToken(tokenFromResponse);
 		setUser(sanitizedUser);
 		// setIsVerified(Boolean(userData.email_verified_at));
-		setIsVerified(true);
 		setEmailVerifiedAt(userData.email_verified_at ?? null);
 	}, []);
 
 	const logout = useCallback(() => {
 		setToken(null);
 		setUser(null);
-		setIsVerified(true);
 		setEmailVerifiedAt(null);
 		clearAllTokens();
 		localStorage.removeItem(AUTH_USER_KEY);
@@ -157,7 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 				try {
 					const status = await resendEmailVerification();
 					// setIsVerified(status.verified);
-					setIsVerified(true);
+					// setIsVerified(true);
 					setEmailVerifiedAt(status.email_verified_at);
 				} catch (error) {
 					console.warn("AuthContext: failed to resend verification", error);
@@ -167,7 +163,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		[
 			user,
 			token,
-			isVerified,
 			emailVerifiedAt,
 			login,
 			logout,

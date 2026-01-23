@@ -26,6 +26,7 @@ import {
 	useSearchParams,
 } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
+import ProductTagline from "../components/ProductTagline";
 import { fetchCategories } from "../services/categoryApi";
 import { fetchProducts } from "../services/productApi";
 import type { Category } from "../types/category";
@@ -479,13 +480,7 @@ const ItemListPage: FC = () => {
 												>
 													{product.name}
 												</Typography>
-												<Typography
-													variant="body2"
-													color="text.secondary"
-													paragraph
-												>
-													{product.description ?? "説明は登録されていません"}
-												</Typography>
+												<ProductTagline tagline={product.tagline} lines={2} />
 
 												{/* 評価 */}
 												<Box

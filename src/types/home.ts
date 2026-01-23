@@ -10,7 +10,11 @@ export interface HomeProjectOwner {
 export interface HomeProject {
 	id: number;
 	title: string;
-	subtitle: string;
+	tagline?: string | null;
+	subtitle?: string;
+	upvote_count?: number;
+	has_upvoted?: boolean;
+	upvotes_today_count?: number;
 	img: string;
 	category: string;
 	rating: number;

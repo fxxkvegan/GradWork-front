@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import ProductTagline from "../components/ProductTagline";
 
 // デモ用プロジェクトデータ
 const demoProjects = [
@@ -100,9 +101,7 @@ const ItemDemoPage: React.FC = () => {
 								<Typography variant="h6" component="h2" gutterBottom>
 									{project.title}
 								</Typography>
-								<Typography variant="body2" color="text.secondary" paragraph>
-									{project.shortDescription}
-								</Typography>
+								<ProductTagline tagline={project.shortDescription} lines={2} />
 
 								{/* 評価 */}
 								<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>

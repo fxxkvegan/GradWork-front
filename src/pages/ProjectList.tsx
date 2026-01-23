@@ -17,12 +17,13 @@ import {
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
+import ProductTagline from "../components/ProductTagline";
 import * as favorites from "../utils/favorites";
 
 interface Project {
 	id: number;
 	title: string;
-	subtitle: string;
+	tagline: string;
 	img: string;
 	category: string;
 	rating: number;
@@ -39,7 +40,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 0,
 			title: "Webアプリ開発テンプレート",
-			subtitle: "React + TypeScriptですぐに始められるボイラープレート",
+			tagline: "React + TypeScriptですぐに始められるボイラープレート",
 			img: "https://picsum.photos/400/300?1",
 			category: "Web開発",
 			rating: 4.8,
@@ -50,7 +51,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 1,
 			title: "AIチャットボット",
-			subtitle: "自然言語処理を用いた高度な会話システム",
+			tagline: "自然言語処理を用いた高度な会話システム",
 			img: "https://picsum.photos/400/300?2",
 			category: "AI",
 			rating: 4.5,
@@ -61,7 +62,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 2,
 			title: "モバイルアプリUI/UXキット",
-			subtitle: "スマートフォンアプリ用の美しいデザインテンプレート",
+			tagline: "スマートフォンアプリ用の美しいデザインテンプレート",
 			img: "https://picsum.photos/400/300?3",
 			category: "デザイン",
 			rating: 4.9,
@@ -72,7 +73,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 3,
 			title: "データ分析ダッシュボード",
-			subtitle: "ビジネスインサイトを可視化するための高度な分析ツール",
+			tagline: "ビジネスインサイトを可視化するための高度な分析ツール",
 			img: "https://picsum.photos/400/300?4",
 			category: "データ",
 			rating: 4.6,
@@ -83,7 +84,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 4,
 			title: "クラウドストレージAPI",
-			subtitle: "安全で高速なファイル保存・共有システム",
+			tagline: "安全で高速なファイル保存・共有システム",
 			img: "https://picsum.photos/400/300?5",
 			category: "バックエンド",
 			rating: 4.7,
@@ -94,7 +95,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 5,
 			title: "e-コマースプラットフォーム",
-			subtitle: "オンラインショップ構築のための完全なソリューション",
+			tagline: "オンラインショップ構築のための完全なソリューション",
 			img: "https://picsum.photos/400/300?6",
 			category: "ビジネス",
 			rating: 4.4,
@@ -105,7 +106,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 6,
 			title: "SNS連携ツール",
-			subtitle: "複数のソーシャルメディアを一元管理",
+			tagline: "複数のソーシャルメディアを一元管理",
 			img: "https://picsum.photos/400/300?7",
 			category: "マーケティング",
 			rating: 4.2,
@@ -116,7 +117,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 7,
 			title: "3Dゲームアセット",
-			subtitle: "高品質な3Dモデルとテクスチャセット",
+			tagline: "高品質な3Dモデルとテクスチャセット",
 			img: "https://picsum.photos/400/300?8",
 			category: "ゲーム",
 			rating: 4.9,
@@ -127,7 +128,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 8,
 			title: "マシンラーニングモデル",
-			subtitle: "画像認識と自然言語処理の最適化済みモデル",
+			tagline: "画像認識と自然言語処理の最適化済みモデル",
 			img: "https://picsum.photos/400/300?9",
 			category: "AI",
 			rating: 4.7,
@@ -138,7 +139,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 9,
 			title: "ARコンテンツ制作キット",
-			subtitle: "拡張現実アプリケーション開発のためのフレームワーク",
+			tagline: "拡張現実アプリケーション開発のためのフレームワーク",
 			img: "https://picsum.photos/400/300?10",
 			category: "AR/VR",
 			rating: 4.3,
@@ -149,7 +150,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 10,
 			title: "IoTセンサーネットワーク",
-			subtitle: "スマートホーム向けセンサー連携システム",
+			tagline: "スマートホーム向けセンサー連携システム",
 			img: "https://picsum.photos/400/300?11",
 			category: "IoT",
 			rating: 4.6,
@@ -160,7 +161,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 11,
 			title: "ブロックチェーンウォレット",
-			subtitle: "安全な暗号資産管理のためのウォレットアプリ",
+			tagline: "安全な暗号資産管理のためのウォレットアプリ",
 			img: "https://picsum.photos/400/300?12",
 			category: "ブロックチェーン",
 			rating: 4.5,
@@ -171,7 +172,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 12,
 			title: "音声認識ライブラリ",
-			subtitle: "多言語対応の高精度音声テキスト変換エンジン",
+			tagline: "多言語対応の高精度音声テキスト変換エンジン",
 			img: "https://picsum.photos/400/300?13",
 			category: "音声処理",
 			rating: 4.8,
@@ -182,7 +183,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 13,
 			title: "デザインシステム",
-			subtitle: "一貫性のあるUIを実現するためのコンポーネントライブラリ",
+			tagline: "一貫性のあるUIを実現するためのコンポーネントライブラリ",
 			img: "https://picsum.photos/400/300?14",
 			category: "デザイン",
 			rating: 4.7,
@@ -193,7 +194,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 14,
 			title: "サイバーセキュリティツール",
-			subtitle: "ネットワーク脆弱性診断と対策の総合パッケージ",
+			tagline: "ネットワーク脆弱性診断と対策の総合パッケージ",
 			img: "https://picsum.photos/400/300?15",
 			category: "セキュリティ",
 			rating: 4.9,
@@ -204,7 +205,7 @@ const ProjectList: React.FC = () => {
 		{
 			id: 15,
 			title: "デジタルマーケティングスイート",
-			subtitle: "SEO、SNS、広告を一元管理するマーケティングツール",
+			tagline: "SEO、SNS、広告を一元管理するマーケティングツール",
 			img: "https://picsum.photos/400/300?16",
 			category: "マーケティング",
 			rating: 4.4,
@@ -326,9 +327,7 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
 						{project.title}
 					</Typography>
 				</Tooltip>
-				<Typography variant="caption" color="text.secondary" noWrap>
-					{project.subtitle}
-				</Typography>
+				<ProductTagline tagline={project.tagline} lines={2} />
 
 				<Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
 					<StarIcon fontSize="small" sx={{ mr: 0.3 }} />

@@ -1,7 +1,7 @@
 /* ホームページ全体 */
 .homepage {
 	min-height: 100vh;
-	background-color: #ffffff;
+	background-color: var(--ds-gray-50);
 	overflow-x: hidden;
 	/* 横スクロールを防止 - 重要: 横揺れ防止のため削除しないこと */
 	width: 100%;
@@ -128,13 +128,14 @@
 	text-align: center;
 	margin-bottom: 16px !important;
 	font-weight: 700 !important;
-	color: #1a1a1a;
+	color: var(--ds-gray-900);
+	letter-spacing: -0.02em;
 }
 
 .section-subtitle {
 	text-align: center;
 	margin-bottom: 48px !important;
-	color: #666;
+	color: var(--ds-gray-600);
 	font-size: 1.1rem;
 }
 
@@ -147,20 +148,26 @@
 /* プロジェクトカード */
 .project-card {
 	border-radius: 16px !important;
-	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+	background: var(--ds-white) !important;
+	border: 1px solid var(--ds-gray-200) !important;
+	box-shadow: var(--ds-shadow-sm) !important;
 	overflow: hidden !important;
 	height: 100%;
-	border: none !important;
 	width: 100%;
 	max-width: 100%;
 	margin: 0 auto;
 	will-change: transform;
 	transform-origin: center center;
+	transition:
+		transform 0.2s var(--ds-ease-smooth),
+		box-shadow 0.2s var(--ds-ease-smooth),
+		border-color 0.2s var(--ds-ease-smooth);
 }
 
 .project-card:hover {
 	transform: translateY(-8px);
-	box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15) !important;
+	box-shadow: var(--ds-shadow-md) !important;
+	border-color: var(--ds-primary-100) !important;
 }
 
 /* カード画像の3D効果 */
@@ -221,6 +228,7 @@
 	background-color: rgba(255, 255, 255, 0.9) !important;
 	font-weight: 500 !important;
 	font-size: 0.75rem !important;
+	border: 1px solid var(--ds-gray-200) !important;
 }
 
 .favorite-button {
@@ -254,6 +262,7 @@
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 12px;
+	color: var(--ds-gray-600);
 }
 
 .downloads-text {
@@ -288,7 +297,7 @@
 
 /* プロジェクト説明文 - 複数行の省略表示設定 */
 .project-description {
-	color: #666 !important;
+	color: var(--ds-gray-600) !important;
 	margin-bottom: 16px !important;
 	display: -webkit-box;
 	-webkit-line-clamp: 2;

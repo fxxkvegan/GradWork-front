@@ -28,7 +28,7 @@ const NotificationContext = createContext<NotificationContextValue | undefined>(
 );
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
-	const { isLoggedIn, isVerified } = useAuth();
+	const { isLoggedIn } = useAuth();
 	const [notifications, setNotifications] = useState<ReviewNotification[]>([]);
 	const [unreadCount, setUnreadCount] = useState(0);
 	const [loading, setLoading] = useState(false);
@@ -59,7 +59,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 		} finally {
 			setLoading(false);
 		}
-	}, [isLoggedIn, isVerified]);
+	}, [isLoggedIn]);
 
 	useEffect(() => {
 		if (!isLoggedIn) {
@@ -70,7 +70,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 		}
 
 		void refresh();
-	}, [isLoggedIn, isVerified, refresh]);
+	}, [isLoggedIn, refresh]);
 
 	const markAsRead = useCallback(
 		async (ids: string | string[]) => {

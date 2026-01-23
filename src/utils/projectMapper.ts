@@ -66,7 +66,14 @@ export const mapRankingItemToProject = (
 	return {
 		id: Number(item?.id) || 0,
 		title: item?.name ?? "無題",
-		subtitle: item?.description ?? "",
+		tagline: typeof item?.tagline === "string" ? item.tagline : "",
+		upvote_count:
+			typeof item?.upvote_count === "number" ? item.upvote_count : 0,
+		has_upvoted: item?.has_upvoted === true,
+		upvotes_today_count:
+			typeof item?.upvotes_today_count === "number"
+				? item.upvotes_today_count
+				: 0,
 		img: imageUrls[0] ?? FALLBACK_IMAGE,
 		category: firstCategory,
 		rating:

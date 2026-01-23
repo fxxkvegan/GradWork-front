@@ -12,6 +12,7 @@ import useConversations from "./hooks/useConversations";
 import useMessages from "./hooks/useMessages";
 import type { CreateConversationPayload, SendMessagePayload } from "./types";
 import "./directMessage.css";
+import { useNavigate } from "react-router-dom";
 
 const DirectMessagePage = () => {
 	const { user, isLoggedIn } = useAuth();
@@ -23,6 +24,7 @@ const DirectMessagePage = () => {
 	const [searchKeyword, setSearchKeyword] = useState("");
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+	const navigate = useNavigate();
 
 	const {
 		conversations,
@@ -153,7 +155,7 @@ const DirectMessagePage = () => {
 		try {
 			await send(payload);
 			await refreshDmIndicators();
-		} catch (error) {
+		} catch {
 			window.alert("メッセージの送信に失敗しました");
 		}
 	};
@@ -162,6 +164,10 @@ const DirectMessagePage = () => {
 		if (!isMobile) return;
 		setMobileView("list");
 		setSelectedConversationId(null);
+	};
+
+	const handleBackToPrevious = () => {
+		navigate(-1);
 	};
 
 	if (!isLoggedIn) {
@@ -185,6 +191,19 @@ const DirectMessagePage = () => {
 		<>
 			<AppHeaderWithAuth activePath="/dm" />
 			<div className="dm-page">
+				{isMobile && mobileView === "chat" && (
+					<div className="dm-mobile-back">
+						<button
+							type="button"
+							className="dm-mobile-back-button"
+							onClick={handleBackToPrevious}
+							aria-label="前の画面に戻る"
+						>
+							<ArrowBack fontSize="small" />
+							戻る
+						</button>
+					</div>
+				)}
 				{(!isMobile || mobileView === "list") && (
 					<aside className="dm-sidebar">
 						<div className="dm-search-container">
@@ -235,7 +254,7 @@ const DirectMessagePage = () => {
 											onClick={handleBackToList}
 											aria-label="会話一覧に戻る"
 										>
-											<ArrowBack fontSize="small" />
+											<ArrowBack className="dm-back-icon" />
 										</button>
 									)}
 									<div className="dm-header-content">

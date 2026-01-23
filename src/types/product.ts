@@ -14,7 +14,10 @@ export interface ProductOwner {
 export interface Product {
 	id: number;
 	name: string;
+	tagline: string | null;
 	description: string | null;
+	upvote_count: number;
+	has_upvoted: boolean;
 	rating: number;
 	access_count: number;
 	google_play_url: string | null;
@@ -47,6 +50,7 @@ export interface ProductStatus {
 
 export interface ProductCreateRequest {
 	name: string;
+	tagline?: string;
 	description?: string;
 	categoryIds?: number[];
 	image_url?: File[];
@@ -57,6 +61,7 @@ export interface ProductCreateRequest {
 
 export interface ProductUpdateRequest {
 	name: string;
+	tagline?: string;
 	description?: string;
 	categoryIds?: number[];
 	image_url?: File[];

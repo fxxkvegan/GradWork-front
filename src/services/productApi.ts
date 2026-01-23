@@ -21,7 +21,11 @@ export interface RankingCategory {
 export interface RankingItemResponse {
 	id: number;
 	name: string;
+	tagline?: string | null;
 	description?: string | null;
+	upvote_count?: number | null;
+	upvotes_today_count?: number | null;
+	has_upvoted?: boolean | null;
 	rating?: number | null;
 	access_count?: number | null;
 	google_play_url?: string | null;
@@ -146,6 +150,34 @@ export const fetchRankingProjects = async (): Promise<{
 	};
 };
 
+export const fetchTodayRankingProjects = async (): Promise<{
+	items: RankingItemResponse[];
+	message: string;
+	count: number;
+}> => {
+	const { data } = await client.get<RankingResponse>("/rankings/today");
+
+	const itemsSource = Array.isArray(data?.items)
+		? data.items
+		: Array.isArray(data?.data)
+			? data.data
+			: [];
+
+	const items = itemsSource.filter((item): item is RankingItemResponse =>
+		Boolean(item),
+	);
+	return {
+		items,
+		message: data?.message ?? "",
+		count:
+			typeof data?.count === "number"
+				? data.count
+				: typeof data?.total === "number"
+					? data.total
+					: items.length,
+	};
+};
+
 const appendCategoryIds = (
 	formData: FormData,
 	categoryIds: ProductCreateRequest["categoryIds"],
@@ -199,6 +231,9 @@ export const createProduct = async (
 ): Promise<Product> => {
 	const formData = new FormData();
 	formData.append("name", payload.name);
+	if (payload.tagline !== undefined) {
+		formData.append("tagline", payload.tagline);
+	}
 	if (payload.description) {
 		formData.append("description", payload.description);
 	}
@@ -226,6 +261,9 @@ export const updateProduct = async (
 ): Promise<Product> => {
 	const formData = new FormData();
 	formData.append("name", payload.name);
+	if (payload.tagline !== undefined) {
+		formData.append("tagline", payload.tagline);
+	}
 	if (payload.description) {
 		formData.append("description", payload.description);
 	}
@@ -350,8 +388,17 @@ export const incrementAccessCount = async (
 	return data;
 };
 
+export const upvoteProduct = async (productId: number): Promise<void> => {
+	await authClient.post(`/products/${productId}/upvote`);
+};
+
+export const removeUpvoteProduct = async (productId: number): Promise<void> => {
+	await authClient.delete(`/products/${productId}/upvote`);
+};
+
 export default {
 	fetchRankingProjects,
+	fetchTodayRankingProjects,
 	createProduct,
 	updateProduct,
 	fetchMyProducts,
@@ -360,4 +407,6 @@ export default {
 	createProductReview,
 	fetchProducts,
 	incrementAccessCount,
+	upvoteProduct,
+	removeUpvoteProduct,
 };

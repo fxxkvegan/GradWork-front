@@ -25,7 +25,6 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import axios from "axios";
 import {
 	ChangeEvent,
 	DragEvent,
@@ -50,11 +49,13 @@ import type { Category } from "../types/category";
 import type { Product } from "../types/product";
 
 const MAX_IMAGES = 5;
+const TAGLINE_MAX_LENGTH = 60;
 const README_FILE_ACCEPT = ".md,text/markdown,text/plain";
 const DEFAULT_README = `# README\n\nこのプロジェクトの目的や特徴を簡潔にまとめてください。\n\n## 使い方\n\n- 機能を箇条書き\n- 使い方の説明\n\n## 準備\n\n- 環境や前提条件\n- インストール手順\n`;
 
 interface EditFormState {
 	name: string;
+	tagline: string;
 	description: string;
 	categoryIds: number[];
 	existingImageUrls: string[];
@@ -68,6 +69,7 @@ interface EditFormState {
 
 const toInitialState = (): EditFormState => ({
 	name: "",
+	tagline: "",
 	description: "",
 	categoryIds: [],
 	existingImageUrls: [],
@@ -98,6 +100,7 @@ const ItemFormPage = () => {
 	const [readme, setReadme] = useState("");
 	const [isReadmeDragActive, setIsReadmeDragActive] = useState(false);
 	const [readmeLoading, setReadmeLoading] = useState(false);
+	const [taglineTouched, setTaglineTouched] = useState(false);
 
 	const objectURLRef = useRef<string[]>([]);
 	const readmeInputRef = useRef<HTMLInputElement | null>(null);
@@ -132,8 +135,7 @@ const ItemFormPage = () => {
 				}
 			} catch (fetchError) {
 				console.error(fetchError);
-				if (active) {
-				}
+				// エラー時は何もしない、または必要ならエラー表示処理を追加
 			} finally {
 				if (active) {
 					setLoadingCategories(false);
@@ -182,6 +184,7 @@ const ItemFormPage = () => {
 
 				setForm({
 					name: data.name ?? "",
+					tagline: data.tagline ?? "",
 					description: (data.description as string | null) ?? "",
 					categoryIds: (data.categoryIds ?? [])
 						.map((value) => Number(value))
@@ -196,9 +199,11 @@ const ItemFormPage = () => {
 				});
 				setActiveImageIndex(images.length > 0 ? 0 : 0);
 				setImageNotice(null);
+				setTaglineTouched(false);
 			} catch (fetchError) {
 				console.error(fetchError);
 				if (active) {
+					// Error handling to be implemented
 				}
 			} finally {
 				if (active) {
@@ -258,6 +263,7 @@ const ItemFormPage = () => {
 		(
 			key:
 				| "name"
+				| "tagline"
 				| "description"
 				| "googlePlayUrl"
 				| "appStoreUrl"
@@ -435,15 +441,36 @@ const ItemFormPage = () => {
 		});
 	}, [combinedImages]);
 
+	const taglineCount = form.tagline.length;
+	const trimmedTagline = form.tagline.trim();
+	const taglineError =
+		trimmedTagline.length === 0
+			? "一言説明は必須です"
+			: taglineCount > TAGLINE_MAX_LENGTH
+				? "60文字以内で入力してください"
+				: "";
+	const isTaglineValid =
+		trimmedTagline.length > 0 && taglineCount <= TAGLINE_MAX_LENGTH;
+	const showTaglineError = taglineTouched && taglineError !== "";
+
 	const canSubmit = useMemo(() => {
-		return form.name.trim().length > 0 && form.categoryIds.length > 0;
-	}, [form.name, form.categoryIds.length]);
+		return (
+			form.name.trim().length > 0 &&
+			form.categoryIds.length > 0 &&
+			isTaglineValid
+		);
+	}, [form.name, form.categoryIds.length, isTaglineValid]);
 
 	const readmePreviewContent = useMemo(() => {
 		return readme.trim().length > 0 ? readme : DEFAULT_README;
 	}, [readme]);
 
 	const handleSubmit = async () => {
+		if (!isTaglineValid) {
+			setTaglineTouched(true);
+			return;
+		}
+
 		if (!canSubmit || submitting) {
 			return;
 		}
@@ -454,6 +481,7 @@ const ItemFormPage = () => {
 			const savedProduct = itemId
 				? await productApi.updateProduct(Number(itemId), {
 						name: form.name,
+						tagline: form.tagline,
 						description: form.description,
 						categoryIds: form.categoryIds,
 						image_url: form.newImageFiles.length
@@ -468,6 +496,7 @@ const ItemFormPage = () => {
 					})
 				: await productApi.createProduct({
 						name: form.name,
+						tagline: form.tagline,
 						description: form.description,
 						categoryIds: form.categoryIds,
 						image_url: form.newImageFiles,
@@ -488,25 +517,7 @@ const ItemFormPage = () => {
 			navigate("/my-products", { replace: true });
 		} catch (submitError) {
 			console.error(submitError);
-			if (axios.isAxiosError(submitError) && submitError.response) {
-				if (
-					submitError.response.data &&
-					typeof submitError.response.data.message === "string"
-				) {
-					// No setError call
-				} else {
-					// No setError call
-				}
-			} else {
-				// No setError call
-			}
-			if (
-				axios.isAxiosError(submitError) &&
-				submitError.response &&
-				submitError.response.data &&
-				typeof submitError.response.data.message === "string"
-			) {
-			}
+			// Error handling to be implemented
 		} finally {
 			setSubmitting(false);
 		}
@@ -833,6 +844,10 @@ const ItemFormPage = () => {
 										{form.name.trim() || "作品名がここに表示されます"}
 									</Typography>
 									<Typography variant="body2" color="text.secondary">
+										{form.tagline.trim() ||
+											"一言説明を入力するとここに表示されます"}
+									</Typography>
+									<Typography variant="body2" color="text.secondary">
 										{form.description.trim() ||
 											"作品説明を入力するとここに表示されます"}
 									</Typography>
@@ -886,6 +901,24 @@ const ItemFormPage = () => {
 										onChange={handleInputChange("name")}
 										required
 										fullWidth
+									/>
+									<TextField
+										label="一言説明（60文字まで）"
+										value={form.tagline}
+										onChange={(event) => {
+											setTaglineTouched(true);
+											handleInputChange("tagline")(event);
+										}}
+										onBlur={() => setTaglineTouched(true)}
+										required
+										fullWidth
+										inputProps={{ maxLength: TAGLINE_MAX_LENGTH }}
+										error={showTaglineError}
+										helperText={
+											showTaglineError
+												? `${taglineError}（${taglineCount}/${TAGLINE_MAX_LENGTH}）`
+												: `${taglineCount}/${TAGLINE_MAX_LENGTH}`
+										}
 									/>
 									<TextField
 										label="作品説明"

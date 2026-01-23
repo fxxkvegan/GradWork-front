@@ -1,4 +1,5 @@
 import {
+	AccountCircle as AccountCircleIcon,
 	Android as AndroidIcon,
 	Apple as AppleIcon,
 	ArrowBack as ArrowBackIcon,
@@ -47,6 +48,7 @@ import {
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
 import DistributionFilesCard from "../components/itemDetail/DistributionFilesCard";
 import ProjectReadmeCard from "../components/itemDetail/ProjectReadmeCard";
+import ProductTagline from "../components/ProductTagline";
 import UserAvatarButton from "../components/UserAvatarButton";
 import "./ItemDetailPage.css";
 import axios from "axios";
@@ -74,6 +76,7 @@ interface ProjectDetail {
 	id: number;
 	name: string;
 	title?: string;
+	tagline?: string | null;
 	description: string;
 	shortDescription?: string;
 	longDescription?: string;
@@ -114,6 +117,7 @@ const getDemoProjectDetail = (id: string): ProjectDetail => ({
 	id: +id,
 	name: "React E-commerce Platform",
 	title: "React E-commerce Platform",
+	tagline: "個人開発向けの高機能ECスターターキット",
 	description:
 		"モダンなReactとTypeScriptで構築された本格的なEコマースプラットフォーム",
 	shortDescription: "レスポンシブ対応のECプラットフォーム",
@@ -847,30 +851,52 @@ export default function ItemDetailPage({
 		return `/item?${params.toString()}`;
 	}, [primaryCategory]);
 
-	const hasExternalLinks = useMemo(() => {
-		return Boolean(
-			project?.google_play_url ||
-				project?.app_store_url ||
-				project?.web_app_url,
-		);
-	}, [project]);
-
-	const handleLinkClick = async (url: string) => {
-		if (isDemoMode) {
-			alert("デモモードではリンクを開けません");
-			return;
+	const webAppUrlRaw = trimString(project?.web_app_url);
+	const webAppLink = useMemo(() => {
+		if (!webAppUrlRaw) {
+			return { href: "", hostname: "", isValid: false };
 		}
-
-		if (productNumericId) {
+		try {
+			const parsed = new URL(webAppUrlRaw);
+			return {
+				href: parsed.toString(),
+				hostname: parsed.hostname,
+				isValid: parsed.hostname.length > 0,
+			};
+		} catch {
 			try {
-				await productApi.incrementAccessCount(productNumericId);
-			} catch (incrementError) {
-				console.error("Failed to increment access count:", incrementError);
+				const parsed = new URL(`https://${webAppUrlRaw}`);
+				return {
+					href: parsed.toString(),
+					hostname: parsed.hostname,
+					isValid: parsed.hostname.length > 0,
+				};
+			} catch {
+				return { href: "", hostname: "", isValid: false };
 			}
 		}
+	}, [webAppUrlRaw]);
 
-		window.open(url, "_blank", "noopener,noreferrer");
-	};
+	const handleLinkClick =
+		(url: string) => async (event: React.MouseEvent<HTMLElement>) => {
+			if (!url) {
+				event.preventDefault();
+				return;
+			}
+			if (isDemoMode) {
+				event.preventDefault();
+				alert("デモモードではリンクを開けません");
+				return;
+			}
+
+			if (productNumericId) {
+				try {
+					await productApi.incrementAccessCount(productNumericId);
+				} catch (incrementError) {
+					console.error("Failed to increment access count:", incrementError);
+				}
+			}
+		};
 
 	const handleFavorite = () => {
 		setIsFavorite((f) => !f);
@@ -1379,6 +1405,43 @@ export default function ItemDetailPage({
 							<Typography variant="h5" gutterBottom>
 								{project.title || project.name}
 							</Typography>
+							<ProductTagline tagline={project.tagline} sx={{ mb: 1 }} />
+							<Box sx={{ mb: 2 }}>
+								<Box
+									sx={{
+										display: "flex",
+										alignItems: "center",
+										gap: 1,
+										flexWrap: "wrap",
+									}}
+								>
+									<Typography variant="caption" color="text.secondary">
+										投稿者:
+									</Typography>
+									<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+										{project.owner ? (
+											<UserAvatarButton
+												userId={project.owner.id}
+												name={ownerNameRaw ?? undefined}
+												displayName={ownerDisplayName ?? undefined}
+												avatarUrl={ownerAvatarUrl}
+												headerUrl={project.owner.headerUrl ?? null}
+												size={28}
+											/>
+										) : (
+											<AccountCircleIcon fontSize="small" color="action" />
+										)}
+										<Typography variant="body2" fontWeight="medium">
+											{(ownerDisplayName ?? ownerNameRaw) || "投稿者"}
+										</Typography>
+									</Box>
+								</Box>
+								{ownerBio && (
+									<Typography variant="caption" color="text.secondary">
+										{ownerBio}
+									</Typography>
+								)}
+							</Box>
 							<Typography variant="body2" color="text.secondary" paragraph>
 								{project.shortDescription || project.description}
 							</Typography>
@@ -1458,62 +1521,73 @@ export default function ItemDetailPage({
 								</Box>
 							)}
 							<Stack spacing={2} sx={{ mb: 3 }}>
-								{hasExternalLinks ? (
-									<Stack spacing={1}>
-										{project.google_play_url && (
-											<Button
-												variant="contained"
-												size="large"
-												fullWidth
-												startIcon={<AndroidIcon />}
-												onClick={() =>
-													handleLinkClick(project.google_play_url!)
-												}
-												sx={{
-													backgroundColor: "#3DDC84",
-													"&:hover": { backgroundColor: "#32B86C" },
-												}}
-											>
-												Google Play で入手
-											</Button>
-										)}
-										{project.app_store_url && (
-											<Button
-												variant="contained"
-												size="large"
-												fullWidth
-												startIcon={<AppleIcon />}
-												onClick={() => handleLinkClick(project.app_store_url!)}
-												sx={{
-													backgroundColor: "#000000",
-													"&:hover": { backgroundColor: "#333333" },
-												}}
-											>
-												App Store で入手
-											</Button>
-										)}
-										{project.web_app_url && (
-											<Button
-												variant="contained"
-												size="large"
-												fullWidth
-												startIcon={<LanguageIcon />}
-												onClick={() => handleLinkClick(project.web_app_url!)}
-											>
-												Webアプリを開く
-											</Button>
-										)}
-									</Stack>
-								) : (
-									<Typography
-										variant="body2"
-										color="text.secondary"
-										sx={{ textAlign: "center", py: 2 }}
+								<Stack spacing={1}>
+									{project.google_play_url && (
+										<Button
+											variant="contained"
+											size="large"
+											fullWidth
+											startIcon={<AndroidIcon />}
+											component="a"
+											href={project.google_play_url}
+											target="_blank"
+											rel="noopener noreferrer"
+											onClick={handleLinkClick(project.google_play_url)}
+											sx={{
+												backgroundColor: "#3DDC84",
+												"&:hover": { backgroundColor: "#32B86C" },
+											}}
+										>
+											Google Play で入手
+										</Button>
+									)}
+									{project.app_store_url && (
+										<Button
+											variant="contained"
+											size="large"
+											fullWidth
+											startIcon={<AppleIcon />}
+											component="a"
+											href={project.app_store_url}
+											target="_blank"
+											rel="noopener noreferrer"
+											onClick={handleLinkClick(project.app_store_url)}
+											sx={{
+												backgroundColor: "#000000",
+												"&:hover": { backgroundColor: "#333333" },
+											}}
+										>
+											App Store で入手
+										</Button>
+									)}
+									<Button
+										variant="contained"
+										size="large"
+										fullWidth
+										startIcon={<LanguageIcon />}
+										component={webAppLink.isValid ? "a" : "button"}
+										href={webAppLink.isValid ? webAppLink.href : undefined}
+										target={webAppLink.isValid ? "_blank" : undefined}
+										rel={webAppLink.isValid ? "noopener noreferrer" : undefined}
+										onClick={handleLinkClick(webAppLink.href)}
+										disabled={!webAppLink.isValid}
 									>
-										リンクが設定されていません
-									</Typography>
-								)}
-								<Box sx={{ display: "flex", gap: 1 }}>
+										サイトを見る
+									</Button>
+									<Box
+										sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}
+									>
+										<Typography variant="caption" color="text.secondary">
+											{webAppLink.isValid
+												? webAppLink.hostname
+												: "リンク未設定"}
+										</Typography>
+										<Typography variant="caption" color="text.secondary">
+											外部サイトを開きます
+										</Typography>
+									</Box>
+								</Stack>
+								<Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
 									<IconButton
 										onClick={handleFavorite}
 										color={isFavorite ? "error" : "default"}
@@ -1523,6 +1597,14 @@ export default function ItemDetailPage({
 									<IconButton onClick={handleShare}>
 										<ShareIcon />
 									</IconButton>
+									<MuiLink
+										href="mailto:support@example.com"
+										underline="hover"
+										color="text.secondary"
+										sx={{ fontSize: 12, ml: "auto" }}
+									>
+										問題を報告
+									</MuiLink>
 								</Box>
 							</Stack>
 							<Divider sx={{ my: 2 }} />
@@ -1555,31 +1637,6 @@ export default function ItemDetailPage({
 									</Typography>
 									<Typography variant="body1">{project.version}</Typography>
 								</Box>
-							)}
-							{project.owner && (
-								<>
-									<Divider sx={{ my: 2 }} />
-									<Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-										<UserAvatarButton
-											userId={project.owner.id}
-											name={ownerNameRaw ?? undefined}
-											displayName={ownerDisplayName ?? undefined}
-											avatarUrl={ownerAvatarUrl}
-											headerUrl={project.owner.headerUrl ?? null}
-											size={48}
-										/>
-										<Box>
-											<Typography variant="body2" fontWeight="medium">
-												{(ownerDisplayName ?? ownerNameRaw) || "投稿者"}
-											</Typography>
-											{ownerBio && (
-												<Typography variant="caption" color="text.secondary">
-													{ownerBio}
-												</Typography>
-											)}
-										</Box>
-									</Box>
-								</>
 							)}
 						</Paper>
 					</Box>

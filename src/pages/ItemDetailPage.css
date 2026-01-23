@@ -5,7 +5,7 @@
 
 .item-detail-page {
 	min-height: 100vh;
-	background-color: #f8f9fa;
+	background-color: var(--ds-gray-50);
 }
 
 /* 画像表示の最適化 */
@@ -65,6 +65,8 @@
 	max-height: calc(100vh - 100px);
 	overflow-y: auto;
 	z-index: 1;
+	border: 1px solid var(--ds-gray-200);
+	box-shadow: var(--ds-shadow-sm);
 }
 
 /* ヘッダーの高さを考慮した調整 */

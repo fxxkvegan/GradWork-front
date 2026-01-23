@@ -14,6 +14,8 @@ import {
 	CircularProgress,
 	Container,
 	IconButton,
+	Tab,
+	Tabs,
 	Typography,
 } from "@mui/material";
 import React, {
@@ -24,9 +26,12 @@ import React, {
 	useState,
 } from "react";
 import AppHeaderWithAuth from "../components/AppHeaderWithAuth";
+import ProductTagline from "../components/ProductTagline";
+import UpvoteButton from "../components/UpvoteButton";
 import UserAvatarButton from "../components/UserAvatarButton";
 import { useCategoriesList } from "../hooks/useCategoriesList";
-import { useRankingProjects } from "../hooks/useRankingProjects";
+import { useTodayRankingProjects } from "../hooks/useTodayRankingProjects";
+import { fetchProducts } from "../services/productApi";
 import * as favorites from "../utils/favorites";
 
 import "./HomePage.css";
@@ -35,12 +40,15 @@ import "./category.css";
 
 import { useNavigate } from "react-router-dom";
 import type { HomeProject } from "../types/home";
+import type { Product } from "../types/product";
 
 /* ---------- プロジェクトカード ---------- */
 const ProjectCard: React.FC<{
 	project: HomeProject;
 	onView?: (id: number) => void;
-}> = ({ project, onView }) => {
+	onUpvoteChange?: (nextCount: number, nextHasUpvoted: boolean) => void;
+	showTodayMeta?: boolean;
+}> = ({ project, onView, onUpvoteChange, showTodayMeta = false }) => {
 	// お気に入り状態の管理
 	const [isFavorite, setIsFavorite] = useState(() =>
 		favorites.isFavorite(project.id),
@@ -60,6 +68,15 @@ const ProjectCard: React.FC<{
 
 	const ownerName =
 		project.owner?.displayName?.trim() || project.owner?.name?.trim() || "";
+	const upvoteCount =
+		typeof project.upvote_count === "number" ? project.upvote_count : 0;
+	const todayCount =
+		typeof project.upvotes_today_count === "number"
+			? project.upvotes_today_count
+			: 0;
+	const accessCount =
+		typeof project.downloads === "number" ? project.downloads : 0;
+	const shouldShowToday = showTodayMeta && todayCount > 0;
 
 	return (
 		<Card className="project-card">
@@ -136,9 +153,28 @@ const ProjectCard: React.FC<{
 				<Typography variant="subtitle1" fontWeight="bold">
 					{project.title}
 				</Typography>
-				<Typography variant="body2" className="project-description">
-					{project.subtitle}
-				</Typography>
+				<ProductTagline
+					tagline={project.tagline}
+					lines={2}
+					className="project-description"
+				/>
+				{showTodayMeta && (
+					<Box
+						sx={{
+							display: "flex",
+							alignItems: "center",
+							gap: 1.5,
+							mt: 1,
+							color: "text.secondary",
+						}}
+					>
+						<Typography variant="caption">▲ {upvoteCount}</Typography>
+						{shouldShowToday && (
+							<Typography variant="caption">今日 +{todayCount}</Typography>
+						)}
+						<Typography variant="caption">閲覧 {accessCount}</Typography>
+					</Box>
+				)}
 
 				<Box className="tags-container">
 					{project.tags.map((t) => (
@@ -153,9 +189,12 @@ const ProjectCard: React.FC<{
 				</Box>
 
 				<Box className="card-footer">
-					<Typography variant="subtitle2" className="downloads-text">
-						{project.downloads.toLocaleString()} DL
-					</Typography>
+					<UpvoteButton
+						productId={project.id}
+						count={project.upvote_count ?? 0}
+						hasUpvoted={project.has_upvoted ?? false}
+						onChange={onUpvoteChange}
+					/>
 					<Button
 						size="small"
 						variant="contained"
@@ -176,11 +215,11 @@ const HomePage: React.FC = () => {
 	const navigate = useNavigate();
 	const carouselRef = useRef<HTMLDivElement | null>(null);
 	const {
-		projects: rankingProjects,
-		loading: rankingLoading,
-		error: rankingError,
-		emptyMessage: rankingEmptyMessage,
-	} = useRankingProjects();
+		projects: todayProjects,
+		loading: todayLoading,
+		error: todayError,
+		emptyMessage: todayEmptyMessage,
+	} = useTodayRankingProjects();
 	const {
 		categories,
 		loading: categoryLoading,
@@ -188,6 +227,11 @@ const HomePage: React.FC = () => {
 	} = useCategoriesList();
 	const [isCarouselPaused, setIsCarouselPaused] = useState(false);
 	const [activeIndex, setActiveIndex] = useState(0);
+	const [activeTab, setActiveTab] = useState<"today" | "new">("today");
+	const [todayItems, setTodayItems] = useState<HomeProject[]>([]);
+	const [newItems, setNewItems] = useState<HomeProject[]>([]);
+	const [newLoading, setNewLoading] = useState(false);
+	const [newError, setNewError] = useState<string | null>(null);
 	const handleViewProject = useCallback(
 		(projectId: number) => {
 			navigate(`/item/${projectId}`);
@@ -195,28 +239,96 @@ const HomePage: React.FC = () => {
 		[navigate],
 	);
 
-	const repeatedProjects = useMemo(() => {
-		if (!rankingProjects.length) return [];
-		return [...rankingProjects, ...rankingProjects, ...rankingProjects];
-	}, [rankingProjects]);
+	const displayedItems = activeTab === "today" ? todayItems : newItems;
+	const repeatedItems = useMemo(() => {
+		if (activeTab !== "today") return displayedItems;
+		if (!displayedItems.length) return [];
+		return [...displayedItems, ...displayedItems, ...displayedItems];
+	}, [activeTab, displayedItems]);
+
+	useEffect(() => {
+		setTodayItems(todayProjects);
+	}, [todayProjects]);
+
+	useEffect(() => {
+		let mounted = true;
+		const loadNewProjects = async () => {
+			setNewLoading(true);
+			setNewError(null);
+			try {
+				const { items } = await fetchProducts({
+					limit: 12,
+				});
+				if (!mounted) return;
+				const sortedItems = [...items].sort((a, b) => {
+					const toTime = (value?: string | null) =>
+						value ? new Date(value).getTime() : 0;
+					const timeA = Math.max(toTime(a.created_at), toTime(a.updated_at));
+					const timeB = Math.max(toTime(b.created_at), toTime(b.updated_at));
+					return timeB - timeA;
+				});
+				const mapped = sortedItems.map((product: Product) => {
+					const images = Array.isArray(product.image_url)
+						? product.image_url
+						: typeof product.image_url === "string" && product.image_url
+							? [product.image_url]
+							: [];
+					const categoryName = product.categories?.[0]?.name ?? "カテゴリー";
+					const tags = product.categories
+						? product.categories.map((c) => c.name).filter(Boolean)
+						: [];
+					return {
+						id: product.id,
+						title: product.name,
+						tagline: product.tagline,
+						img: images[0] ?? "/nice_dig.png",
+						category: categoryName,
+						rating: product.rating ?? 0,
+						downloads: product.access_count ?? 0,
+						tags: tags.length ? tags : [categoryName],
+						owner: product.owner ?? null,
+						upvote_count: product.upvote_count ?? 0,
+						has_upvoted: product.has_upvoted ?? false,
+					};
+				});
+				setNewItems(mapped);
+			} catch (error) {
+				if (!mounted) return;
+				setNewError(
+					error instanceof Error
+						? error.message
+						: "新着プロジェクトの取得に失敗しました",
+				);
+				setNewItems([]);
+			} finally {
+				if (mounted) {
+					setNewLoading(false);
+				}
+			}
+		};
+		loadNewProjects();
+		return () => {
+			mounted = false;
+		};
+	}, []);
 
 	useEffect(() => {
 		setActiveIndex(0);
-	}, [rankingProjects.length]);
+	}, [displayedItems.length, activeTab]);
 
 	useEffect(() => {
 		const track = carouselRef.current;
-		if (!track || !rankingProjects.length) return;
+		if (!track || !displayedItems.length || activeTab !== "today") return;
 
 		const baseWidth = track.scrollWidth / 3;
 		if (Number.isFinite(baseWidth) && baseWidth > 0) {
 			track.scrollLeft = baseWidth;
 		}
-	}, [rankingProjects.length, repeatedProjects.length]);
+	}, [displayedItems.length, repeatedItems.length, activeTab]);
 
 	useEffect(() => {
 		const track = carouselRef.current;
-		if (!track || !rankingProjects.length) return;
+		if (!track || !displayedItems.length || activeTab !== "today") return;
 
 		const intervalId = window.setInterval(() => {
 			if (isCarouselPaused) return;
@@ -233,11 +345,11 @@ const HomePage: React.FC = () => {
 		return () => {
 			window.clearInterval(intervalId);
 		};
-	}, [rankingProjects.length, isCarouselPaused]);
+	}, [displayedItems.length, isCarouselPaused, activeTab]);
 
 	useEffect(() => {
 		const track = carouselRef.current;
-		if (!track || !rankingProjects.length) return;
+		if (!track || !displayedItems.length) return;
 
 		const handleScroll = () => {
 			const children = Array.from(track.children);
@@ -252,7 +364,9 @@ const HomePage: React.FC = () => {
 				const distance = Math.abs(childCenter - centerX);
 				if (distance < closestDistance) {
 					closestDistance = distance;
-					closestIndex = index % rankingProjects.length;
+					closestIndex = displayedItems.length
+						? index % displayedItems.length
+						: 0;
 				}
 			});
 			setActiveIndex(closestIndex);
@@ -264,7 +378,27 @@ const HomePage: React.FC = () => {
 		return () => {
 			track.removeEventListener("scroll", handleScroll);
 		};
-	}, [rankingProjects.length]);
+	}, [displayedItems.length]);
+
+	const handleUpvoteChange = useCallback(
+		(listKey: "today" | "new", productId: number) =>
+			(nextCount: number, nextHasUpvoted: boolean) => {
+				const updateList = listKey === "today" ? setTodayItems : setNewItems;
+				updateList((prev) =>
+					prev.map((item) =>
+						item.id === productId
+							? {
+									...item,
+									upvote_count: nextCount,
+									has_upvoted: nextHasUpvoted,
+								}
+							: item,
+					),
+				);
+			},
+		[],
+	);
+
 	return (
 		<div className="homepage">
 			<AppHeaderWithAuth activePath="/" />
@@ -274,6 +408,12 @@ const HomePage: React.FC = () => {
 					<Box className="hero-content">
 						<Typography variant="h1" className="hero-title">
 							Nice dig
+						</Typography>
+						<Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
+							今日の個人開発を発掘する
+						</Typography>
+						<Typography variant="body1" sx={{ mb: 3, opacity: 0.9 }}>
+							いいと思ったら ▲で応援。毎日ランキング更新。
 						</Typography>
 					</Box>
 				</Container>
@@ -285,23 +425,33 @@ const HomePage: React.FC = () => {
 				sx={{ px: { xs: 2, sm: 3, md: 4 } }}
 			>
 				<Typography variant="h4" className="section-title">
-					注目のプロジェクト
-				</Typography>{" "}
-				{rankingLoading ? (
-					<Box className="loading-container">
-						<CircularProgress />
-					</Box>
-				) : rankingProjects.length === 0 ? (
-					<Alert
-						severity={rankingError ? "error" : "info"}
-						className="api-error-alert"
-					>
-						{rankingError ??
-							rankingEmptyMessage ??
-							"現在、表示できるプロジェクトがありません。"}
-					</Alert>
-				) : (
-					<>
+					今日の発掘
+				</Typography>
+				<Tabs
+					value={activeTab}
+					onChange={(_, value) => setActiveTab(value)}
+					variant="fullWidth"
+					sx={{ mt: 2 }}
+				>
+					<Tab value="today" label="Today" />
+					<Tab value="new" label="New" />
+				</Tabs>
+
+				{activeTab === "today" ? (
+					todayLoading ? (
+						<Box className="loading-container">
+							<CircularProgress />
+						</Box>
+					) : todayItems.length === 0 ? (
+						<Alert
+							severity={todayError ? "error" : "info"}
+							className="api-error-alert"
+						>
+							{todayError ??
+								todayEmptyMessage ??
+								"現在、表示できるプロジェクトがありません。"}
+						</Alert>
+					) : (
 						<Box
 							className="carousel-section"
 							id="projectCarousel"
@@ -318,26 +468,57 @@ const HomePage: React.FC = () => {
 									onTouchStart={() => setIsCarouselPaused(true)}
 									onTouchEnd={() => setIsCarouselPaused(false)}
 								>
-									{repeatedProjects.map((project, index) => (
+									{repeatedItems.map((project, index) => (
 										<Box
 											key={`${project.id}-${index}`}
-											className={`carousel-item ${rankingProjects.length && index % rankingProjects.length === activeIndex ? "active" : ""}`}
+											className={`carousel-item ${todayItems.length && index % todayItems.length === activeIndex ? "active" : ""}`}
 											data-index={
-												rankingProjects.length
-													? index % rankingProjects.length
-													: 0
+												todayItems.length ? index % todayItems.length : 0
 											}
 										>
 											<ProjectCard
 												project={project}
 												onView={handleViewProject}
+												onUpvoteChange={handleUpvoteChange("today", project.id)}
+												showTodayMeta
 											/>
 										</Box>
 									))}
 								</Box>
 							</Box>
 						</Box>
-					</>
+					)
+				) : newLoading ? (
+					<Box className="loading-container">
+						<CircularProgress />
+					</Box>
+				) : newItems.length === 0 ? (
+					<Alert
+						severity={newError ? "error" : "info"}
+						className="api-error-alert"
+					>
+						{newError ?? "現在、表示できるプロジェクトがありません。"}
+					</Alert>
+				) : (
+					<Box
+						className="carousel-section"
+						id="newProjectCarousel"
+						sx={{ mt: 5, mb: 5 }}
+					>
+						<Box className="carousel-container">
+							<Box className="carousel-track">
+								{repeatedItems.map((project, index) => (
+									<Box key={`${project.id}-${index}`} className="carousel-item">
+										<ProjectCard
+											project={project}
+											onView={handleViewProject}
+											onUpvoteChange={handleUpvoteChange("new", project.id)}
+										/>
+									</Box>
+								))}
+							</Box>
+						</Box>
+					</Box>
 				)}
 			</Container>
 			{/* カテゴリ */}
